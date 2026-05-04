@@ -1,0 +1,232 @@
+@model Laptop.Models.Product
+
+<div class="edit-wrapper">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" class="edit-container" onsubmit="syncImagesField()">
+        @Html.AntiForgeryToken()
+
+        <h4 style="text-align:center">Edit Product</h4>
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="edit-group">
+            <label>Title</label>
+            <input asp-for="Title" />
+        </div>
+
+        <div class="edit-group">
+            <label>Brand</label>
+            <input asp-for="Model" />
+        </div>
+
+        <div class="edit-group">
+            <label>Price</label>
+            <input asp-for="Price" />
+        </div>
+
+        <div class="edit-group">
+            <label>Features</label>
+            <textarea asp-for="Features"></textarea>
+        </div>
+
+        <div class="edit-group">
+            <label>Short Description</label>
+            <textarea asp-for="Description"></textarea>
+        </div>
+
+        <div class="edit-group">
+            <label>Images</label>
+            <input asp-for="Images" type="hidden" />
+            <span asp-validation-for="Images" class="text-danger"></span>
+
+            <div class="image-manager product-image-manager">
+                <div class="image-manager-add">
+                    <input type="text" id="image-url-input" class="form-control"
+                           placeholder="Paste an image URL and click Add URL" />
+                    <button type="button" class="post-btn" onclick="addImageUrl()">Add URL</button>
+                </div>
+
+                <div class="image-manager-upload">
+                    <label for="image-files">Upload images from your computer</label>
+                    <input type="file" id="image-files" name="imageFiles" class="form-control" accept="image/*" multiple onchange="handleFileSelection()" />
+                </div>
+
+                <div id="image-manager-list" class="image-manager-list product-image-manager-list"></div>
+            </div>
+        </div>
+
+        <div class="gallery-preview" id="gallery-preview" style="display:none;">
+            <div id="preview-thumbnails" class="thumb-column"></div>
+            <div class="main-image-container">
+                <img id="preview-main" class="main-img" alt="Preview">
+            </div>
+        </div>
+
+        <div class="edit-group">
+            <label>Full Description</label>
+            <textarea asp-for="FullDescription"></textarea>
+        </div>
+
+        <div class="edit-group">
+            <label>Condition</label>
+            <input asp-for="Condition" />
+        </div>
+
+        <div class="edit-actions">
+            <button type="submit" class="save-btn">Save</button>
+
+            <a asp-action="Details" asp-route-id="@Model.Id" class="cancel-btn">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const imageState = {
+            existing: (@Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                (Model.Images ?? string.Empty)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .ToList()
+            ))),
+            newFiles: []
+        };
+
+        function normalizePreviewUrl(path) {
+            if (!path) return "";
+            if (path.startsWith("blob:") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("/")) {
+                return path;
+            }
+            return "/" + path.replace(/^\/+/, "");
+        }
+
+        function syncImagesField() {
+            document.querySelector('[name="Images"]').value = imageState.existing.join(', ');
+        }
+
+        function syncFileInput() {
+            const input = document.getElementById('image-files');
+            const dataTransfer = new DataTransfer();
+            imageState.newFiles.forEach(entry => dataTransfer.items.add(entry.file));
+            input.files = dataTransfer.files;
+        }
+
+        function addImageUrl() {
+            const input = document.getElementById('image-url-input');
+            const values = input.value
+                .split(/[\r\n,]+/)
+                .map(x => x.trim())
+                .filter(x => x.length > 0);
+
+            if (!values.length) return;
+
+            values.forEach(value => imageState.existing.push(value));
+            input.value = "";
+            renderImageManager();
+        }
+
+        function handleFileSelection() {
+            const files = Array.from(document.getElementById('image-files').files);
+            files.forEach(file => {
+                imageState.newFiles.push({
+                    id: crypto.randomUUID(),
+                    file,
+                    previewUrl: URL.createObjectURL(file)
+                });
+            });
+            syncFileInput();
+            renderImageManager();
+        }
+
+        function removeExistingImage(index) {
+            imageState.existing.splice(index, 1);
+            renderImageManager();
+        }
+
+        function removeNewFile(id) {
+            const removed = imageState.newFiles.find(x => x.id === id);
+            if (removed) {
+                URL.revokeObjectURL(removed.previewUrl);
+            }
+            imageState.newFiles = imageState.newFiles.filter(x => x.id !== id);
+            syncFileInput();
+            renderImageManager();
+        }
+
+        function renderImageManager() {
+            syncImagesField();
+
+            const manager = document.getElementById('image-manager-list');
+            const thumb = document.getElementById('preview-thumbnails');
+            const main = document.getElementById('preview-main');
+            const galleryPreview = document.getElementById('gallery-preview');
+
+            manager.innerHTML = "";
+            thumb.innerHTML = "";
+            let firstPreview = null;
+
+            imageState.existing.forEach((path, index) => {
+                const resolvedUrl = normalizePreviewUrl(path);
+                appendManagerCard({
+                    label: path.startsWith('http') ? 'URL image' : 'Saved image',
+                    previewUrl: resolvedUrl,
+                    onRemove: `removeExistingImage(${index})`
+                });
+                appendPreview(resolvedUrl);
+            });
+
+            imageState.newFiles.forEach(entry => {
+                appendManagerCard({
+                    label: 'New upload',
+                    previewUrl: entry.previewUrl,
+                    onRemove: `removeNewFile('${entry.id}')`
+                });
+                appendPreview(entry.previewUrl);
+            });
+
+            if (!firstPreview) {
+                main.removeAttribute('src');
+                galleryPreview.style.display = 'none';
+            } else {
+                galleryPreview.style.display = 'flex';
+            }
+
+            function appendManagerCard(item) {
+                manager.insertAdjacentHTML('beforeend', `
+                    <div class="image-manager-card">
+                        <img src="${item.previewUrl}" alt="${item.label}">
+                        <div class="image-manager-meta">${item.label}</div>
+                        <button type="button" class="btn-cancel image-remove-btn" onclick="${item.onRemove}">Remove</button>
+                    </div>
+                `);
+            }
+
+            function appendPreview(src) {
+                const img = document.createElement("img");
+                img.src = src;
+                img.style.width = "60px";
+                img.style.cursor = "pointer";
+                img.onclick = () => main.src = src;
+                thumb.appendChild(img);
+
+                if (!firstPreview) {
+                    firstPreview = src;
+                    main.src = src;
+                }
+            }
+        }
+
+        window.onload = function () {
+            renderImageManager();
+        };
+
+        window.addEventListener('beforeunload', () => {
+            imageState.newFiles.forEach(entry => URL.revokeObjectURL(entry.previewUrl));
+        });
+    </script>
+}

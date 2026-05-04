@@ -1,0 +1,230 @@
+@model Laptop.Models.Product
+
+<div class="container">
+    <div class="review-page-content product-create-page">
+        <h1>Add New Laptop to Shop</h1>
+        <div class="separate-main"></div>
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="review-form" onsubmit="syncImagesField()">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group">
+                <label>Title <span style="color:red;">*</span></label>
+                <input asp-for="Title" class="form-control" placeholder="e.g. ASUS ROG Zephyrus G16 2025 - RTX 5090" required />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Brand <span style="color:red;">*</span></label>
+                <input asp-for="Model" class="form-control" placeholder="e.g. Lenovo" required />
+                <span asp-validation-for="Model" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Price ($) <span style="color:red;">*</span></label>
+                <input asp-for="Price" type="number" class="form-control" min="1" step="0.01" required />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+
+            <div class="section-input">
+                <label>Key Features (one per line) <span style="color:red;">*</span></label>
+                <textarea asp-for="Features" class="form-control"
+                          placeholder="RTX 5090 GPU&#10;32GB RAM&#10;1TB SSD&#10;240Hz Display"
+                          rows="6"></textarea>
+                <span asp-validation-for="Features" class="text-danger"></span>
+            </div>
+
+            <div class="section-input">
+                <label>Short Description <span style="color:red;">*</span></label>
+                <textarea asp-for="Description" class="form-control"
+                          placeholder="Brief summary, condition, warranty..."
+                          rows="6" required></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="edit-group image-editor-group">
+                <label>Images <span style="color:red;">*</span></label>
+                <input asp-for="Images" type="hidden" />
+                <span asp-validation-for="Images" class="text-danger"></span>
+
+                <div class="image-manager product-image-manager">
+                    <div class="image-manager-add">
+                        <input type="text" id="image-url-input" class="form-control"
+                               placeholder="Paste an image URL and click Add URL" />
+                        <button type="button" class="post-btn" onclick="addImageUrl()">Add URL</button>
+                    </div>
+
+                    <div class="image-manager-upload">
+                        <label for="image-files">Upload images from your computer</label>
+                        <input type="file" id="image-files" name="imageFiles" class="form-control" accept="image/*" multiple onchange="handleFileSelection()" />
+                    </div>
+
+                    <div id="image-manager-list" class="image-manager-list product-image-manager-list"></div>
+                </div>
+            </div>
+
+            <div class="gallery-preview" id="gallery-preview" style="display:none;">
+                <div id="preview-thumbnails" class="thumb-column"></div>
+                <div class="main-image-container">
+                    <img id="preview-main" class="main-img" alt="Preview">
+                </div>
+            </div>
+
+            <div class="section-input">
+                <label>Full Description <span style="color:red;">*</span></label>
+                <textarea asp-for="FullDescription" class="form-control" rows="10"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Condition</label>
+                <select asp-for="Condition" class="form-control">
+                    <option>New</option>
+                    <option selected>Like New</option>
+                    <option>Used - Excellent</option>
+                    <option>Used - Good</option>
+                    <option>Used - Fair</option>
+                </select>
+            </div>
+
+            <button type="submit" class="publish-btn">
+                <i class="fas fa-plus"></i> Add to Shop
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const imageState = {
+        existing: [],
+        newFiles: []
+    };
+
+    function normalizePreviewUrl(path) {
+        if (!path) return "";
+        if (path.startsWith("blob:") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("/")) {
+            return path;
+        }
+        return "/" + path.replace(/^\/+/, "");
+    }
+
+    function syncImagesField() {
+        document.querySelector('[name="Images"]').value = imageState.existing.join(', ');
+    }
+
+    function syncFileInput() {
+        const input = document.getElementById('image-files');
+        const dataTransfer = new DataTransfer();
+        imageState.newFiles.forEach(entry => dataTransfer.items.add(entry.file));
+        input.files = dataTransfer.files;
+    }
+
+        function addImageUrl() {
+            const input = document.getElementById('image-url-input');
+            const values = input.value
+                .split(/[\r\n,]+/)
+                .map(x => x.trim())
+                .filter(x => x.length > 0);
+
+            if (!values.length) return;
+
+            values.forEach(value => imageState.existing.push(value));
+            input.value = "";
+            renderImageManager();
+        }
+
+    function handleFileSelection() {
+        const files = Array.from(document.getElementById('image-files').files);
+        files.forEach(file => {
+            imageState.newFiles.push({
+                id: crypto.randomUUID(),
+                file,
+                previewUrl: URL.createObjectURL(file)
+            });
+        });
+        syncFileInput();
+        renderImageManager();
+    }
+
+    function removeExistingImage(index) {
+        imageState.existing.splice(index, 1);
+        renderImageManager();
+    }
+
+    function removeNewFile(id) {
+        const removed = imageState.newFiles.find(x => x.id === id);
+        if (removed) {
+            URL.revokeObjectURL(removed.previewUrl);
+        }
+        imageState.newFiles = imageState.newFiles.filter(x => x.id !== id);
+        syncFileInput();
+        renderImageManager();
+    }
+
+    function renderImageManager() {
+        syncImagesField();
+
+        const manager = document.getElementById('image-manager-list');
+        const thumb = document.getElementById('preview-thumbnails');
+        const main = document.getElementById('preview-main');
+        const galleryPreview = document.getElementById('gallery-preview');
+
+        manager.innerHTML = "";
+        thumb.innerHTML = "";
+        let firstPreview = null;
+
+        imageState.existing.forEach((path, index) => {
+            const resolvedUrl = normalizePreviewUrl(path);
+            appendManagerCard({
+                label: path.startsWith('http') ? 'URL image' : 'Saved image',
+                previewUrl: resolvedUrl,
+                onRemove: `removeExistingImage(${index})`
+            });
+            appendPreview(resolvedUrl);
+        });
+
+        imageState.newFiles.forEach(entry => {
+            appendManagerCard({
+                label: 'New upload',
+                previewUrl: entry.previewUrl,
+                onRemove: `removeNewFile('${entry.id}')`
+            });
+            appendPreview(entry.previewUrl);
+        });
+
+        if (!firstPreview) {
+            main.removeAttribute('src');
+            galleryPreview.style.display = 'none';
+        } else {
+            galleryPreview.style.display = 'flex';
+        }
+
+        function appendManagerCard(item) {
+            manager.insertAdjacentHTML('beforeend', `
+                <div class="image-manager-card">
+                    <img src="${item.previewUrl}" alt="${item.label}">
+                    <div class="image-manager-meta">${item.label}</div>
+                    <button type="button" class="btn-cancel image-remove-btn" onclick="${item.onRemove}">Remove</button>
+                </div>
+            `);
+        }
+
+        function appendPreview(src) {
+            const img = document.createElement("img");
+            img.src = src;
+            img.style.width = "60px";
+            img.style.cursor = "pointer";
+            img.onclick = () => main.src = src;
+            thumb.appendChild(img);
+
+            if (!firstPreview) {
+                firstPreview = src;
+                main.src = src;
+            }
+        }
+    }
+
+    window.addEventListener('beforeunload', () => {
+        imageState.newFiles.forEach(entry => URL.revokeObjectURL(entry.previewUrl));
+    });
+</script>

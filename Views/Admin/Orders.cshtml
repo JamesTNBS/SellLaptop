@@ -1,0 +1,460 @@
+@model IEnumerable<Laptop.Models.Order>
+
+@functions {
+    public string ResolveProductImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return Url.Content("~/images/no-image.jpg");
+        }
+
+        if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imagePath.StartsWith("/"))
+        {
+            return imagePath;
+        }
+
+        return Url.Content("~/" + imagePath.TrimStart('/'));
+    }
+
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending Payment" => "status-pending-payment",
+            "Paid" => "status-paid",
+            "Delivered" => "status-delivered",
+            "Cancelled" => "status-cancelled",
+            _ => "status-pending"
+        };
+    }
+}
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var orders = Model.ToList();
+    var totalRevenue = orders
+        .Where(o => o.Status == "Paid" || o.Status == "Delivered")
+        .Sum(o => o.TotalAmount);
+    var totalItemsSold = orders.Sum(o => o.Items?.Sum(i => i.Quantity) ?? 0);
+    var latestOrder = orders.FirstOrDefault();
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? orders.Count);
+    var search = ViewBag.Search as string ?? string.Empty;
+    var statusFilter = ViewBag.StatusFilter as string ?? "All";
+}
+
+<style>
+    .orders-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .orders-card {
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        padding: 18px 20px;
+    }
+
+    .orders-card h2,
+    .orders-card h3,
+    .orders-card p {
+        margin: 0;
+    }
+
+    .orders-summary .label {
+        color: #6c6c6c;
+        font-size: 13px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .orders-summary .value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .orders-list {
+        display: grid;
+        gap: 18px;
+    }
+
+    .order-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+
+    .order-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .order-id {
+        font-size: 22px;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .order-subtle {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .order-total {
+        text-align: right;
+    }
+
+    .order-total .value {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        color: #7348d9;
+        margin-top: 4px;
+    }
+
+    .order-top-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .order-top-actions select {
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin: 14px 0 8px;
+        padding-top: 14px;
+        border-top: 1px solid #ececec;
+    }
+
+    .order-details-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #777;
+        margin-bottom: 6px;
+    }
+
+    .order-items {
+        display: grid;
+        gap: 12px;
+    }
+
+    .order-item {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        padding: 12px 0;
+        border-top: 1px solid #ececec;
+    }
+
+    .order-item-image {
+        width: 64px;
+        height: 64px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #f3f3f3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .order-item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .order-item-title {
+        font-weight: 600;
+        color: #222;
+        margin-bottom: 5px;
+    }
+
+    .order-item-meta {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .order-line-total {
+        font-weight: 700;
+        color: #222;
+        white-space: nowrap;
+    }
+
+    .orders-empty {
+        text-align: center;
+        color: #666;
+        padding: 32px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .status-pending {
+        background: #fff2d8;
+        color: #9b6400;
+    }
+
+    .status-pending-payment {
+        background: #efe7ff;
+        color: #5f3ab0;
+    }
+
+    .status-paid {
+        background: #dbf5e5;
+        color: #1f7a42;
+    }
+
+    .status-delivered {
+        background: #dfe9ff;
+        color: #345bb8;
+    }
+
+    .status-cancelled {
+        background: #ffe1e1;
+        color: #b42323;
+    }
+
+    @@media (max-width: 720px) {
+        .order-item {
+            grid-template-columns: 56px minmax(0, 1fr);
+        }
+
+        .order-line-total {
+            grid-column: 2;
+        }
+
+        .order-total {
+            text-align: left;
+        }
+    }
+</style>
+
+<h1>Manage Orders</h1>
+
+@if (TempData["OrderStatusSuccess"] is string statusSuccess)
+{
+    <div style="margin-bottom:16px; padding:12px 16px; background:#e6f6eb; color:#1f7a42; border-radius:10px;">
+        @statusSuccess
+    </div>
+}
+
+@if (TempData["OrderStatusError"] is string statusError)
+{
+    <div style="margin-bottom:16px; padding:12px 16px; background:#ffe8e8; color:#8a1f1f; border-radius:10px;">
+        @statusError
+    </div>
+}
+
+<div class="admin-toolbar">
+    <form method="get" class="admin-filters">
+        <input type="text" name="search" value="@search" placeholder="Search customer, email, phone, city..." />
+        <select name="status">
+            <option value="All" selected="@(statusFilter == "All")">All statuses</option>
+            <option value="Pending" selected="@(statusFilter == "Pending")">Pending</option>
+            <option value="Pending Payment" selected="@(statusFilter == "Pending Payment")">Pending Payment</option>
+            <option value="Paid" selected="@(statusFilter == "Paid")">Paid</option>
+            <option value="Delivered" selected="@(statusFilter == "Delivered")">Delivered</option>
+            <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Cancelled</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
+
+    <span class="admin-pill">@totalCount order(s)</span>
+</div>
+
+<div class="orders-summary">
+    <div class="orders-card">
+        <div class="label">Total Orders</div>
+        <div class="value">@orders.Count</div>
+    </div>
+    <div class="orders-card">
+        <div class="label">Revenue</div>
+        <div class="value">$@totalRevenue.ToString("N2")</div>
+    </div>
+    <div class="orders-card">
+        <div class="label">Items Sold</div>
+        <div class="value">@totalItemsSold</div>
+    </div>
+    <div class="orders-card">
+        <div class="label">Latest Order</div>
+        <div class="value" style="font-size:18px;">
+            @(latestOrder is null ? "No orders yet" : $"#{latestOrder.Id}")
+        </div>
+        @if (latestOrder is not null)
+        {
+            <p class="order-subtle" style="margin-top:6px;">
+                @latestOrder.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")
+            </p>
+        }
+    </div>
+</div>
+
+@if (!orders.Any())
+{
+    <div class="orders-card orders-empty">
+        No orders yet.
+    </div>
+}
+else
+{
+    <div class="orders-list">
+        @foreach (var order in orders)
+        {
+            var orderItems = order.Items?.ToList() ?? new List<Laptop.Models.OrderItem>();
+
+            <section class="order-card">
+                <div class="order-header">
+                    <div class="order-meta">
+                        <div class="order-id">Order #@order.Id</div>
+                        <div class="order-subtle">Customer: @(string.IsNullOrWhiteSpace(order.FullName) ? (order.User?.Username ?? order.Username) : order.FullName)</div>
+                        <div class="order-subtle">@order.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        <span class="status-badge @GetStatusBadgeClass(order.Status)">@order.Status</span>
+                    </div>
+
+                    <div class="order-total">
+                        <div class="order-subtle">@orderItems.Sum(i => i.Quantity) item(s)</div>
+                        <span class="value">$@order.TotalAmount.ToString("N2")</span>
+                        <div class="order-top-actions">
+                            <form asp-action="UpdateOrderStatus" method="post" style="display:flex; gap:8px; align-items:center;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <select name="status">
+                                    <option value="Pending" selected="@(order.Status == "Pending")">Pending</option>
+                                    <option value="Pending Payment" selected="@(order.Status == "Pending Payment")">Pending Payment</option>
+                                    <option value="Paid" selected="@(order.Status == "Paid")">Paid</option>
+                                    <option value="Delivered" selected="@(order.Status == "Delivered")">Delivered</option>
+                                    <option value="Cancelled" selected="@(order.Status == "Cancelled")">Cancelled</option>
+                                </select>
+                                <button type="submit">Save Status</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-details-grid">
+                    <div>
+                        <div class="order-details-label">Email</div>
+                        <div>@(string.IsNullOrWhiteSpace(order.Email) ? "-" : order.Email)</div>
+                    </div>
+                    <div>
+                        <div class="order-details-label">Phone</div>
+                        <div>@(string.IsNullOrWhiteSpace(order.Phone) ? "-" : order.Phone)</div>
+                    </div>
+                    <div>
+                        <div class="order-details-label">Payment</div>
+                        <div>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "-" : order.PaymentMethod)</div>
+                    </div>
+                    <div>
+                        <div class="order-details-label">Delivery Address</div>
+                        <div>
+                            @if (string.IsNullOrWhiteSpace(order.AddressLine1) && string.IsNullOrWhiteSpace(order.City))
+                            {
+                                <span>-</span>
+                            }
+                            else
+                            {
+                                <span>@order.AddressLine1</span>
+                                @if (!string.IsNullOrWhiteSpace(order.AddressLine2))
+                                {
+                                    <br />
+                                    <span>@order.AddressLine2</span>
+                                }
+                                <br />
+                                <span>@($"{order.City}, {order.StateOrProvince} {order.PostalCode}")</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(order.Notes))
+                {
+                    <div style="margin-bottom:12px;">
+                        <div class="order-details-label">Notes</div>
+                        <div>@order.Notes</div>
+                    </div>
+                }
+
+                <div class="order-items">
+                    @foreach (var item in orderItems)
+                    {
+                        <div class="order-item">
+                            <div class="order-item-image">
+                                <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
+                            </div>
+
+                            <div>
+                                <div class="order-item-title">@item.Title</div>
+                                <div class="order-item-meta">
+                                    $@item.Price.ToString("N2") each • Qty @item.Quantity
+                                </div>
+                            </div>
+
+                            <div class="order-line-total">
+                                $@((item.Price * item.Quantity).ToString("N2"))
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+}
+
+@if (totalPages > 1)
+{
+    <div class="admin-pagination">
+        @if (currentPage > 1)
+        {
+            <a asp-action="Orders"
+               asp-route-search="@search"
+               asp-route-status="@statusFilter"
+               asp-route-page="@(currentPage - 1)">Previous</a>
+        }
+
+        <span class="current">Page @currentPage of @totalPages</span>
+
+        @if (currentPage < totalPages)
+        {
+            <a asp-action="Orders"
+               asp-route-search="@search"
+               asp-route-status="@statusFilter"
+               asp-route-page="@(currentPage + 1)">Next</a>
+        }
+    </div>
+}

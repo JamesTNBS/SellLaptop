@@ -1,0 +1,200 @@
+@model IEnumerable<Laptop.Models.CartItem>
+
+@{
+    var items = Model.ToList();
+    var subtotal = items.Sum(x => x.Price * x.Quantity);
+    var itemCount = items.Sum(x => x.Quantity);
+}
+
+<div class="container">
+    @Html.AntiForgeryToken()
+
+    @if (TempData["CheckoutError"] is string checkoutError)
+    {
+        <div style="max-width:800px; margin:0 auto 20px; padding:12px 16px; background:#ffe8e8; color:#8a1f1f; border-radius:10px; border:1px solid #f3b4b4;">
+            @checkoutError
+        </div>
+    }
+
+    <h1 id="cart-title" style="text-align:center;">
+        Your Cart (@itemCount items)
+    </h1>
+
+    <div id="cart-empty-state" style="text-align: center; padding: 60px 20px; display:@(items.Any() ? "none" : "block");">
+        <i class="fas fa-shopping-cart" style="font-size:64px; color:#7348d9;"></i>
+        <h3>Your cart is empty</h3>
+        <a asp-controller="Products" asp-action="Index"
+           class="button"
+           style="display: inline-block; margin-top: 20px; padding: 12px 28px; background: #7348d9; color: white; border-radius: 8px; text-decoration: none;">
+            Continue Shopping
+        </a>
+    </div>
+
+    <div id="cart-content" style="display:@(items.Any() ? "block" : "none");">
+        <div id="cart-items" class="cart-items-list">
+            @foreach (var item in items)
+            {
+                var itemTotal = item.Price * item.Quantity;
+
+                <div class="cart-item clickable-item"
+                     data-cart-item-id="@item.Id"
+                     data-product-id="@item.ProductId"
+                     data-price="@item.Price"
+                     onclick="goToDetails(@item.ProductId)">
+
+                    <img src="@(
+                        string.IsNullOrEmpty(item.Image)
+                            ? Url.Content("~/images/default-laptop.jpg")
+                            : (item.Image.StartsWith("http")
+                                ? item.Image
+                                : Url.Content("~/" + item.Image))
+                    )" />
+
+                    <div class="cart-item-info">
+                        <h4>@item.Title</h4>
+                        <p class="price">$@item.Price</p>
+
+                        <div class="quantity">
+                            <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Decrease')">-</button>
+                            <span class="item-quantity">@item.Quantity</span>
+                            <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Increase')">+</button>
+                        </div>
+
+                        <p class="subtotal">Item Total: <span class="item-total">$@itemTotal</span></p>
+                    </div>
+
+                    <div class="cart-item-actions">
+                        <button type="button"
+                                class="remove-btn"
+                                onclick="event.stopPropagation(); removeCartItem(@item.Id)">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="cart-summary" id="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="cart-subtotal">$@subtotal</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
+            </div>
+            <div class="summary-row total">
+                <strong>Total</strong>
+                <strong id="cart-total">$@subtotal</strong>
+            </div>
+
+            <a asp-action="Checkout" class="checkout-btn" style="display:block; text-align:center; text-decoration:none;">
+                Proceed to Checkout
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function goToDetails(id) {
+            window.location.href = `/Products/Details/${id}`;
+        }
+
+        function getAntiForgeryToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]').value;
+        }
+
+        function updateCartBadge(count) {
+            const badge = document.querySelector('.cart-badge');
+            if (badge) {
+                badge.textContent = count;
+            }
+        }
+
+        function updateCartHeader(itemCount) {
+            const title = document.getElementById('cart-title');
+            if (title) {
+                title.textContent = `Your Cart (${itemCount} items)`;
+            }
+        }
+
+        function updateCartSummary(subtotal) {
+            document.getElementById('cart-subtotal').textContent = `$${subtotal}`;
+            document.getElementById('cart-total').textContent = `$${subtotal}`;
+        }
+
+        function toggleCartState(itemCount) {
+            document.getElementById('cart-empty-state').style.display = itemCount > 0 ? 'none' : 'block';
+            document.getElementById('cart-content').style.display = itemCount > 0 ? 'block' : 'none';
+        }
+
+        function updateCartItem(id, action) {
+            fetch(`/Cart/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: `id=${id}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.requireLogin) {
+                    openLogin();
+                    return;
+                }
+
+                if (!data.success) {
+                    showToast(data.message || 'Cart update failed', 'error');
+                    return;
+                }
+
+                if (data.removed) {
+                    document.querySelector(`[data-cart-item-id='${id}']`)?.remove();
+                } else {
+                    const itemElement = document.querySelector(`[data-cart-item-id='${id}']`);
+                    if (itemElement) {
+                        itemElement.querySelector('.item-quantity').textContent = data.quantity;
+                        itemElement.querySelector('.item-total').textContent = `$${data.itemTotal}`;
+                    }
+                }
+
+                updateCartBadge(data.cartCount);
+                updateCartHeader(data.itemCount);
+                updateCartSummary(data.subtotal);
+                toggleCartState(data.itemCount);
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Error updating cart', 'error');
+            });
+        }
+
+        function removeCartItem(id) {
+            fetch('/Cart/Remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: `id=${id}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    showToast(data.message || 'Failed to remove item', 'error');
+                    return;
+                }
+
+                document.querySelector(`[data-cart-item-id='${id}']`)?.remove();
+                updateCartBadge(data.cartCount);
+                updateCartHeader(data.itemCount);
+                updateCartSummary(data.subtotal);
+                toggleCartState(data.itemCount);
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Error removing item', 'error');
+            });
+        }
+    </script>
+</div>

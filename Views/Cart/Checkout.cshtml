@@ -1,0 +1,289 @@
+@model Laptop.Models.CheckoutViewModel
+
+@functions {
+    public string ResolveProductImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return Url.Content("~/images/no-image.jpg");
+        }
+
+        if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imagePath.StartsWith("/"))
+        {
+            return imagePath;
+        }
+
+        return Url.Content("~/" + imagePath.TrimStart('/'));
+    }
+}
+
+<style>
+    .checkout-shell {
+        max-width: 1180px;
+        margin: 30px auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(320px, 420px);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .checkout-panel {
+        background: #111;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    body.light .checkout-panel {
+        background: #fff;
+        color: #111;
+        border: 1px solid #e5e5e5;
+    }
+
+    .checkout-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .checkout-field {
+        display: grid;
+        grid-template-rows: minmax(22px, auto) minmax(50px, auto) minmax(18px, auto);
+        gap: 8px;
+        align-items: start;
+    }
+
+    .checkout-field-full {
+        grid-column: 1 / -1;
+    }
+
+    .checkout-field label {
+        display: block;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    .checkout-field input,
+    .checkout-field textarea,
+    .checkout-field select {
+        width: 100%;
+        min-height: 50px;
+        border: 1px solid #3d3d3d;
+        border-radius: 10px;
+        padding: 12px 14px;
+        background: #1b1b1b;
+        color: #fff;
+        box-sizing: border-box;
+        font: inherit;
+    }
+
+    .checkout-field textarea {
+        min-height: 120px;
+    }
+
+    .checkout-field span {
+        display: block;
+        min-height: 18px;
+    }
+
+    body.light .checkout-field input,
+    body.light .checkout-field textarea,
+    body.light .checkout-field select {
+        background: #fff;
+        color: #111;
+        border-color: #d7d7d7;
+    }
+
+    .checkout-items {
+        display: grid;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .checkout-item {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .checkout-item img {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #232323;
+    }
+
+    .checkout-total-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    body.light .checkout-total-row {
+        border-top-color: #ececec;
+    }
+
+    .checkout-submit {
+        width: 100%;
+        margin-top: 16px;
+        border: none;
+        border-radius: 10px;
+        padding: 14px 16px;
+        background: #7348d9;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .checkout-submit:hover {
+        background: #5a35c0;
+    }
+
+    .field-validation-error {
+        color: #ff8b8b;
+        font-size: 13px;
+    }
+
+    body.light .field-validation-error {
+        color: #c62828;
+    }
+
+    .validation-summary-errors {
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #2b1313;
+        color: #ffbcbc;
+    }
+
+    body.light .validation-summary-errors {
+        background: #ffeaea;
+        color: #a82020;
+    }
+
+    @@media (max-width: 980px) {
+        .checkout-shell {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .checkout-form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="checkout-shell">
+    <section class="checkout-panel">
+        <h1 style="margin-top:0;">Checkout</h1>
+        <p style="margin-bottom:20px; color:inherit; opacity:.78;">
+            Fill in your delivery details and review your order before placing it.
+        </p>
+
+        <form asp-action="PlaceOrder" method="post">
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
+
+            <div class="checkout-form-grid">
+                <div class="checkout-field">
+                    <label asp-for="FullName"></label>
+                    <input asp-for="FullName" />
+                    <span asp-validation-for="FullName"></span>
+                </div>
+
+                <div class="checkout-field">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" />
+                    <span asp-validation-for="Email"></span>
+                </div>
+
+                <div class="checkout-field">
+                    <label asp-for="Phone"></label>
+                    <input asp-for="Phone" />
+                    <span asp-validation-for="Phone"></span>
+                </div>
+
+                <div class="checkout-field">
+                    <label asp-for="PaymentMethod"></label>
+                    <select asp-for="PaymentMethod">
+                        <option>Cash on Delivery</option>
+                        <option>Bank Transfer</option>
+                    </select>
+                    <span asp-validation-for="PaymentMethod"></span>
+                </div>
+
+                <div class="checkout-field checkout-field-full">
+                    <label asp-for="AddressLine1">Address Line 1</label>
+                    <input asp-for="AddressLine1" />
+                    <span asp-validation-for="AddressLine1"></span>
+                </div>
+
+                <div class="checkout-field checkout-field-full">
+                    <label asp-for="AddressLine2">Address Line 2</label>
+                    <input asp-for="AddressLine2" />
+                    <span asp-validation-for="AddressLine2"></span>
+                </div>
+
+                <div class="checkout-field">
+                    <label asp-for="City"></label>
+                    <input asp-for="City" />
+                    <span asp-validation-for="City"></span>
+                </div>
+
+                <div class="checkout-field">
+                    <label asp-for="StateOrProvince">State / Province</label>
+                    <input asp-for="StateOrProvince" />
+                    <span asp-validation-for="StateOrProvince"></span>
+                </div>
+
+                <div class="checkout-field">
+                    <label asp-for="PostalCode">Postal Code</label>
+                    <input asp-for="PostalCode" />
+                    <span asp-validation-for="PostalCode"></span>
+                </div>
+
+                <div class="checkout-field checkout-field-full">
+                    <label asp-for="Notes">Order Notes</label>
+                    <textarea asp-for="Notes" rows="4" placeholder="Delivery note, building number, preferred contact time, etc."></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="checkout-submit">Place Order</button>
+        </form>
+    </section>
+
+    <aside class="checkout-panel">
+        <h2 style="margin-top:0;">Order Summary</h2>
+        <div class="checkout-items">
+            @foreach (var item in Model.Items)
+            {
+                <div class="checkout-item">
+                    <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
+                    <div>
+                        <div style="font-weight:700;">@item.Title</div>
+                        <div style="opacity:.78;">$@item.Price.ToString("N2") x @item.Quantity</div>
+                    </div>
+                    <strong>$@((item.Price * item.Quantity).ToString("N2"))</strong>
+                </div>
+            }
+        </div>
+
+        <div class="checkout-total-row">
+            <span>Items</span>
+            <strong>@Model.ItemCount</strong>
+        </div>
+        <div class="checkout-total-row">
+            <span>Shipping</span>
+            <span>Free</span>
+        </div>
+        <div class="checkout-total-row" style="font-size:18px; font-weight:700;">
+            <span>Total</span>
+            <span>$@Model.Subtotal.ToString("N2")</span>
+        </div>
+    </aside>
+</div>

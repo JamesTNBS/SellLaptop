@@ -1,0 +1,444 @@
+﻿@using Laptop.Extensions
+@using Laptop.Models
+
+@{
+    var user = Context.Session.GetString("User");
+    var role = Context.Session.GetString("Role");
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Laptop</title>
+    <script type="importmap"></script>
+    <link rel="icon" type="~image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="~/Laptop.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+    @Html.AntiForgeryToken()
+
+        <!-- Sidebar + Page -->
+    <div class="shop-container">
+
+
+        <div class="side-panel" id="sidePanel">
+            <p id="#user-display" style=" text-align:center">
+                <i class="fas fa-user"></i>
+                <span id="username-text">@(user ?? "Guest")</span>
+            </p>
+
+            <div class="separate1"></div>
+
+            <!-- NAV -->
+            <div class="nav-links">
+                <a asp-controller="Products" asp-action="Index">
+                    <span>🏠</span> Home
+                </a>
+
+                <a href="#" onclick="goToCart(); return false;" class="cart-link">
+                    🛒 Cart <span class="cart-badge">@ViewBag.CartCount</span>
+                </a>
+
+                @if (!string.IsNullOrEmpty(user))
+                {
+                    <a asp-controller="Cart" asp-action="MyOrders">
+                        <i class="fas fa-receipt"></i> My Orders
+                    </a>
+                }
+
+                <a href="#" onclick="openSearchPopup(); return false;">
+                    <span>🔍</span> Search
+                </a>
+
+                <a href="https://zalo.me/0792351781" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-comments"></i> Zalo
+                </a>
+
+                @if (role == "Admin")
+                {
+
+                    <!-- Add Laptop -->
+                    <a asp-controller="Products" asp-action="Create">
+                        <i class="fas fa-plus-circle"></i> Add Laptop
+                    </a>
+
+                    <!-- Admin Dashboard Button -->
+                    <a asp-controller="Admin" asp-action="Index">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                }
+            </div>
+
+            <div class="separate2"></div>
+
+            <!-- Dark Mode -->
+            <button style="width: 100%;"  class="toggle-light-mode">
+                <i class="fas fa-sun"></i>
+            </button>
+
+            <!-- AUTH BUTTONS -->
+            @if (string.IsNullOrEmpty(user))
+            {
+                <button class="auth-btn login-btn" onclick="openLogin()">Login</button>
+                <button class="auth-btn register-btn" onclick="openRegister()">Register</button>
+            }
+            else
+            {
+                <form asp-controller="Account"
+                      asp-action="Logout"
+                      method="post">
+                    <input type="hidden" name="returnUrl"
+                           value="@Context.Request.Path@Context.Request.QueryString" />
+                    <button class="auth-btn logout-btn">Logout</button>
+                </form>
+            }
+
+
+            <div class="separate3"></div>
+        </div>
+
+        <!-- Hamburger Menu -->
+        <button class="menu-toggle" onclick="toggleSidePanel()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- ==================== POPUPS (Outside sidebar!) ==================== -->
+    <!-- Login Popup -->
+    <div id="login-modal" class="popup-overlay">
+        <div class="popup-box">
+            <span class="popup-close" onclick="closeLogin()">×</span>
+            <h4>Login</h4>
+
+            <!-- Login Popup Form -->
+            <form id="login-form" onsubmit="submitLogin(event)">
+                <input type="text"
+                       id="login-username"
+                       placeholder="Username"
+                       required
+                       oninvalid="this.setCustomValidity('Username is required')"
+                       oninput="this.setCustomValidity('')" />
+                <div class="password-field">
+                    <input type="password"
+                           id="login-password"
+                           placeholder="Password"
+                           required
+                           oninvalid="this.setCustomValidity('Password is required')"
+                           oninput="this.setCustomValidity('')" />
+                    <span onclick="togglePassword('login-password')">👁</span>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+
+            <p style =" margin-left:50px">
+                Don't have an account?
+                <a href="#" onclick="switchToRegister(); return false;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="register-modal" class="popup-overlay">
+        <div class="popup-box">
+            <span class="popup-close" onclick="closeRegister()">×</span>
+            <h4>Create Account</h4>
+            <form id="register-form" onsubmit="submitRegister(event)">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="returnUrl"
+                       value="@Context.Request.Path@Context.Request.QueryString" />
+
+                <!-- Username -->
+                <input type="text"
+                       name="username"
+                       placeholder="Username"
+                       required
+                       oninvalid="this.setCustomValidity('Username is required')"
+                       oninput="this.setCustomValidity('')" />
+
+                <!-- Email -->
+                <input type="email"
+                       name="email"
+                       placeholder="Email Address"
+                       required
+                       oninvalid="this.setCustomValidity('Please enter a valid email address')"
+                       oninput="this.setCustomValidity('')" />
+
+                <!-- Password -->
+                <div class="password-field">
+                    <input type="password"
+                           id="register-pass"
+                           name="password"
+                           placeholder="Enter your password"
+                           required
+                           oninvalid="this.setCustomValidity('Password is required')"
+                           oninput="this.setCustomValidity('')" />
+                    <span onclick="togglePassword('register-pass')">👁</span>
+                </div>
+
+                <button type="submit">Register</button>
+            </form>
+
+            <p style=" margin-left:50px">
+                Already have an account?
+                <a href="#" onclick="switchToLogin(); return false;">Login here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Search Popup -->
+    <div id="search-modal" class="popup-overlay search-popup">
+        <div class="popup-box search-popup-box">
+            <span class="close-search" onclick="closeSearchPopup()">×</span>
+            <h4>Search Laptops</h4>
+            <input type="text" id="search-input" placeholder="Enter your search...">
+            <button type="button" onclick="performSearch()">Search</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="popup-overlay confirm-overlay">
+        <div class="popup-box confirm-box">
+            <span class="popup-close" onclick="closeConfirm(false)">×</span>
+            <h4 id="confirm-title">Please Confirm</h4>
+            <p id="confirm-message" class="confirm-message"></p>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-cancel-btn" onclick="closeConfirm(false)">No</button>
+                <button type="button" class="confirm-confirm-btn" onclick="closeConfirm(true)">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+            function openLogin() {
+                document.getElementById("login-modal").style.display = "flex";
+            }
+            function closeLogin() {
+                document.getElementById("login-modal").style.display = "none";
+            }
+
+            function openRegister() {
+                document.getElementById("register-modal").style.display = "flex";
+            }
+            function closeRegister() {
+                document.getElementById("register-modal").style.display = "none";
+            }
+
+            function openSearchPopup() {
+                document.getElementById("search-modal").style.display = "flex";
+            }
+
+            function closeSearchPopup() {
+                document.getElementById("search-modal").style.display = "none";
+            }
+
+            let confirmResolver = null;
+
+            function showConfirm(message, title = "Please Confirm") {
+                const modal = document.getElementById("confirm-modal");
+                const titleElement = document.getElementById("confirm-title");
+                const messageElement = document.getElementById("confirm-message");
+
+                if (!modal || !titleElement || !messageElement) {
+                    return Promise.resolve(window.confirm(message));
+                }
+
+                titleElement.textContent = title;
+                messageElement.innerHTML = String(message).replace(/\n/g, "<br>");
+                modal.style.display = "flex";
+
+                return new Promise(resolve => {
+                    confirmResolver = resolve;
+                });
+            }
+
+            function closeConfirm(result) {
+                const modal = document.getElementById("confirm-modal");
+                if (modal) {
+                    modal.style.display = "none";
+                }
+
+                if (confirmResolver) {
+                    const resolver = confirmResolver;
+                    confirmResolver = null;
+                    resolver(Boolean(result));
+                }
+            }
+
+            window.showConfirm = showConfirm;
+            window.closeConfirm = closeConfirm;
+
+             function performSearch() {
+                const query = document.getElementById("search-input").value.toLowerCase().trim();
+                if (!query) {
+                    closeSearchPopup();
+                    return;
+                }
+
+                window.location.href = `/Products/Index?search=${encodeURIComponent(query)}`;
+            }
+
+            function addToCart(productId) {
+                fetch(`/Cart/Add?productId=${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.requireLogin) {
+                        openLogin();
+                    } else if (data.success) {
+                        document.querySelector(".cart-badge").textContent = data.cartCount;
+                        showToast("Added to cart!", "success");
+                    } else {
+                        showToast(data.message || "Failed to add to cart", "error");
+                    }
+                });
+            }
+
+
+            function goToCart() {
+                const isLoggedIn = "@(user ?? "")" !== "";
+
+                if (!isLoggedIn) {
+                    openLogin();
+                } else {
+                    window.location.href = "/Cart";
+                }
+            }
+
+            function switchToRegister() {
+                closeLogin();
+                setTimeout(() => {
+                    openRegister();
+                }, 200);
+            }
+
+            function switchToLogin() {
+                closeRegister();
+                setTimeout(() => {
+                    openLogin();
+                }, 200);
+            }
+
+            function togglePassword(id) {
+                const input = document.getElementById(id);
+                input.type = input.type === "password" ? "text" : "password";
+            }
+
+            function submitLogin(event) {
+                event.preventDefault();
+
+                const username = document.getElementById("login-username").value.trim();
+                const password = document.getElementById("login-password").value;
+
+                fetch('/Account/Login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closeLogin();
+                        location.reload();
+                    } else {
+                        showToast(data.message || "Login failed", "error");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Login error occurred", "error");
+                });
+            }
+
+
+                        function submitRegister(event) {
+                event.preventDefault();
+
+                const username = document.querySelector('input[name="username"]').value.trim();
+                const email = document.querySelector('input[name="email"]').value.trim();
+                const password = document.querySelector('input[name="password"]').value;
+
+                fetch('/Account/Register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, "success");
+
+                        closeRegister();
+                        setTimeout(() => openLogin(), 500);
+
+                        document.getElementById("register-form").reset();
+                    } else {
+                        showToast(data.message, "error");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Registration error occurred", "error");
+                });
+            }
+
+
+            document.getElementById("search-input").addEventListener("keydown", function(e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape" && document.getElementById("confirm-modal")?.style.display === "flex") {
+                    closeConfirm(false);
+                }
+            });
+
+
+                function showToast(message, type = "info", duration = 3000) {
+                const container = document.getElementById("toast-container");
+
+                const toast = document.createElement("div");
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+
+                container.appendChild(toast);
+
+                setTimeout(() => toast.classList.add("show"), 100);
+
+                setTimeout(() => {
+                    toast.classList.remove("show");
+                    setTimeout(() => container.removeChild(toast), 300);
+                }, duration);
+            }
+
+    </script>
+
+    <div id="toast-container"></div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

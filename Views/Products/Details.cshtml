@@ -1,0 +1,610 @@
+@model Laptop.Models.Product
+
+<link rel="stylesheet" href="~/css/style.css" />
+
+@functions {
+    public string ResolveProductImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return Url.Content("~/images/default-laptop.jpg");
+        }
+
+        if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imagePath.StartsWith("/"))
+        {
+            return imagePath;
+        }
+
+        return Url.Content("~/" + imagePath.TrimStart('/'));
+    }
+}
+
+@{
+    var commentsByParent = (Model.Comments ?? new List<Laptop.Models.Comment>())
+        .OrderByDescending(c => c.CreatedAt)
+        .GroupBy(c => c.ParentCommentId ?? 0)
+        .ToDictionary(g => g.Key, g => g.ToList());
+
+    var topLevelComments = commentsByParent.TryGetValue(0, out var rootComments)
+        ? rootComments
+        : new List<Laptop.Models.Comment>();
+
+    var currentRole = ViewBag.Role?.ToString() ?? "";
+    var currentUserIdValue = ViewBag.UserId is int userId ? userId : 0;
+}
+
+<div class="product-page-container">
+
+    <div class="product-layout">
+
+        <div class="gallery">
+            <div class="thumb-column" id="thumbnail-column">
+                @if (!string.IsNullOrEmpty(Model.Images))
+                {
+                    var imageList = Model.Images.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    foreach (var img in imageList)
+                    {
+                        <img src="@ResolveProductImage(img.Trim())" onclick="changeImage(this)" alt="Product image" />
+                    }
+                }
+                else
+                {
+                    <img src="~/images/default-laptop.jpg" alt="No image" />
+                }
+            </div>
+
+            <div class="main-image-container">
+                <img id="main-img"
+                     class="main-img"
+                     src="@ResolveProductImage(Model.Images?.Split(',')[0]?.Trim())"
+                     onclick="openPopup(this.src)" />
+            </div>
+        </div>
+
+        <div class="product-info">
+            <h1>@Model.Title</h1>
+
+            <div class="price">
+                $@Model.Price.ToString("N0")
+            </div>
+
+            <ul class="features" id="laptop-features">
+                @if (!string.IsNullOrEmpty(Model.Features))
+                {
+                    var featuresList = Model.Features.Split(new[] { '\n', '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var feature in featuresList)
+                    {
+                        <li>@feature.Trim()</li>
+                    }
+                }
+                else
+                {
+                    <li>No features listed</li>
+                }
+            </ul>
+
+            <p class="short-desc">@Model.Description</p>
+        </div>
+
+        <div class="buy-box">
+            <h2>$@Model.Price.ToString("N0")</h2>
+
+            <p class="stock">✔ In Stock</p>
+
+            <button type="button" class="btn-cart" onclick="addToCart(@Model.Id)">
+                <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
+
+            <button type="button" class="btn-buy" onclick="buyNow(@Model.Id)">
+                Buy Now
+            </button>
+
+            <div class="seller-info">
+                <p>Seller: @Model.Seller</p>
+                <p>Condition: @Model.Condition</p>
+            </div>
+
+            @if (ViewBag.Role == "Admin")
+            {
+                <div class="admin-actions">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+
+                    <form asp-action="DeleteConfirmed" method="post" style="display:inline;" class="confirm-delete-product-form">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn-delete">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="product-bottom">
+        <h2>Product Description</h2>
+        <p class="full-description">@Model.FullDescription</p>
+    </div>
+
+    <div id="comment-section">
+        <h3>Comments (@(Model.Comments?.Count ?? 0))</h3>
+
+        @Html.AntiForgeryToken()
+
+        <textarea id="comment-input" placeholder="Write a comment..." rows="3"></textarea>
+        <button type="button" onclick="postComment()" class="post-btn">Post</button>
+
+        <div id="comments-list">
+            @if (topLevelComments.Any())
+            {
+                foreach (var c in topLevelComments)
+                {
+                    @await Html.PartialAsync(
+                        "_CommentThread",
+                        c,
+                        new ViewDataDictionary(ViewData)
+                        {
+                            ["CommentsByParent"] = commentsByParent,
+                            ["Role"] = ViewBag.Role,
+                            ["UserId"] = ViewBag.UserId,
+                            ["ProductId"] = Model.Id
+                        })
+                }
+            }
+            else
+            {
+                <p class="no-comments">No comment</p>
+            }
+        </div>
+    </div>
+
+</div>
+
+<div id="image-popup" class="popup">
+    <button class="close-btn" onclick="closePopup()">×</button>
+    <img id="popup-img" src="" alt="Popup image">
+</div>
+
+<script>
+    function changeImage(el) {
+        document.getElementById("main-img").src = el.src;
+    }
+
+    function openPopup(src) {
+        document.getElementById("popup-img").src = src;
+        document.getElementById("image-popup").style.display = "flex";
+    }
+
+    function closePopup() {
+        document.getElementById("image-popup").style.display = "none";
+    }
+
+    document.getElementById("image-popup").addEventListener('click', function (e) {
+        if (e.target === this) closePopup();
+    });
+
+    function addToCart(productId) {
+        fetch(`/Cart/Add?productId=${productId}`, {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.requireLogin) {
+                openLogin();
+            }
+            else if (data.success) {
+                showToast("Added to cart successfully!", "success");
+            }
+            else {
+                showToast(data.message || "Failed to add to cart", "error");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("An error occurred.", "error");
+        });
+    }
+
+    function buyNow(productId) {
+        fetch(`/Cart/Add?productId=${productId}`, {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.requireLogin) {
+                openLogin();
+            } else if (data.success) {
+                showToast("Added to cart! Redirecting...", "success");
+                window.location.href = "/Cart";
+            } else {
+                showToast("Failed to buy product", "error");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("Error occurred", "error");
+        });
+    }
+
+    function submitComment(productId, text, parentCommentId = null) {
+        return fetch('/Products/AddComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({
+                productId: productId,
+                text: text,
+                parentCommentId: parentCommentId
+            })
+        })
+        .then(res => res.json());
+    }
+
+    const currentRole = "@currentRole";
+    const currentUserId = @currentUserIdValue;
+
+    function escapeHtml(value) {
+        return (value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function updateCommentHeading(change) {
+        const heading = document.querySelector('#comment-section h3');
+        if (!heading) return;
+
+        const match = heading.textContent.match(/\((\d+)\)/);
+        const currentCount = match ? parseInt(match[1], 10) : 0;
+        const nextCount = Math.max(0, currentCount + change);
+        heading.textContent = `Comments (${nextCount})`;
+    }
+
+    function updateNoCommentsState() {
+        const commentsList = document.getElementById('comments-list');
+        if (!commentsList) return;
+
+        const hasComments = commentsList.querySelector('.comment-item') !== null;
+        const emptyState = commentsList.querySelector('.no-comments');
+
+        if (!hasComments && !emptyState) {
+            commentsList.innerHTML = '<p class="no-comments">No comment</p>';
+        }
+
+        if (hasComments && emptyState) {
+            emptyState.remove();
+        }
+    }
+
+    function buildCommentItemHtml(comment) {
+        const actionButtons = [];
+
+        actionButtons.push(
+            `<button type="button" class="comment-action-btn btn-reply" onclick="toggleReplyForm(${comment.id})">Reply</button>`
+        );
+
+        if (comment.canManage) {
+            actionButtons.push(
+                `<button type="button" onclick="showEdit(${comment.id})" class="comment-action-btn btn-comment-edit">Edit</button>`
+            );
+            actionButtons.push(
+                `<button type="button" onclick="deleteComment(${comment.id})" class="delete-comment-btn">Delete</button>`
+            );
+        }
+
+        return `
+            <div class="comment-item" data-comment-id="${comment.id}">
+                <div class="comment-header">
+                    <strong>${escapeHtml(comment.username)}</strong>
+                    <small>${escapeHtml(comment.createdAt)}</small>
+                </div>
+
+                <p class="comment-text">${escapeHtml(comment.text)}</p>
+
+                <div class="edit-area" style="display:none;">
+                    <input type="text" class="edit-input" value="${escapeHtml(comment.text)}" />
+
+                    <div class="edit-actions">
+                        <button type="button" onclick="saveEdit(${comment.id})" class="btn-save">Save</button>
+                        <button type="button" onclick="cancelEdit(${comment.id})" class="btn-cancel">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="comment-actions">
+                    ${actionButtons.join('')}
+                </div>
+
+                <div class="reply-form comment-reply-form edit-area" data-reply-form-for="${comment.id}" style="display:none;">
+                    <textarea class="edit-input reply-input" rows="2" placeholder="Write a reply..."></textarea>
+                    <div class="reply-actions edit-actions">
+                        <button type="button" class="btn-save" onclick="submitReply(${comment.id}, ${comment.productId})">Post Reply</button>
+                        <button type="button" class="btn-cancel" onclick="toggleReplyForm(${comment.id}, false)">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function getReplyToggleButton(commentId) {
+        return document.querySelector(`[data-toggle-replies-for='${commentId}']`);
+    }
+
+    function updateReplyToggleText(commentId, countOverride) {
+        const toggleButton = getReplyToggleButton(commentId);
+        if (!toggleButton) return;
+
+        const replyCount = typeof countOverride === "number"
+            ? countOverride
+            : parseInt(toggleButton.getAttribute("data-reply-count") || "0", 10);
+        const replyList = document.querySelector(`[data-reply-list-for='${commentId}']`);
+        const isVisible = !!replyList && replyList.style.display !== "none" && replyList.style.display !== "";
+
+        if (replyCount <= 0) {
+            toggleButton.remove();
+            return;
+        }
+
+        toggleButton.setAttribute("data-reply-count", replyCount.toString());
+        toggleButton.textContent = isVisible ? "Hide replies" : `See replies (${replyCount})`;
+    }
+
+    function ensureReplyList(commentId) {
+        let replyList = document.querySelector(`[data-reply-list-for='${commentId}']`);
+        if (replyList) {
+            return replyList;
+        }
+
+        const parentComment = document.querySelector(`[data-comment-id='${commentId}']`);
+        if (!parentComment) return null;
+
+        replyList = document.createElement('div');
+        replyList.className = 'reply-list';
+        replyList.setAttribute('data-reply-list-for', commentId);
+        replyList.style.display = 'none';
+        parentComment.appendChild(replyList);
+
+        return replyList;
+    }
+
+    function ensureReplyToggle(commentId) {
+        let toggleButton = getReplyToggleButton(commentId);
+        if (toggleButton) {
+            return toggleButton;
+        }
+
+        const parentComment = document.querySelector(`[data-comment-id='${commentId}']`);
+        if (!parentComment) return null;
+
+        const actionRow = parentComment.querySelector('.comment-actions');
+        if (!actionRow) return null;
+
+        toggleButton = document.createElement('button');
+        toggleButton.type = 'button';
+        toggleButton.className = 'comment-action-btn btn-toggle-replies';
+        toggleButton.setAttribute('data-toggle-replies-for', commentId);
+        toggleButton.setAttribute('data-reply-count', '0');
+        toggleButton.onclick = () => toggleReplies(commentId);
+        actionRow.insertBefore(toggleButton, actionRow.children[1] || null);
+
+        updateReplyToggleText(commentId, 0);
+        return toggleButton;
+    }
+
+    function postComment() {
+        const text = document.getElementById("comment-input").value.trim();
+
+        if (!text) {
+            showToast("Please write a comment", "error");
+            return;
+        }
+
+        submitComment(@Model.Id, text)
+            .then(data => {
+                if (data.requireLogin) {
+                    openLogin();
+                }
+                else if (data.success) {
+                    document.getElementById("comment-input").value = "";
+                    const commentsList = document.getElementById('comments-list');
+                    commentsList.insertAdjacentHTML('afterbegin', buildCommentItemHtml(data.comment));
+                    updateNoCommentsState();
+                    updateCommentHeading(1);
+                }
+                else {
+                    showToast(data.message || "Failed to post comment", "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Could not post comment. Please try again.", "error");
+            });
+    }
+
+    function toggleReplyForm(commentId, shouldShow) {
+        const replyForm = document.querySelector(`[data-reply-form-for='${commentId}']`);
+        if (!replyForm) return;
+
+        const show = typeof shouldShow === "boolean"
+            ? shouldShow
+            : replyForm.style.display === "none" || replyForm.style.display === "";
+
+        replyForm.style.display = show ? "block" : "none";
+
+        if (show) {
+            replyForm.querySelector('.reply-input')?.focus();
+        }
+    }
+
+    function submitReply(commentId, productId) {
+        const replyForm = document.querySelector(`[data-reply-form-for='${commentId}']`);
+        const input = replyForm?.querySelector('.reply-input');
+        const text = input?.value.trim();
+
+        if (!text) {
+            showToast("Please write a reply", "error");
+            return;
+        }
+
+        submitComment(productId, text, commentId)
+            .then(data => {
+                if (data.requireLogin) {
+                    openLogin();
+                }
+                else if (data.success) {
+                    input.value = "";
+                    toggleReplyForm(commentId, false);
+
+                    const replyList = ensureReplyList(commentId);
+                    if (!replyList) {
+                        return;
+                    }
+
+                    replyList.insertAdjacentHTML('beforeend', buildCommentItemHtml(data.comment));
+                    replyList.style.display = 'block';
+
+                    const toggleButton = ensureReplyToggle(commentId);
+                    const currentCount = parseInt(toggleButton?.getAttribute('data-reply-count') || '0', 10);
+                    updateReplyToggleText(commentId, currentCount + 1);
+                    updateCommentHeading(1);
+                }
+                else {
+                    showToast(data.message || "Failed to post reply", "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Could not post reply. Please try again.", "error");
+            });
+    }
+
+    function toggleReplies(commentId) {
+        const replyList = document.querySelector(`[data-reply-list-for='${commentId}']`);
+        const toggleButton = document.querySelector(`[data-toggle-replies-for='${commentId}']`);
+        if (!replyList || !toggleButton) return;
+
+        const shouldShow = replyList.style.display === "none" || replyList.style.display === "";
+        const replyCount = toggleButton.getAttribute("data-reply-count") || "0";
+        replyList.style.display = shouldShow ? "block" : "none";
+        toggleButton.textContent = shouldShow
+            ? "Hide replies"
+            : `See replies (${replyCount})`;
+    }
+
+    document.getElementById("comment-input").addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            postComment();
+        }
+    });
+
+    async function deleteComment(id) {
+        const confirmed = await showConfirm("Delete this comment and all of its replies?", "Delete Comment");
+        if (!confirmed) return;
+
+        fetch('/Products/DeleteComment', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: new URLSearchParams({ id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const deletedIds = data.deletedIds || [id];
+                const deletedCount = deletedIds.length;
+
+                deletedIds.forEach(deletedId => {
+                    document.querySelector(`[data-comment-id='${deletedId}']`)?.remove();
+                });
+
+                if (data.parentCommentId) {
+                    const toggleButton = getReplyToggleButton(data.parentCommentId);
+                    const currentCount = parseInt(toggleButton?.getAttribute('data-reply-count') || '0', 10);
+                    updateReplyToggleText(data.parentCommentId, Math.max(0, currentCount - 1));
+
+                    const replyList = document.querySelector(`[data-reply-list-for='${data.parentCommentId}']`);
+                    if (replyList && !replyList.querySelector('.comment-item')) {
+                        replyList.remove();
+                    }
+                }
+
+                updateCommentHeading(-deletedCount);
+                updateNoCommentsState();
+            } else {
+                showToast(data.message || "Delete failed", "error");
+            }
+        });
+    }
+
+    document.querySelectorAll('.confirm-delete-product-form').forEach(form => {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const confirmed = await showConfirm("Are you sure you want to delete this product?", "Delete Product");
+            if (confirmed) {
+                form.submit();
+            }
+        });
+    });
+
+    function showEdit(id) {
+        const container = document.querySelector(`[data-comment-id='${id}']`);
+        container.querySelector('.comment-text').style.display = "none";
+        container.querySelector('.edit-area').style.display = "block";
+    }
+
+    function cancelEdit(id) {
+        const container = document.querySelector(`[data-comment-id='${id}']`);
+        container.querySelector('.edit-area').style.display = "none";
+        container.querySelector('.comment-text').style.display = "block";
+    }
+
+    function saveEdit(id) {
+        const container = document.querySelector(`[data-comment-id='${id}']`);
+        const input = container.querySelector('.edit-input');
+        const newText = input.value.trim();
+
+        if (!newText) {
+            showToast("Comment cannot be empty", "error");
+            return;
+        }
+
+        fetch('/Admin/EditComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken':
+                    document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: `id=${id}&text=${encodeURIComponent(newText)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const commentText = container.querySelector('.comment-text');
+                commentText.textContent = data.text ?? newText;
+                input.value = data.text ?? newText;
+                cancelEdit(id);
+                showToast("Comment updated", "success");
+            } else {
+                showToast(data.message || "Edit failed", "error");
+            }
+        })
+        .catch(err => {
+            console.error("ERROR:", err);
+            showToast("Something went wrong", "error");
+        });
+    }
+</script>

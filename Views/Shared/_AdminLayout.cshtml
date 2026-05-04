@@ -1,0 +1,183 @@
+@using Laptop.Extensions
+@using Laptop.Models
+
+@functions {
+    public string GetAdminLinkClass(string controller, string action)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        return string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) &&
+               string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)
+            ? "active"
+            : string.Empty;
+    }
+}
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="icon" type="~image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin:0; font-family: Arial, sans-serif; display:flex; height:100vh; }
+        .sidebar { width:220px; background:#7348d9; color:white; display:flex; flex-direction:column; }
+        .sidebar h2 { text-align:center; margin:20px 0; }
+        .sidebar a { color:white; text-decoration:none; padding:12px 20px; display:block; border-left:4px solid transparent; transition:background .2s ease, border-color .2s ease, padding-left .2s ease; }
+        .sidebar a:hover { background:#5a37b1; }
+        .sidebar a.active { background:#5a37b1; border-left-color:#f3cf42; padding-left:24px; font-weight:bold; }
+        .content { flex:1; padding:20px; background:#f5f5f5; overflow-y:auto; }
+        .topbar { display:flex; justify-content:flex-end; margin-bottom:20px; }
+        .topbar a { margin-left:20px; text-decoration:none; color:#7348d9; font-weight:bold; }
+        .stats { display:flex; gap:20px; margin-bottom:20px; }
+        .card { flex:1; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:center; }
+        table { width:100%; border-collapse:collapse; background:white; border-radius:10px; overflow:hidden; }
+        th, td { padding:12px; border-bottom:1px solid #ddd; text-align:left; }
+        th { background:#7348d9; color:white; }
+        button { background:#7348d9; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; }
+        button:hover { background:#5a37b1; }
+        .admin-toolbar { display:flex; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+        .admin-filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .admin-filters input, .admin-filters select { padding:10px 12px; border:1px solid #ccc; border-radius:8px; min-width:180px; }
+        .admin-pill { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:bold; background:#f1ecff; color:#5f3ab0; }
+        .admin-danger { background:#d32f2f; }
+        .admin-danger:hover { background:#b71c1c; }
+        .admin-muted { color:#666; }
+        .admin-pagination { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:18px; flex-wrap:wrap; }
+        .admin-pagination a, .admin-pagination span { background:white; padding:8px 12px; border-radius:8px; text-decoration:none; color:#333; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+        .admin-pagination .current { background:#7348d9; color:white; }
+        .admin-section { background:white; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,0.08); padding:18px; margin-bottom:20px; }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+        .toast { background-color: #333; color: white; padding: 12px 18px; border-radius: 10px; margin-top: 10px; opacity: 0; transform: translateY(12px); transition: opacity 0.25s ease, transform 0.25s ease; box-shadow: 0 8px 22px rgba(0,0,0,0.2); }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: #1f7a42; }
+        .toast.error { background: #b42323; }
+        .toast.info { background: #7348d9; }
+        .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(14,10,28,0.55); backdrop-filter:blur(4px); z-index:10001; align-items:center; justify-content:center; padding:18px; }
+        .confirm-box { width:100%; max-width:460px; background:white; border-radius:18px; box-shadow:0 16px 48px rgba(0,0,0,0.25); padding:24px; position:relative; }
+        .confirm-box h4 { margin:0 0 12px; color:#5f3ab0; font-size:28px; }
+        .confirm-message { margin:0; color:#444; line-height:1.6; white-space:normal; }
+        .confirm-close { position:absolute; top:14px; right:16px; font-size:28px; color:#666; cursor:pointer; line-height:1; }
+        .confirm-close:hover { color:#222; }
+        .confirm-actions { display:flex; justify-content:flex-end; gap:12px; margin-top:18px; }
+        .confirm-actions button { min-width:110px; border-radius:10px; padding:10px 16px; }
+        .confirm-cancel-btn { background:#f1f1f5; color:#333; border:1px solid #d8d8e2; }
+        .confirm-cancel-btn:hover { background:#e6e6ed; }
+        .confirm-confirm-btn { background:#7348d9; color:white; }
+        .confirm-confirm-btn:hover { background:#5a37b1; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a asp-controller="Admin" asp-action="Index" class="@GetAdminLinkClass("Admin", "Index")"><i class="fas fa-home"></i> Dashboard</a>
+        <a asp-controller="Admin" asp-action="Users" class="@GetAdminLinkClass("Admin", "Users")"><i class="fas fa-users"></i>Manage Users</a>
+        <a asp-controller="Admin" asp-action="CartItems" class="@GetAdminLinkClass("Admin", "CartItems")">
+            <i class="fas fa-shopping-cart"></i> Manage Cart Items
+        </a>
+        <a asp-controller="Admin" asp-action="Orders" class="@GetAdminLinkClass("Admin", "Orders")">
+            <i class="fas fa-receipt"></i> Manage Orders
+        </a>
+        <a asp-controller="Admin" asp-action="Comments" class="admin-link @GetAdminLinkClass("Admin", "Comments")">
+            <i class="fas fa-comments"></i> Manage Comments
+        </a>
+        <a asp-controller="Products" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to Site</a>
+    </div>
+
+    <div class="content">
+        <div class="topbar">
+            <span>
+                Logged in as: <strong>@(Context.Session.GetString("User") ?? "Unknown")</strong>
+                (@(Context.Session.GetString("Role") ?? "User"))
+            </span>
+            <form id="logoutForm"
+                  asp-controller="Account"
+                  asp-action="Logout"
+                  method="post"
+                  style="display:none;">
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            </form>
+
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
+                Logout
+            </a>
+        </div>
+        @RenderBody()
+    </div>
+    <div id="confirm-modal" class="confirm-overlay">
+        <div class="confirm-box">
+            <span class="confirm-close" onclick="closeConfirm(false)">×</span>
+            <h4 id="confirm-title">Please Confirm</h4>
+            <p id="confirm-message" class="confirm-message"></p>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-cancel-btn" onclick="closeConfirm(false)">No</button>
+                <button type="button" class="confirm-confirm-btn" onclick="closeConfirm(true)">Yes</button>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container"></div>
+    <script>
+        function showToast(message, type = "info", duration = 3000) {
+            const container = document.getElementById("toast-container");
+            if (!container) return;
+
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add("show"), 50);
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 250);
+            }, duration);
+        }
+
+        let confirmResolver = null;
+
+        function showConfirm(message, title = "Please Confirm") {
+            const modal = document.getElementById("confirm-modal");
+            const titleElement = document.getElementById("confirm-title");
+            const messageElement = document.getElementById("confirm-message");
+            if (!modal || !titleElement || !messageElement) {
+                return Promise.resolve(window.confirm(message));
+            }
+
+            titleElement.textContent = title;
+            messageElement.innerHTML = String(message).replace(/\n/g, "<br>");
+            modal.style.display = "flex";
+
+            return new Promise(resolve => {
+                confirmResolver = resolve;
+            });
+        }
+
+        function closeConfirm(result) {
+            const modal = document.getElementById("confirm-modal");
+            if (modal) {
+                modal.style.display = "none";
+            }
+
+            if (confirmResolver) {
+                const resolver = confirmResolver;
+                confirmResolver = null;
+                resolver(Boolean(result));
+            }
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && document.getElementById("confirm-modal")?.style.display === "flex") {
+                closeConfirm(false);
+            }
+        });
+    </script>
+</body>
+</html>

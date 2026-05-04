@@ -1,0 +1,77 @@
+@model Laptop.Models.Comment
+@using Laptop.Models
+
+@{
+    var commentsByParent = ViewData["CommentsByParent"] as Dictionary<int, List<Comment>> ?? new Dictionary<int, List<Comment>>();
+    var role = ViewData["Role"]?.ToString();
+    var currentUserId = ViewData["UserId"] as int?;
+    var productId = ViewData["ProductId"] as int? ?? 0;
+    commentsByParent.TryGetValue(Model.Id, out var replies);
+    replies ??= new List<Comment>();
+}
+
+<div class="comment-item" data-comment-id="@Model.Id">
+    <div class="comment-header">
+        <strong>@(Model.User?.Username ?? "Anonymous")</strong>
+        <small>@Model.CreatedAt.ToString("MMM dd, yyyy • hh:mm tt")</small>
+    </div>
+
+    <p class="comment-text">@Model.Text</p>
+
+    <div class="edit-area" style="display:none;">
+        <input type="text" class="edit-input" value="@Model.Text" />
+
+        <div class="edit-actions">
+            <button type="button" onclick="saveEdit(@Model.Id)" class="btn-save">Save</button>
+            <button type="button" onclick="cancelEdit(@Model.Id)" class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+
+    <div class="comment-actions">
+        <button type="button" class="comment-action-btn btn-reply" onclick="toggleReplyForm(@Model.Id)">Reply</button>
+
+        @if (replies.Any())
+        {
+            <button type="button"
+                    class="comment-action-btn btn-toggle-replies"
+                    data-toggle-replies-for="@Model.Id"
+                    data-reply-count="@replies.Count"
+                    onclick="toggleReplies(@Model.Id)">
+                See replies (@replies.Count)
+            </button>
+        }
+
+        @if (role == "Admin" || (currentUserId != null && currentUserId == Model.UserId))
+        {
+            <button type="button" onclick="showEdit(@Model.Id)" class="comment-action-btn btn-comment-edit">Edit</button>
+            <button type="button" onclick="deleteComment(@Model.Id)" class="delete-comment-btn">Delete</button>
+        }
+    </div>
+
+    <div class="reply-form comment-reply-form edit-area" data-reply-form-for="@Model.Id" style="display:none;">
+        <textarea class="edit-input reply-input" rows="2" placeholder="Write a reply..."></textarea>
+        <div class="reply-actions edit-actions">
+            <button type="button" class="btn-save" onclick="submitReply(@Model.Id, @productId)">Post Reply</button>
+            <button type="button" class="btn-cancel" onclick="toggleReplyForm(@Model.Id, false)">Cancel</button>
+        </div>
+    </div>
+
+    @if (replies.Any())
+    {
+        <div class="reply-list" data-reply-list-for="@Model.Id" style="display:none;">
+            @foreach (var reply in replies.OrderBy(r => r.CreatedAt))
+            {
+                @await Html.PartialAsync(
+                    "_CommentThread",
+                    reply,
+                    new ViewDataDictionary(ViewData)
+                    {
+                        ["CommentsByParent"] = commentsByParent,
+                        ["Role"] = role,
+                        ["UserId"] = currentUserId,
+                        ["ProductId"] = productId
+                    })
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,209 @@
+@model IEnumerable<Laptop.Models.Product>
+
+@functions {
+    public string ResolveProductImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return Url.Content("~/images/no-image.jpg");
+        }
+
+        if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imagePath.StartsWith("/"))
+        {
+            return imagePath;
+        }
+
+        return Url.Content("~/" + imagePath.TrimStart('/'));
+    }
+}
+
+@{
+    ViewData["Title"] = "Shop";
+
+    var searchTerm = Context.Request.Query["search"].ToString().ToLower().Trim();
+    var minPrice = decimal.TryParse(Context.Request.Query["minPrice"], out var minP) ? minP : 0;
+    var maxPrice = decimal.TryParse(Context.Request.Query["maxPrice"], out var maxP) ? maxP : 10000;
+    var selectedConditions = Context.Request.Query["condition"].ToList();
+    var selectedBrands = Context.Request.Query["brand"].ToList();
+    var sortBy = Context.Request.Query["sort"].ToString().ToLower();
+
+    var finalProducts = Model.ToList();
+}
+
+<div class="shop-container">
+    <main class="main-content shop-main">
+
+        <div class="shop-top-bar">
+            <div class="results-count">@finalProducts.Count() products found</div>
+
+            <div class="sort-section">
+                <label>Sort by:</label>
+                <select id="sort-select" onchange="applyFilters()">
+                    <option value="">Featured</option>
+                    <option value="price-low" selected="@(sortBy == "price-low")">Price: Low to High</option>
+                    <option value="price-high" selected="@(sortBy == "price-high")">Price: High to Low</option>
+                    <option value="newest" selected="@(sortBy == "newest")">Newest Arrivals</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="shop-layout">
+
+            <aside class="shop-filters">
+                <h3>Price Range</h3>
+                <div class="price-range">
+                    <input type="range" id="price-slider" min="0" max="6000"
+                           value="@(maxPrice > 0 ? maxPrice : 6000)"
+                           oninput="updatePriceDisplay(this.value)">
+                    <div class="price-display" id="price-display">$0 - $@maxPrice</div>
+                </div>
+
+                <h3>Condition</h3>
+                @foreach (var cond in new[] { "New", "Like New", "Used - Excellent", "Used - Good", "Used - Fair" })
+                {
+                    bool isChecked = selectedConditions.Contains(cond);
+                    <label>
+                        <input type="checkbox" name="condition" value="@cond"
+                               @(isChecked ? "checked" : "")> @cond
+                    </label>
+                }
+
+                <h3>Brands</h3>
+                @foreach (var brand in new[] { "ASUS", "Acer", "Lenovo", "Dell", "HP", "Apple", "Samsung", "Microsoft", "MSI", "Razer" })
+                {
+                    bool isChecked = selectedBrands.Contains(brand);
+                    <label>
+                        <input type="checkbox" name="brand" value="@brand"
+                               @(isChecked ? "checked" : "")> @brand
+                    </label>
+                }
+
+                <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
+                <button class="apply-btn" style="background:#666; margin-top:8px;" onclick="resetFilters()">Reset Filters</button>
+            </aside>
+
+            <div class="shop-products">
+                <div id="products-grid" class="shop-grid">
+                    @if (!finalProducts.Any())
+                    {
+                        <div id="no-products">
+                            <i class="fas fa-laptop" style="font-size:60px; opacity:0.4;"></i>
+                            <h3>No products match your filters</h3>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var product in finalProducts)
+                        {
+                            <div class="product-card" onclick="goToDetails(@product.Id)" style="cursor: pointer;">
+                                <div class="product-image-container">
+                                    @{
+                                        var firstImage = product.Images?
+                                            .Split(',')
+                                            .Select(x => x.Trim())
+                                            .FirstOrDefault(x => !string.IsNullOrEmpty(x));
+                                    }
+
+                                    <img src="@ResolveProductImage(firstImage)" alt="@product.Title" />
+                                </div>
+
+                                <div class="product-info">
+                                    <h3>@product.Title</h3>
+                                    <div class="model">@product.Model</div>
+                                    <div class="price">@product.Price.ToString("C0")</div>
+                                    <div class="condition">@product.Condition</div>
+                                    <div class="seller">Seller: @product.Seller</div>
+
+                                    <div class="product-actions">
+                                        <button onclick="addToCart(@product.Id); event.stopImmediatePropagation();"
+                                                class="add-to-cart-btn">
+                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                        </button>
+
+                                        @if (ViewBag.Role == "Admin")
+                                        {
+                                            <form asp-action="DeleteConfirmed" method="post" style="display:inline;"
+                                                  onclick="event.stopPropagation();"
+                                                  class="confirm-delete-product-form">
+                                                <input type="hidden" name="id" value="@product.Id" />
+                                                <button type="submit" class="delete-product-btn" onclick="event.stopPropagation();">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function updatePriceDisplay(value) {
+        document.getElementById("price-display").textContent = `$0 - $${value}`;
+    }
+
+    function applyFilters() {
+        let url = "/Products/Index?";
+
+        if ("@searchTerm" !== "") {
+            url += `search=@searchTerm&`;
+        }
+
+        const maxPrice = document.getElementById("price-slider").value || 6000;
+        url += `minPrice=0&maxPrice=${maxPrice}&`;
+
+        document.querySelectorAll('input[name="condition"]:checked').forEach(cb => {
+            url += `condition=${encodeURIComponent(cb.value)}&`;
+        });
+
+        document.querySelectorAll('input[name="brand"]:checked').forEach(cb => {
+            url += `brand=${encodeURIComponent(cb.value)}&`;
+        });
+
+        const sort = document.getElementById("sort-select").value;
+        if (sort) {
+            url += `sort=${sort}`;
+        }
+
+        url = url.replace(/&$/, "");
+
+        window.location.href = url;
+    }
+
+    function resetFilters() {
+        window.location.href = "/Products/Index";
+    }
+
+    function goToDetails(productId) {
+        window.location.href = "/Products/Details/" + productId;
+    }
+
+    function addToCart(productId) {
+        event.stopImmediatePropagation();
+        fetch(`/Cart/Add?productId=${productId}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.requireLogin) openLogin();
+                else if (data.success) showToast("Added to cart!", "success");
+                else showToast(data.message || "Failed to add to cart", "error");
+            });
+    }
+
+    document.querySelectorAll('.confirm-delete-product-form').forEach(form => {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const confirmed = await showConfirm(
+                "Are you sure you want to delete this product? This action cannot be undone.",
+                "Delete Product"
+            );
+            if (confirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>

@@ -1,0 +1,172 @@
+@model IEnumerable<Laptop.Models.CartItem>
+
+@functions {
+    public string ResolveProductImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return Url.Content("~/images/no-image.jpg");
+        }
+
+        if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imagePath.StartsWith("/"))
+        {
+            return imagePath;
+        }
+
+        return Url.Content("~/" + imagePath.TrimStart('/'));
+    }
+}
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var search = ViewBag.Search as string ?? string.Empty;
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+}
+
+<style>
+    .cart-product-cell {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .cart-product-cell img {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #f3f3f3;
+    }
+
+    .cart-product-name {
+        font-weight: 700;
+        color: #222;
+    }
+</style>
+
+<h1>Manage Cart Items</h1>
+
+<div class="admin-toolbar">
+    <form method="get" class="admin-filters">
+        <input type="text" name="search" value="@search" placeholder="Search user or product" />
+        <button type="submit">Search</button>
+    </form>
+
+    <span class="admin-pill">@totalCount cart item(s)</span>
+</div>
+
+<div class="admin-section">
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Subtotal</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr id="cart-@item.Id">
+                    <td>@item.Username</td>
+                    <td>
+                        <div class="cart-product-cell">
+                            <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
+                            <div class="cart-product-name">@item.Title</div>
+                        </div>
+                    </td>
+                    <td>$@item.Price.ToString("N2")</td>
+                    <td>
+                        <input type="number" id="qty-@item.Id" value="@item.Quantity" min="1" style="width:72px; margin-right:8px;" />
+                        <button onclick="updateCart(@item.Id)">Update</button>
+                    </td>
+                    <td id="subtotal-@item.Id">$@((item.Price * item.Quantity).ToString("N2"))</td>
+                    <td>
+                        <button onclick="deleteCart(@item.Id)" class="admin-danger">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <p class="admin-muted" style="margin-top:16px;">No cart items match your filters.</p>
+    }
+</div>
+
+@if (totalPages > 1)
+{
+    <div class="admin-pagination">
+        @if (currentPage > 1)
+        {
+            <a asp-action="CartItems" asp-route-search="@search" asp-route-page="@(currentPage - 1)">Previous</a>
+        }
+
+        <span class="current">Page @currentPage of @totalPages</span>
+
+        @if (currentPage < totalPages)
+        {
+            <a asp-action="CartItems" asp-route-search="@search" asp-route-page="@(currentPage + 1)">Next</a>
+        }
+    </div>
+}
+
+@Html.AntiForgeryToken()
+
+<script>
+    function updateCart(id) {
+        const qtyInput = document.getElementById(`qty-${id}`);
+        const qty = Number(qtyInput.value);
+
+        fetch('/Admin/UpdateCartItem', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: new URLSearchParams({ id, quantity: qty })
+        }).then(() => {
+            const row = document.getElementById(`cart-${id}`);
+            const priceText = row.children[2].innerText.replace('$', '').replace(',', '');
+            const price = Number(priceText);
+            document.getElementById(`subtotal-${id}`).innerText = `$${(price * qty).toFixed(2)}`;
+            highlight(`cart-${id}`);
+            showToast("Cart item updated", "success");
+        });
+    }
+
+    async function deleteCart(id) {
+        const confirmed = await showConfirm("Delete this cart item?", "Delete Cart Item");
+        if (!confirmed) return;
+
+        fetch('/Admin/DeleteCartItem', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: new URLSearchParams({ id })
+        }).then(() => {
+            const row = document.getElementById(`cart-${id}`);
+            if (row) {
+                row.remove();
+            }
+            showToast("Cart item deleted", "success");
+        });
+    }
+
+    function highlight(rowId) {
+        const row = document.getElementById(rowId);
+        row.style.background = "#d4edda";
+        setTimeout(() => row.style.background = "", 1000);
+    }
+</script>

@@ -1,0 +1,208 @@
+@model IEnumerable<Laptop.Models.Order>
+
+@functions {
+    public string ResolveProductImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return Url.Content("~/images/no-image.jpg");
+        }
+
+        if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imagePath.StartsWith("/"))
+        {
+            return imagePath;
+        }
+
+        return Url.Content("~/" + imagePath.TrimStart('/'));
+    }
+
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending Payment" => "status-pending-payment",
+            "Paid" => "status-paid",
+            "Delivered" => "status-delivered",
+            "Cancelled" => "status-cancelled",
+            _ => "status-pending"
+        };
+    }
+
+    public bool CanCancel(string status)
+    {
+        return status != "Delivered" && status != "Cancelled";
+    }
+}
+
+@{
+    ViewData["Title"] = "My Orders";
+    var orders = Model.ToList();
+}
+
+<div class="my-orders-page">
+    @Html.AntiForgeryToken()
+
+    <div class="my-orders-header">
+        <div>
+            <p class="my-orders-kicker">Order history</p>
+            <h1>My Orders</h1>
+        </div>
+
+        <a asp-controller="Products" asp-action="Index" class="my-orders-shop-link">
+            Continue Shopping
+        </a>
+    </div>
+
+    @if (!orders.Any())
+    {
+        <div class="my-orders-empty">
+            <i class="fas fa-receipt"></i>
+            <h2>No orders yet</h2>
+            <p>Your checkout history will show up here after you place an order.</p>
+            <a asp-controller="Products" asp-action="Index" class="checkout-btn">Browse Laptops</a>
+        </div>
+    }
+    else
+    {
+        <div class="my-orders-list">
+            @foreach (var order in orders)
+            {
+                var orderItems = order.Items?.ToList() ?? new List<Laptop.Models.OrderItem>();
+                var canCancel = CanCancel(order.Status);
+
+                <section class="my-order-card" data-order-id="@order.Id">
+                    <div class="my-order-top">
+                        <div>
+                            <div class="my-order-id">Order #@order.Id</div>
+                            <div class="my-order-date">@order.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        </div>
+
+                        <div class="my-order-status-area">
+                            <span class="status-badge @GetStatusBadgeClass(order.Status)" data-status-badge>
+                                @order.Status
+                            </span>
+                            <div class="my-order-total">$@order.TotalAmount.ToString("N2")</div>
+                        </div>
+                    </div>
+
+                    <div class="my-order-info-grid">
+                        <div>
+                            <span>Payment</span>
+                            <strong>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "-" : order.PaymentMethod)</strong>
+                        </div>
+                        <div>
+                            <span>Phone</span>
+                            <strong>@(string.IsNullOrWhiteSpace(order.Phone) ? "-" : order.Phone)</strong>
+                        </div>
+                        <div>
+                            <span>Delivery</span>
+                            <strong>
+                                @if (string.IsNullOrWhiteSpace(order.AddressLine1))
+                                {
+                                    <span>-</span>
+                                }
+                                else
+                                {
+                                    <span>@order.AddressLine1, @order.City</span>
+                                }
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="my-order-items">
+                        @foreach (var item in orderItems)
+                        {
+                            <div class="my-order-item">
+                                <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
+                                <div>
+                                    <div class="my-order-item-title">@item.Title</div>
+                                    <div class="my-order-item-meta">$@item.Price.ToString("N2") each &middot; Qty @item.Quantity</div>
+                                </div>
+                                <strong>$@((item.Price * item.Quantity).ToString("N2"))</strong>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="my-order-actions">
+                        @if (canCancel)
+                        {
+                            <button type="button" class="my-order-cancel-btn" onclick="cancelOrder(@order.Id)">
+                                Cancel Order
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="my-order-muted">
+                                @(order.Status == "Cancelled" ? "Order cancelled" : "Delivered orders cannot be cancelled")
+                            </span>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    function getOrderToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]').value;
+    }
+
+    function setOrderStatus(card, status) {
+        const badge = card.querySelector('[data-status-badge]');
+        const actions = card.querySelector('.my-order-actions');
+        const statusClass = status === 'Pending Payment'
+            ? 'status-pending-payment'
+            : `status-${status.toLowerCase()}`;
+
+        badge.textContent = status;
+        badge.className = `status-badge ${statusClass}`;
+
+        if (status === 'Cancelled') {
+            actions.innerHTML = '<span class="my-order-muted">Order cancelled</span>';
+        }
+    }
+
+    async function cancelOrder(orderId) {
+        const confirmed = await showConfirm(
+            `Cancel order #${orderId}?`,
+            'Cancel Order'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        fetch('/Cart/CancelOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': getOrderToken()
+            },
+            body: `id=${orderId}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.requireLogin) {
+                openLogin();
+                return;
+            }
+
+            if (!data.success) {
+                showToast(data.message || 'Could not cancel order', 'error');
+                return;
+            }
+
+            const card = document.querySelector(`[data-order-id='${orderId}']`);
+            if (card) {
+                setOrderStatus(card, data.status);
+            }
+
+            showToast(data.message || 'Order cancelled', 'success');
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('Could not cancel order', 'error');
+        });
+    }
+</script>

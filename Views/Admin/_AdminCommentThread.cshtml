@@ -1,0 +1,61 @@
+@model Laptop.Models.Comment
+
+@{
+    var commentsByParent = ViewData["CommentsByParent"] as Dictionary<int, List<Laptop.Models.Comment>>
+        ?? new Dictionary<int, List<Laptop.Models.Comment>>();
+    var level = ViewData["Level"] is int currentLevel ? currentLevel : 0;
+    var replies = commentsByParent.TryGetValue(Model.Id, out var childComments)
+        ? childComments
+        : new List<Laptop.Models.Comment>();
+}
+
+<div class="comment-thread-card" id="row-@Model.Id" style="margin-left:@(level * 26)px;">
+    <div class="comment-thread-top">
+        <div>
+            <div style="font-weight:700;">@Model.User.Username</div>
+            <div class="admin-muted">
+                <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.ProductId" style="color:#7348d9; text-decoration:none;">
+                    @Model.Product.Title
+                </a>
+                • @Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")
+            </div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            @if (replies.Any())
+            {
+                <button type="button"
+                        class="comment-toggle-btn"
+                        data-reply-count="@replies.Count"
+                        onclick="toggleReplies(@Model.Id, this)">
+                    See replies (@replies.Count)
+                </button>
+            }
+            <button onclick="saveAdminEdit(@Model.Id)">
+                Save
+            </button>
+            <button onclick="deleteAdminComment(@Model.Id)" class="admin-danger">
+                Delete
+            </button>
+        </div>
+    </div>
+
+    <textarea id="text-@Model.Id" class="comment-edit-input">@Model.Text</textarea>
+
+    @if (replies.Any())
+    {
+        <div class="comment-replies" data-thread-for="@Model.Id" style="display:none;">
+            @foreach (var reply in replies)
+            {
+                @await Html.PartialAsync(
+                    "_AdminCommentThread",
+                    reply,
+                    new ViewDataDictionary(ViewData)
+                    {
+                        ["CommentsByParent"] = commentsByParent,
+                        ["Level"] = level + 1
+                    })
+            }
+        </div>
+    }
+</div>

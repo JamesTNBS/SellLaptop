@@ -1,0 +1,184 @@
+@model IEnumerable<Laptop.Models.Comment>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var search = ViewBag.Search as string ?? string.Empty;
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var rootCommentIds = ViewBag.RootCommentIds as List<int> ?? new List<int>();
+
+    var commentsByParent = Model
+        .GroupBy(c => c.ParentCommentId ?? 0)
+        .ToDictionary(g => g.Key, g => g.OrderBy(x => x.CreatedAt).ToList());
+}
+
+<style>
+    .comment-thread-list {
+        display: grid;
+        gap: 14px;
+    }
+
+    .comment-thread-card {
+        background: #fff;
+        border: 1px solid #ececec;
+        border-radius: 14px;
+        padding: 16px;
+    }
+
+    .comment-thread-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .comment-edit-input {
+        width: 100%;
+        min-height: 80px;
+        border: 1px solid #d6d6d6;
+        border-radius: 10px;
+        padding: 12px;
+        resize: vertical;
+    }
+
+    .comment-replies {
+        margin-top: 14px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .comment-toggle-btn {
+        background: #f1ecff;
+        color: #5f3ab0;
+    }
+
+    .comment-toggle-btn:hover {
+        background: #dfd2ff;
+        color: #4d2d98;
+    }
+</style>
+
+<h1>Manage Comments</h1>
+
+<div class="admin-toolbar">
+    <form method="get" class="admin-filters">
+        <input type="text" name="search" value="@search" placeholder="Search user, product, or comment" />
+        <button type="submit">Search</button>
+    </form>
+
+    <span class="admin-pill">@totalCount thread(s)</span>
+</div>
+
+<div class="admin-section">
+    @if (!rootCommentIds.Any())
+    {
+        <p class="admin-muted">No comments match your filters.</p>
+    }
+    else
+    {
+        <div class="comment-thread-list">
+            @foreach (var rootId in rootCommentIds)
+            {
+                if (Model.FirstOrDefault(c => c.Id == rootId) is { } rootComment)
+                {
+                    @await Html.PartialAsync(
+                        "_AdminCommentThread",
+                        rootComment,
+                        new ViewDataDictionary(ViewData)
+                        {
+                            ["CommentsByParent"] = commentsByParent,
+                            ["Level"] = 0
+                        })
+                }
+            }
+        </div>
+    }
+</div>
+
+@if (totalPages > 1)
+{
+    <div class="admin-pagination">
+        @if (currentPage > 1)
+        {
+            <a asp-action="Comments" asp-route-search="@search" asp-route-page="@(currentPage - 1)">Previous</a>
+        }
+
+        <span class="current">Page @currentPage of @totalPages</span>
+
+        @if (currentPage < totalPages)
+        {
+            <a asp-action="Comments" asp-route-search="@search" asp-route-page="@(currentPage + 1)">Next</a>
+        }
+    </div>
+}
+
+@Html.AntiForgeryToken()
+
+<script>
+    function saveAdminEdit(id) {
+        const text = document.getElementById(`text-${id}`).value.trim();
+
+        if (!text) {
+            showToast("Comment cannot be empty", "error");
+            return;
+        }
+
+        fetch('/Admin/EditComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken':
+                    document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: `id=${id}&text=${encodeURIComponent(text)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const row = document.getElementById(`row-${id}`);
+                row.style.background = "#d4edda";
+                setTimeout(() => row.style.background = "", 1000);
+                showToast("Comment updated", "success");
+            } else {
+                showToast(data.message || "Update failed", "error");
+            }
+        });
+    }
+
+    async function deleteAdminComment(id) {
+        const confirmed = await showConfirm("Delete this comment and all of its replies?", "Delete Comment");
+        if (!confirmed) return;
+
+        fetch('/Products/DeleteComment', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: new URLSearchParams({ id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast("Comment thread deleted", "success");
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                showToast(data.message || "Delete failed", "error");
+            }
+        });
+    }
+
+    function toggleReplies(id, button) {
+        const container = document.querySelector(`[data-thread-for='${id}']`);
+        if (!container) return;
+
+        const shouldShow = container.style.display === 'none' || container.style.display === '';
+        container.style.display = shouldShow ? 'grid' : 'none';
+        button.textContent = shouldShow
+            ? 'Hide replies'
+            : `See replies (${button.getAttribute('data-reply-count')})`;
+    }
+</script>

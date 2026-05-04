@@ -1,0 +1,110 @@
+@model Laptop.Models.Order
+
+@{
+    var isBankTransfer = string.Equals(Model.PaymentMethod, "Bank Transfer", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="checkout-success-page">
+    <section class="checkout-success-card">
+        <div class="checkout-success-header">
+            <div>
+                <p class="checkout-success-kicker">Order saved</p>
+                <h1>Order Placed</h1>
+                <p>Your checkout is complete. You can track this order from My Orders.</p>
+            </div>
+
+            <span class="status-badge @(Model.Status == "Pending Payment" ? "status-pending-payment" : "status-pending")">
+                @Model.Status
+            </span>
+        </div>
+
+        @if (isBankTransfer)
+        {
+            <div class="bank-payment-panel">
+                <div class="bank-payment-qr">
+                    <img src="~/images/QR_code.jpg" alt="BIDV payment QR code" />
+                </div>
+
+                <div class="bank-payment-details">
+                    <h2>BIDV Bank Transfer</h2>
+                    <p>Please transfer the exact order total and use the order number as your transfer message.</p>
+
+                    <div class="bank-payment-grid">
+                        <div>
+                            <span>Account Name</span>
+                            <strong>Thanabouasy Phonesavanh</strong>
+                        </div>
+                        <div>
+                            <span>Account Number</span>
+                            <strong>8841398782</strong>
+                        </div>
+                        <div>
+                            <span>Amount</span>
+                            <strong>$@Model.TotalAmount.ToString("N2")</strong>
+                        </div>
+                        <div>
+                            <span>Transfer Message</span>
+                            <strong>ORDER-@Model.Id</strong>
+                        </div>
+                    </div>
+
+                    <p class="bank-payment-note">
+                        Your order will stay as Pending Payment until admin confirms the transfer.
+                    </p>
+                </div>
+            </div>
+        }
+
+        <div class="checkout-success-details">
+            <div>
+                <span>Order Number</span>
+                <strong>#@Model.Id</strong>
+            </div>
+            <div>
+                <span>Customer</span>
+                <strong>@Model.FullName</strong>
+            </div>
+            <div>
+                <span>Email</span>
+                <strong>@Model.Email</strong>
+            </div>
+            <div>
+                <span>Phone</span>
+                <strong>@Model.Phone</strong>
+            </div>
+            <div>
+                <span>Payment</span>
+                <strong>@Model.PaymentMethod</strong>
+            </div>
+            <div>
+                <span>Total</span>
+                <strong>$@Model.TotalAmount.ToString("N2")</strong>
+            </div>
+        </div>
+
+        <div class="checkout-success-address">
+            <span>Delivery</span>
+            <strong>
+                @Model.AddressLine1
+                @if (!string.IsNullOrWhiteSpace(Model.AddressLine2))
+                {
+                    <br />@Model.AddressLine2
+                }
+                <br />@Model.City, @Model.StateOrProvince @Model.PostalCode
+            </strong>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div class="checkout-success-notes">
+                <span>Order Notes</span>
+                <p>@Model.Notes</p>
+            </div>
+        }
+
+        <div class="checkout-success-actions">
+            <a asp-controller="Cart" asp-action="MyOrders" class="checkout-btn">View My Orders</a>
+            <a asp-controller="Products" asp-action="Index" class="checkout-secondary-btn">Continue Shopping</a>
+        </div>
+    </section>
+</div>
