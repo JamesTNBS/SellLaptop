@@ -23,33 +23,7 @@ namespace Laptop.Controllers
                 return RedirectToAction("Index", "Products");
             }
 
-            var cart = _context.CartItems
-                .Where(c => c.Username == username)
-                .Select(c => new
-                {
-                    c.Id,
-                    c.ProductId,
-                    c.Username,
-                    c.Title,
-                    c.Price,
-                    c.Quantity,
-                    c.Image
-                })
-                .ToList()
-                .Select(x => new CartItem
-                {
-                    Id = x.Id,
-                    ProductId = x.ProductId,
-                    Username = x.Username,
-                    Title = x.Title,
-                    Price = x.Price,
-                    Quantity = x.Quantity,
-                    Image = x.Image
-                })
-                .OrderBy(c => c.Title)
-                .ToList();
-
-            return View(cart);
+            return View(GetCartItems(username));
         }
 
         [HttpGet]
@@ -298,6 +272,7 @@ namespace Laptop.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            ViewBag.CurrentProductImages = GetCurrentProductImages(order.Items.Select(i => i.ProductId));
             return View(order);
         }
 
@@ -318,6 +293,9 @@ namespace Laptop.Controllers
                 .Where(o => o.UserId == userId.Value && o.Username == username)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToList();
+
+            ViewBag.CurrentProductImages = GetCurrentProductImages(
+                orders.SelectMany(o => o.Items.Select(i => i.ProductId)));
 
             return View(orders);
         }
@@ -382,11 +360,46 @@ namespace Laptop.Controllers
 
         private List<CartItem> GetCartItems(string username)
         {
-            return _context.CartItems
+            var items = _context.CartItems
                 .AsNoTracking()
                 .Where(c => c.Username == username)
                 .OrderBy(c => c.Title)
                 .ToList();
+
+            var currentImages = GetCurrentProductImages(items.Select(i => i.ProductId));
+            foreach (var item in items)
+            {
+                if (currentImages.TryGetValue(item.ProductId, out var currentImage) &&
+                    !string.IsNullOrWhiteSpace(currentImage))
+                {
+                    item.Image = currentImage;
+                }
+            }
+
+            return items;
+        }
+
+        private Dictionary<int, string> GetCurrentProductImages(IEnumerable<int> productIds)
+        {
+            var ids = productIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                return new Dictionary<int, string>();
+            }
+
+            return _context.Products
+                .AsNoTracking()
+                .Where(p => ids.Contains(p.Id))
+                .Select(p => new { p.Id, p.Images })
+                .AsEnumerable()
+                .ToDictionary(p => p.Id, p => GetFirstProductImage(p.Images));
+        }
+
+        private static string GetFirstProductImage(string? images)
+        {
+            return images?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault() ?? string.Empty;
         }
     }
 }
