@@ -3783,10 +3783,13 @@ body.light .checkout-secondary-btn:hover {
 
     .product-actions {
         padding: 0 14px 14px;
+        align-items: center;
     }
 
     .add-to-cart-btn,
     .delete-product-btn {
+        width: min(100%, 460px) !important;
+        max-width: 460px !important;
         min-height: 44px;
     }
 
