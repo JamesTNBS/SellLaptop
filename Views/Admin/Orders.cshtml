@@ -43,6 +43,7 @@
     var totalCount = (int)(ViewBag.TotalCount ?? orders.Count);
     var search = ViewBag.Search as string ?? string.Empty;
     var statusFilter = ViewBag.StatusFilter as string ?? "All";
+    var currentProductImages = ViewBag.CurrentProductImages as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
 
 <style>
@@ -142,6 +143,10 @@
         padding: 8px 10px;
         border-radius: 8px;
         border: 1px solid #ccc;
+    }
+
+    .order-delete-form {
+        display: inline-flex;
     }
 
     .order-details-grid {
@@ -363,6 +368,16 @@ else
                                 </select>
                                 <button type="submit">Save Status</button>
                             </form>
+                            <form asp-action="DeleteOrder" method="post" class="order-delete-form" data-order-id="@order.Id">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <input type="hidden" name="search" value="@search" />
+                                <input type="hidden" name="status" value="@statusFilter" />
+                                <input type="hidden" name="page" value="@currentPage" />
+                                <button type="submit" class="admin-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -413,9 +428,14 @@ else
                 <div class="order-items">
                     @foreach (var item in orderItems)
                     {
+                        var image = currentProductImages.TryGetValue(item.ProductId, out var currentImage) &&
+                            !string.IsNullOrWhiteSpace(currentImage)
+                                ? currentImage
+                                : item.Image;
+
                         <div class="order-item">
                             <div class="order-item-image">
-                                <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
+                                <img src="@ResolveProductImage(image)" alt="@item.Title" />
                             </div>
 
                             <div>
@@ -435,6 +455,23 @@ else
         }
     </div>
 }
+
+<script>
+    document.querySelectorAll('.order-delete-form').forEach(form => {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const orderId = form.dataset.orderId;
+            const confirmed = await showConfirm(
+                `Delete order #${orderId}? This will remove the order and its items.`,
+                'Delete Order'
+            );
+
+            if (confirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
 
 @if (totalPages > 1)
 {
