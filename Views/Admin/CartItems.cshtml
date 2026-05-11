@@ -24,6 +24,7 @@
     var currentPage = (int)(ViewBag.CurrentPage ?? 1);
     var totalPages = (int)(ViewBag.TotalPages ?? 1);
     var totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var currentProductImages = ViewBag.CurrentProductImages as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
 
 <style>
@@ -73,11 +74,16 @@
         <tbody>
             @foreach (var item in Model)
             {
+                var image = currentProductImages.TryGetValue(item.ProductId, out var currentImage) &&
+                    !string.IsNullOrWhiteSpace(currentImage)
+                        ? currentImage
+                        : item.Image;
+
                 <tr id="cart-@item.Id">
                     <td>@item.Username</td>
                     <td>
                         <div class="cart-product-cell">
-                            <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
+                            <img src="@ResolveProductImage(image)" alt="@item.Title" />
                             <div class="cart-product-name">@item.Title</div>
                         </div>
                     </td>
