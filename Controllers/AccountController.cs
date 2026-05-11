@@ -106,6 +106,36 @@ namespace Laptop.Controllers
             return Json(new { success = true });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgotPassword(string usernameOrEmail, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(newPassword))
+            {
+                return Json(new { success = false, message = "Username/email and new password are required." });
+            }
+
+            if (newPassword.Length < 6)
+            {
+                return Json(new { success = false, message = "Password must be at least 6 characters." });
+            }
+
+            var lookup = usernameOrEmail.Trim().ToLower();
+            var user = _context.Users.FirstOrDefault(u =>
+                u.Username.ToLower() == lookup ||
+                u.Email.ToLower() == lookup);
+
+            if (user == null)
+            {
+                return Json(new { success = false, message = "No account found with that username or email." });
+            }
+
+            user.Password = PasswordSecurity.HashPassword(user, newPassword);
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Password reset successfully. You can log in now." });
+        }
+
         // LOGOUT
         [HttpPost]
         [ValidateAntiForgeryToken]
