@@ -1,4 +1,4 @@
-﻿@using Laptop.Extensions
+@using Laptop.Extensions
 @using Laptop.Models
 
 @{
@@ -141,9 +141,44 @@
                 <button type="submit">Login</button>
             </form>
 
-            <p style =" margin-left:50px">
+            <p class="popup-switch">
+                <a href="#" onclick="switchToForgotPassword(); return false;">Forgot password?</a>
+            </p>
+
+            <p class="popup-switch">
                 Don't have an account?
                 <a href="#" onclick="switchToRegister(); return false;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="forgot-password-modal" class="popup-overlay">
+        <div class="popup-box">
+            <span class="popup-close" onclick="closeForgotPassword()">×</span>
+            <h4>Reset Password</h4>
+            <form id="forgot-password-form" onsubmit="submitForgotPassword(event)">
+                <input type="text"
+                       id="forgot-lookup"
+                       placeholder="Username or email"
+                       required
+                       oninvalid="this.setCustomValidity('Username or email is required')"
+                       oninput="this.setCustomValidity('')" />
+                <div class="password-field">
+                    <input type="password"
+                           id="forgot-new-password"
+                           placeholder="New password"
+                           required
+                           minlength="6"
+                           oninvalid="this.setCustomValidity('New password is required')"
+                           oninput="this.setCustomValidity('')" />
+                    <span onclick="togglePassword('forgot-new-password')">👁</span>
+                </div>
+                <button type="submit">Reset Password</button>
+            </form>
+
+            <p class="popup-switch">
+                Remembered it?
+                <a href="#" onclick="switchForgotToLogin(); return false;">Login here</a>
             </p>
         </div>
     </div>
@@ -189,7 +224,7 @@
                 <button type="submit">Register</button>
             </form>
 
-            <p style=" margin-left:50px">
+            <p class="popup-switch">
                 Already have an account?
                 <a href="#" onclick="switchToLogin(); return false;">Login here</a>
             </p>
@@ -235,6 +270,14 @@
             }
             function closeRegister() {
                 document.getElementById("register-modal").style.display = "none";
+            }
+
+            function openForgotPassword() {
+                document.getElementById("forgot-password-modal").style.display = "flex";
+            }
+
+            function closeForgotPassword() {
+                document.getElementById("forgot-password-modal").style.display = "none";
             }
 
             function openSearchPopup() {
@@ -324,6 +367,7 @@
 
             function switchToRegister() {
                 closeLogin();
+                closeForgotPassword();
                 setTimeout(() => {
                     openRegister();
                 }, 200);
@@ -331,6 +375,21 @@
 
             function switchToLogin() {
                 closeRegister();
+                closeForgotPassword();
+                setTimeout(() => {
+                    openLogin();
+                }, 200);
+            }
+
+            function switchToForgotPassword() {
+                closeLogin();
+                setTimeout(() => {
+                    openForgotPassword();
+                }, 200);
+            }
+
+            function switchForgotToLogin() {
+                closeForgotPassword();
                 setTimeout(() => {
                     openLogin();
                 }, 200);
@@ -367,6 +426,37 @@
                 .catch(err => {
                     console.error(err);
                     showToast("Login error occurred", "error");
+                });
+            }
+
+
+            function submitForgotPassword(event) {
+                event.preventDefault();
+
+                const usernameOrEmail = document.getElementById("forgot-lookup").value.trim();
+                const newPassword = document.getElementById("forgot-new-password").value;
+
+                fetch('/Account/ForgotPassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `usernameOrEmail=${encodeURIComponent(usernameOrEmail)}&newPassword=${encodeURIComponent(newPassword)}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message || "Password reset successfully", "success");
+                        document.getElementById("forgot-password-form").reset();
+                        switchForgotToLogin();
+                    } else {
+                        showToast(data.message || "Could not reset password", "error");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Password reset error occurred", "error");
                 });
             }
 
