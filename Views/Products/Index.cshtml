@@ -22,10 +22,14 @@
 
     var searchTerm = Context.Request.Query["search"].ToString().ToLower().Trim();
     var minPrice = decimal.TryParse(Context.Request.Query["minPrice"], out var minP) ? minP : 0;
-    var maxPrice = decimal.TryParse(Context.Request.Query["maxPrice"], out var maxP) ? maxP : 10000;
+    var maxPrice = decimal.TryParse(Context.Request.Query["maxPrice"], out var maxP) ? maxP : 6000;
     var selectedConditions = Context.Request.Query["condition"].ToList();
     var selectedBrands = Context.Request.Query["brand"].ToList();
     var sortBy = Context.Request.Query["sort"].ToString().ToLower();
+    var filtersOpen = selectedConditions.Any()
+        || selectedBrands.Any()
+        || Context.Request.Query.ContainsKey("minPrice")
+        || Context.Request.Query.ContainsKey("maxPrice");
 
     var finalProducts = Model.ToList();
 }
@@ -48,8 +52,16 @@
         </div>
 
         <div class="shop-layout">
+            <button type="button"
+                    class="mobile-filter-toggle"
+                    aria-controls="shop-filters"
+                    aria-expanded="@(filtersOpen ? "true" : "false")"
+                    onclick="toggleMobileFilters(this)">
+                <i class="fas fa-sliders-h"></i>
+                <span>@(filtersOpen ? "Hide Filters" : "Show Filters")</span>
+            </button>
 
-            <aside class="shop-filters">
+            <aside class="shop-filters @(filtersOpen ? "mobile-open" : "")" id="shop-filters">
                 <h3>Price Range</h3>
                 <div class="price-range">
                     <input type="range" id="price-slider" min="0" max="6000"
@@ -115,7 +127,7 @@
                                     <div class="seller">Seller: @product.Seller</div>
 
                                     <div class="product-actions">
-                                        <button onclick="addToCart(@product.Id); event.stopImmediatePropagation();"
+                                        <button onclick="addToCart(@product.Id, event);"
                                                 class="add-to-cart-btn">
                                             <i class="fas fa-cart-plus"></i> Add to Cart
                                         </button>
@@ -179,12 +191,19 @@
         window.location.href = "/Products/Index";
     }
 
+    function toggleMobileFilters(button) {
+        const filters = document.getElementById('shop-filters');
+        const isOpen = filters.classList.toggle('mobile-open');
+        button.setAttribute('aria-expanded', String(isOpen));
+        button.querySelector('span').textContent = isOpen ? 'Hide Filters' : 'Show Filters';
+    }
+
     function goToDetails(productId) {
         window.location.href = "/Products/Details/" + productId;
     }
 
-    function addToCart(productId) {
-        event.stopImmediatePropagation();
+    function addToCart(productId, event) {
+        event?.stopImmediatePropagation();
         fetch(`/Cart/Add?productId=${productId}`, { method: 'POST' })
             .then(res => res.json())
             .then(data => {
