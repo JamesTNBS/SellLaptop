@@ -72,6 +72,29 @@
         .confirm-cancel-btn:hover { background:#e6e6ed; }
         .confirm-confirm-btn { background:#7348d9; color:white; }
         .confirm-confirm-btn:hover { background:#5a37b1; }
+        @@media (max-width: 760px) {
+            body { display:block; height:auto; min-height:100vh; overflow-x:hidden; }
+            .sidebar { width:100%; min-height:0; flex-direction:row; flex-wrap:wrap; align-items:center; padding:10px; box-sizing:border-box; }
+            .sidebar h2 { width:100%; margin:4px 0 8px; font-size:20px; }
+            .sidebar a { flex:1 1 150px; padding:10px 12px; border-left:none; border-bottom:3px solid transparent; border-radius:8px; font-size:14px; }
+            .sidebar a.active { border-left-color:transparent; border-bottom-color:#f3cf42; padding-left:12px; }
+            .content { padding:14px; overflow-x:hidden; }
+            .topbar { justify-content:flex-start; flex-wrap:wrap; gap:8px; }
+            .topbar a { margin-left:0; }
+            .stats { display:grid; grid-template-columns:1fr; gap:12px; }
+            .card, .admin-section { border-radius:10px; padding:14px; }
+            .admin-toolbar { align-items:stretch; flex-direction:column; }
+            .admin-filters { display:grid; grid-template-columns:1fr; width:100%; }
+            .admin-filters input, .admin-filters select, .admin-filters button { width:100%; min-width:0; box-sizing:border-box; }
+            table { display:block; width:100%; overflow-x:auto; white-space:nowrap; border-radius:10px; }
+            th, td { padding:10px; }
+            .admin-pagination { justify-content:center; }
+            .confirm-box { width:calc(100% - 28px); padding:20px; box-sizing:border-box; }
+            .confirm-actions { flex-direction:column-reverse; }
+            .confirm-actions button { width:100%; }
+            #toast-container { left:12px; right:12px; bottom:12px; }
+            .toast { min-width:0; width:100%; box-sizing:border-box; }
+        }
     </style>
 </head>
 <body>
