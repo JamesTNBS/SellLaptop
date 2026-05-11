@@ -107,7 +107,7 @@
                     {
                         foreach (var product in finalProducts)
                         {
-                            <div class="product-card" onclick="goToDetails(@product.Id)" style="cursor: pointer;">
+                            <div class="product-card" onclick="goToDetails(@product.Id, event)" style="cursor: pointer;">
                                 <div class="product-image-container">
                                     @{
                                         var firstImage = product.Images?
@@ -127,7 +127,8 @@
                                     <div class="seller">Seller: @product.Seller</div>
 
                                     <div class="product-actions">
-                                        <button onclick="addToCart(@product.Id, event);"
+                                        <button type="button"
+                                                onclick="addToCart(@product.Id, event);"
                                                 class="add-to-cart-btn">
                                             <i class="fas fa-cart-plus"></i> Add to Cart
                                         </button>
@@ -198,11 +199,17 @@
         button.querySelector('span').textContent = isOpen ? 'Hide Filters' : 'Show Filters';
     }
 
-    function goToDetails(productId) {
+    function goToDetails(productId, event) {
+        if (event?.target?.closest('.product-actions, button, form, a, input, select, textarea')) {
+            return;
+        }
+
         window.location.href = "/Products/Details/" + productId;
     }
 
     function addToCart(productId, event) {
+        event?.preventDefault();
+        event?.stopPropagation();
         event?.stopImmediatePropagation();
         fetch(`/Cart/Add?productId=${productId}`, { method: 'POST' })
             .then(res => res.json())
