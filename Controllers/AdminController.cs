@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Laptop.Data;
 using Laptop.Models;
 using Laptop.Extensions;
@@ -249,6 +249,13 @@ namespace Laptop.Controllers
                 .Take(DefaultPageSize)
                 .ToList();
 
+            var productIds = items.Select(i => i.ProductId).Distinct().ToList();
+            ViewBag.CurrentProductImages = _context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.Images })
+                .AsEnumerable()
+                .ToDictionary(p => p.Id, p => GetFirstProductImage(p.Images));
+
             ViewBag.Search = search ?? string.Empty;
             SetPaginationMetadata(page, totalCount, DefaultPageSize);
 
@@ -393,6 +400,17 @@ namespace Laptop.Controllers
                 .Take(DefaultPageSize)
                 .ToList();
 
+            var productIds = orders
+                .SelectMany(o => o.Items.Select(i => i.ProductId))
+                .Distinct()
+                .ToList();
+
+            ViewBag.CurrentProductImages = _context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.Images })
+                .AsEnumerable()
+                .ToDictionary(p => p.Id, p => GetFirstProductImage(p.Images));
+
             ViewBag.Search = search ?? string.Empty;
             ViewBag.StatusFilter = string.IsNullOrWhiteSpace(status) ? "All" : status;
             SetPaginationMetadata(page, totalCount, DefaultPageSize);
@@ -427,6 +445,30 @@ namespace Laptop.Controllers
             return RedirectToAction(nameof(Orders));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteOrder(int id, string? search, string? status, int page = 1)
+        {
+            if (HttpContext.Session.GetString("Role") != "Admin")
+                return RedirectToAction("Index", "Products");
+
+            var order = _context.Orders
+                .Include(o => o.Items)
+                .FirstOrDefault(o => o.Id == id);
+
+            if (order == null)
+            {
+                TempData["OrderStatusError"] = "Order not found.";
+                return RedirectToAction(nameof(Orders), new { search, status, page });
+            }
+
+            _context.Orders.Remove(order);
+            _context.SaveChanges();
+
+            TempData["OrderStatusSuccess"] = $"Order #{id} deleted.";
+            return RedirectToAction(nameof(Orders), new { search, status, page });
+        }
+
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
@@ -441,6 +483,13 @@ namespace Laptop.Controllers
             ViewBag.HasPreviousPage = currentPage > 1;
             ViewBag.HasNextPage = currentPage < totalPages;
             ViewBag.TotalCount = totalCount;
+        }
+
+        private static string GetFirstProductImage(string? images)
+        {
+            return images?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault() ?? string.Empty;
         }
 
         private List<int> GetCommentThreadIds(List<int> rootCommentIds)
