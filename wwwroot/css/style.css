@@ -3654,6 +3654,28 @@ body.light .checkout-secondary-btn:hover {
     display: none;
 }
 
+.popup-switch {
+    margin: 14px 0 0;
+    text-align: center;
+    color: #aaa;
+    font-size: 14px;
+}
+
+.popup-switch a {
+    color: #a855f7;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.popup-switch a:hover {
+    color: #c084fc;
+    text-decoration: underline;
+}
+
+body.light .popup-switch {
+    color: #555;
+}
+
 .shop-grid #no-products {
     grid-column: 1 / -1;
 }
