@@ -2511,6 +2511,37 @@ body.light .reply-list {
     gap: 8px;
 }
 
+.reply-actions {
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.reply-actions .btn-save,
+.reply-actions .btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 5px 12px;
+    margin: 0;
+    box-sizing: border-box;
+    line-height: 1.2;
+    font-size: 0.8rem;
+}
+
+.edit-actions:not(.reply-actions) .btn-save,
+.edit-actions:not(.reply-actions) .btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 18px;
+    margin: 0;
+    box-sizing: border-box;
+    line-height: 1.2;
+}
+
 /* SAVE BUTTON */
 .btn-save {
     background: #28a745;
@@ -3175,14 +3206,29 @@ body.light .my-orders-kicker {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: stretch;
     margin-top: 24px;
 }
 
 .checkout-success-actions .checkout-btn,
-.checkout-secondary-btn {
+.checkout-success-actions .checkout-secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: auto;
+    min-height: 44px;
     padding: 12px 20px;
+    margin-top: 0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    box-sizing: border-box;
     text-decoration: none;
+}
+
+.checkout-success-actions .checkout-btn {
+    border: none;
 }
 
 .checkout-secondary-btn {
@@ -3769,11 +3815,18 @@ body.light .checkout-secondary-btn:hover {
     .comment-actions .btn-toggle-replies,
     .comment-actions .btn-comment-edit,
     .delete-comment-btn,
-    .btn-save,
-    .btn-cancel {
+    .edit-actions:not(.reply-actions) .btn-save,
+    .edit-actions:not(.reply-actions) .btn-cancel {
         min-height: 34px !important;
         padding: 7px 12px !important;
         font-size: 0.84rem !important;
+    }
+
+    .reply-actions .btn-save,
+    .reply-actions .btn-cancel {
+        min-height: 30px !important;
+        padding: 5px 12px !important;
+        font-size: 0.8rem !important;
     }
 
     .comment-reply-form {
@@ -3814,14 +3867,7 @@ body.light .popup-switch {
     color: #555;
 }
 
-@media (min-width: 901px) and (max-width: 1280px) {
-    #comment-section {
-        width: min(100%, 980px);
-        margin-left: 0;
-        margin-right: auto;
-        box-sizing: border-box;
-    }
-
+@media (min-width: 901px) and (max-width: 1023px) {
     .buy-box .admin-actions {
         display: grid;
         gap: 12px;
@@ -3997,10 +4043,37 @@ body.light .mobile-filter-toggle {
 
 /* Product details split-screen final overrides */
 .product-page-container #comment-section {
-    max-width: 1040px;
-    margin-left: 0;
+    margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+    .product-page-container {
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .product-page-container .product-layout {
+        width: 100%;
+    }
+
+    .product-page-container .product-bottom,
+    .product-page-container #comment-section {
+        width: 90% !important;
+        max-width: none !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        align-self: center;
+        box-sizing: border-box;
+    }
+
+    .product-page-container #comment-input,
+    .product-page-container .edit-input,
+    .product-page-container .reply-input {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
 }
 
 .buy-box .admin-actions {
@@ -4030,8 +4103,3 @@ body.light .mobile-filter-toggle {
     line-height: 1.2 !important;
 }
 
-@media (max-width: 1400px) {
-    .product-page-container #comment-section {
-        max-width: 920px;
-    }
-}
