@@ -1,4 +1,11 @@
-﻿@using Laptop
+@using Laptop
 @using Laptop.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Laptop.Extensions
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Laptop.Resources
+@using Laptop.Services
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<SharedResource> Localizer
+@inject StorefrontFormatter Formatter

@@ -43,12 +43,12 @@
                     var imageList = Model.Images.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     foreach (var img in imageList)
                     {
-                        <img src="@ResolveProductImage(img.Trim())" onclick="changeImage(this)" alt="Product image" />
+                        <img src="@ResolveProductImage(img.Trim())" onclick="changeImage(this)" alt="@L["ProductImage"]" />
                     }
                 }
                 else
                 {
-                    <img src="~/images/default-laptop.jpg" alt="No image" />
+                    <img src="~/images/default-laptop.jpg" alt="@L["NoImage"]" />
                 }
             </div>
 
@@ -64,7 +64,7 @@
             <h1>@Model.Title</h1>
 
             <div class="price">
-                $@Model.Price.ToString("N0")
+                @Formatter.Format(Model)
             </div>
 
             <ul class="features" id="laptop-features">
@@ -78,7 +78,7 @@
                 }
                 else
                 {
-                    <li>No features listed</li>
+                    <li>@L["NoFeaturesListed"]</li>
                 }
             </ul>
 
@@ -86,34 +86,34 @@
         </div>
 
         <div class="buy-box">
-            <h2>$@Model.Price.ToString("N0")</h2>
+            <h2>@Formatter.Format(Model)</h2>
 
-            <p class="stock">✔ In Stock</p>
+            <p class="stock">✔ @L["InStock"]</p>
 
             <button type="button" class="btn-cart" onclick="addToCart(@Model.Id)">
-                <i class="fas fa-cart-plus"></i> Add to Cart
+                <i class="fas fa-cart-plus"></i> @L["AddToCart"]
             </button>
 
             <button type="button" class="btn-buy" onclick="buyNow(@Model.Id)">
-                Buy Now
+                @L["BuyNow"]
             </button>
 
             <div class="seller-info">
-                <p>Seller: @Model.Seller</p>
-                <p>Condition: @Model.Condition</p>
+                <p>@L["Seller"]: @Model.Seller</p>
+                <p>@L["Condition"]: @Formatter.TranslateCondition(Model.Condition)</p>
             </div>
 
             @if (ViewBag.Role == "Admin")
             {
                 <div class="admin-actions">
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-edit">
-                        <i class="fas fa-edit"></i> Edit
+                        <i class="fas fa-edit"></i> @L["Edit"]
                     </a>
 
                     <form asp-action="DeleteConfirmed" method="post" style="display:inline;" class="confirm-delete-product-form">
                         <input type="hidden" name="id" value="@Model.Id" />
                         <button type="submit" class="btn-delete">
-                            Delete
+                            @L["Delete"]
                         </button>
                     </form>
                 </div>
@@ -122,17 +122,17 @@
     </div>
 
     <div class="product-bottom">
-        <h2>Product Description</h2>
+        <h2>@L["ProductDescription"]</h2>
         <p class="full-description">@Model.FullDescription</p>
     </div>
 
     <div id="comment-section">
-        <h3>Comments (@(Model.Comments?.Count ?? 0))</h3>
+        <h3>@L["CommentsCount", Model.Comments?.Count ?? 0]</h3>
 
         @Html.AntiForgeryToken()
 
-        <textarea id="comment-input" placeholder="Write a comment..." rows="3"></textarea>
-        <button type="button" onclick="postComment()" class="post-btn">Post</button>
+        <textarea id="comment-input" placeholder="@L["WriteCommentPlaceholder"]" rows="3"></textarea>
+        <button type="button" onclick="postComment()" class="post-btn">@L["PostComment"]</button>
 
         <div id="comments-list">
             @if (topLevelComments.Any())
@@ -153,7 +153,7 @@
             }
             else
             {
-                <p class="no-comments">No comment</p>
+                <p class="no-comments">@L["NoComments"]</p>
             }
         </div>
     </div>
@@ -162,10 +162,38 @@
 
 <div id="image-popup" class="popup">
     <button class="close-btn" onclick="closePopup()">×</button>
-    <img id="popup-img" src="" alt="Popup image">
+    <img id="popup-img" src="" alt="@L["ProductImage"]">
 </div>
 
 <script>
+    const commentUi = {
+        commentsTemplate: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CommentsCount"].Value)),
+        noComments: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["NoComments"].Value)),
+        reply: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["Reply"].Value)),
+        edit: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["Edit"].Value)),
+        delete: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["Delete"].Value)),
+        save: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["Save"].Value)),
+        cancel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["Cancel"].Value)),
+        writeReply: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["WriteReplyPlaceholder"].Value)),
+        postReply: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PostReply"].Value)),
+        hideReplies: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["HideReplies"].Value)),
+        seeReplies: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["SeeReplies"].Value)),
+        addedToCart: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddedToCart"].Value)),
+        addToCartFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddToCartFailed"].Value)),
+        genericError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["ErrorOccurred"].Value)),
+        addedRedirecting: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddedToCartRedirecting"].Value)),
+        buyFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["BuyNowFailed"].Value)),
+        writeCommentFirst: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PleaseWriteComment"].Value)),
+        postCommentFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["FailedPostComment"].Value)),
+        postCommentError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CouldNotPostComment"].Value)),
+        writeReplyFirst: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PleaseWriteReply"].Value)),
+        postReplyFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["FailedPostReply"].Value)),
+        postReplyError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CouldNotPostReply"].Value)),
+        deleteComment: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteComment"].Value)),
+        deleteCommentConfirmation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteCommentConfirmation"].Value)),
+        deleteFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteFailed"].Value)),
+        editFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["EditFailed"].Value))
+    };
     function changeImage(el) {
         document.getElementById("main-img").src = el.src;
     }
@@ -196,15 +224,15 @@
                 openLogin();
             }
             else if (data.success) {
-                showToast("Added to cart successfully!", "success");
+                showToast(commentUi.addedToCart, "success");
             }
             else {
-                showToast(data.message || "Failed to add to cart", "error");
+                showToast(data.message || commentUi.addToCartFailed, "error");
             }
         })
         .catch(err => {
             console.error(err);
-            showToast("An error occurred.", "error");
+            showToast(commentUi.genericError, "error");
         });
     }
 
@@ -220,15 +248,15 @@
             if (data.requireLogin) {
                 openLogin();
             } else if (data.success) {
-                showToast("Added to cart! Redirecting...", "success");
+                showToast(commentUi.addedRedirecting, "success");
                 window.location.href = "/Cart";
             } else {
-                showToast("Failed to buy product", "error");
+                showToast(commentUi.buyFailed, "error");
             }
         })
         .catch(err => {
             console.error(err);
-            showToast("Error occurred", "error");
+            showToast(commentUi.genericError, "error");
         });
     }
 
@@ -267,7 +295,7 @@
         const match = heading.textContent.match(/\((\d+)\)/);
         const currentCount = match ? parseInt(match[1], 10) : 0;
         const nextCount = Math.max(0, currentCount + change);
-        heading.textContent = `Comments (${nextCount})`;
+        heading.textContent = commentUi.commentsTemplate.replace('{0}', nextCount);
     }
 
     function updateNoCommentsState() {
@@ -278,7 +306,7 @@
         const emptyState = commentsList.querySelector('.no-comments');
 
         if (!hasComments && !emptyState) {
-            commentsList.innerHTML = '<p class="no-comments">No comment</p>';
+            commentsList.innerHTML = `<p class="no-comments">${commentUi.noComments}</p>`;
         }
 
         if (hasComments && emptyState) {
@@ -290,15 +318,15 @@
         const actionButtons = [];
 
         actionButtons.push(
-            `<button type="button" class="comment-action-btn btn-reply" onclick="toggleReplyForm(${comment.id})">Reply</button>`
+            `<button type="button" class="comment-action-btn btn-reply" onclick="toggleReplyForm(${comment.id})">${commentUi.reply}</button>`
         );
 
         if (comment.canManage) {
             actionButtons.push(
-                `<button type="button" onclick="showEdit(${comment.id})" class="comment-action-btn btn-comment-edit">Edit</button>`
+                `<button type="button" onclick="showEdit(${comment.id})" class="comment-action-btn btn-comment-edit">${commentUi.edit}</button>`
             );
             actionButtons.push(
-                `<button type="button" onclick="deleteComment(${comment.id})" class="delete-comment-btn">Delete</button>`
+                `<button type="button" onclick="deleteComment(${comment.id})" class="delete-comment-btn">${commentUi.delete}</button>`
             );
         }
 
@@ -315,8 +343,8 @@
                     <input type="text" class="edit-input" value="${escapeHtml(comment.text)}" />
 
                     <div class="edit-actions">
-                        <button type="button" onclick="saveEdit(${comment.id})" class="btn-save">Save</button>
-                        <button type="button" onclick="cancelEdit(${comment.id})" class="btn-cancel">Cancel</button>
+                        <button type="button" onclick="saveEdit(${comment.id})" class="btn-save">${commentUi.save}</button>
+                        <button type="button" onclick="cancelEdit(${comment.id})" class="btn-cancel">${commentUi.cancel}</button>
                     </div>
                 </div>
 
@@ -325,10 +353,10 @@
                 </div>
 
                 <div class="reply-form comment-reply-form edit-area" data-reply-form-for="${comment.id}" style="display:none;">
-                    <textarea class="edit-input reply-input" rows="2" placeholder="Write a reply..."></textarea>
+                    <textarea class="edit-input reply-input" rows="2" placeholder="${commentUi.writeReply}"></textarea>
                     <div class="reply-actions edit-actions">
-                        <button type="button" class="btn-save" onclick="submitReply(${comment.id}, ${comment.productId})">Post Reply</button>
-                        <button type="button" class="btn-cancel" onclick="toggleReplyForm(${comment.id}, false)">Cancel</button>
+                        <button type="button" class="btn-save" onclick="submitReply(${comment.id}, ${comment.productId})">${commentUi.postReply}</button>
+                        <button type="button" class="btn-cancel" onclick="toggleReplyForm(${comment.id}, false)">${commentUi.cancel}</button>
                     </div>
                 </div>
             </div>
@@ -355,7 +383,7 @@
         }
 
         toggleButton.setAttribute("data-reply-count", replyCount.toString());
-        toggleButton.textContent = isVisible ? "Hide replies" : `See replies (${replyCount})`;
+        toggleButton.textContent = isVisible ? commentUi.hideReplies : commentUi.seeReplies.replace('{0}', replyCount);
     }
 
     function ensureReplyList(commentId) {
@@ -404,7 +432,7 @@
         const text = document.getElementById("comment-input").value.trim();
 
         if (!text) {
-            showToast("Please write a comment", "error");
+            showToast(commentUi.writeCommentFirst, "error");
             return;
         }
 
@@ -421,12 +449,12 @@
                     updateCommentHeading(1);
                 }
                 else {
-                    showToast(data.message || "Failed to post comment", "error");
+                    showToast(data.message || commentUi.postCommentFailed, "error");
                 }
             })
             .catch(err => {
                 console.error(err);
-                showToast("Could not post comment. Please try again.", "error");
+                showToast(commentUi.postCommentError, "error");
             });
     }
 
@@ -451,7 +479,7 @@
         const text = input?.value.trim();
 
         if (!text) {
-            showToast("Please write a reply", "error");
+            showToast(commentUi.writeReplyFirst, "error");
             return;
         }
 
@@ -478,12 +506,12 @@
                     updateCommentHeading(1);
                 }
                 else {
-                    showToast(data.message || "Failed to post reply", "error");
+                    showToast(data.message || commentUi.postReplyFailed, "error");
                 }
             })
             .catch(err => {
                 console.error(err);
-                showToast("Could not post reply. Please try again.", "error");
+                showToast(commentUi.postReplyError, "error");
             });
     }
 
@@ -496,8 +524,8 @@
         const replyCount = toggleButton.getAttribute("data-reply-count") || "0";
         replyList.style.display = shouldShow ? "block" : "none";
         toggleButton.textContent = shouldShow
-            ? "Hide replies"
-            : `See replies (${replyCount})`;
+            ? commentUi.hideReplies
+            : commentUi.seeReplies.replace('{0}', replyCount);
     }
 
     document.getElementById("comment-input").addEventListener("keydown", function (e) {
@@ -508,7 +536,7 @@
     });
 
     async function deleteComment(id) {
-        const confirmed = await showConfirm("Delete this comment and all of its replies?", "Delete Comment");
+        const confirmed = await showConfirm(commentUi.deleteCommentConfirmation, commentUi.deleteComment);
         if (!confirmed) return;
 
         fetch('/Products/DeleteComment', {
@@ -543,7 +571,7 @@
                 updateCommentHeading(-deletedCount);
                 updateNoCommentsState();
             } else {
-                showToast(data.message || "Delete failed", "error");
+                showToast(data.message || commentUi.deleteFailed, "error");
             }
         });
     }
@@ -551,7 +579,7 @@
     document.querySelectorAll('.confirm-delete-product-form').forEach(form => {
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
-            const confirmed = await showConfirm("Are you sure you want to delete this product?", "Delete Product");
+            const confirmed = await showConfirm(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProductConfirmation"].Value)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProduct"].Value)));
             if (confirmed) {
                 form.submit();
             }
@@ -576,7 +604,7 @@
         const newText = input.value.trim();
 
         if (!newText) {
-            showToast("Comment cannot be empty", "error");
+            showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CommentCannotBeEmpty"].Value)), "error");
             return;
         }
 
@@ -596,14 +624,14 @@
                 commentText.textContent = data.text ?? newText;
                 input.value = data.text ?? newText;
                 cancelEdit(id);
-                showToast("Comment updated", "success");
+                showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CommentUpdated"].Value)), "success");
             } else {
-                showToast(data.message || "Edit failed", "error");
+                showToast(data.message || commentUi.editFailed, "error");
             }
         })
         .catch(err => {
             console.error("ERROR:", err);
-            showToast("Something went wrong", "error");
+            showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["SomethingWentWrong"].Value)), "error");
         });
     }
 </script>

@@ -12,8 +12,8 @@
 
 <div class="comment-item" data-comment-id="@Model.Id">
     <div class="comment-header">
-        <strong>@(Model.User?.Username ?? "Anonymous")</strong>
-        <small>@Model.CreatedAt.ToString("MMM dd, yyyy • hh:mm tt")</small>
+        <strong>@(Model.User?.Username ?? L["Anonymous"])</strong>
+        <small>@Model.CreatedAt.ToString("g")</small>
     </div>
 
     <p class="comment-text">@Model.Text</p>
@@ -22,13 +22,13 @@
         <input type="text" class="edit-input" value="@Model.Text" />
 
         <div class="edit-actions">
-            <button type="button" onclick="saveEdit(@Model.Id)" class="btn-save">Save</button>
-            <button type="button" onclick="cancelEdit(@Model.Id)" class="btn-cancel">Cancel</button>
+            <button type="button" onclick="saveEdit(@Model.Id)" class="btn-save">@L["Save"]</button>
+            <button type="button" onclick="cancelEdit(@Model.Id)" class="btn-cancel">@L["Cancel"]</button>
         </div>
     </div>
 
     <div class="comment-actions">
-        <button type="button" class="comment-action-btn btn-reply" onclick="toggleReplyForm(@Model.Id)">Reply</button>
+        <button type="button" class="comment-action-btn btn-reply" onclick="toggleReplyForm(@Model.Id)">@L["Reply"]</button>
 
         @if (replies.Any())
         {
@@ -37,22 +37,22 @@
                     data-toggle-replies-for="@Model.Id"
                     data-reply-count="@replies.Count"
                     onclick="toggleReplies(@Model.Id)">
-                See replies (@replies.Count)
+                @L["SeeReplies", replies.Count]
             </button>
         }
 
         @if (role == "Admin" || (currentUserId != null && currentUserId == Model.UserId))
         {
-            <button type="button" onclick="showEdit(@Model.Id)" class="comment-action-btn btn-comment-edit">Edit</button>
-            <button type="button" onclick="deleteComment(@Model.Id)" class="delete-comment-btn">Delete</button>
+            <button type="button" onclick="showEdit(@Model.Id)" class="comment-action-btn btn-comment-edit">@L["Edit"]</button>
+            <button type="button" onclick="deleteComment(@Model.Id)" class="delete-comment-btn">@L["Delete"]</button>
         }
     </div>
 
     <div class="reply-form comment-reply-form edit-area" data-reply-form-for="@Model.Id" style="display:none;">
-        <textarea class="edit-input reply-input" rows="2" placeholder="Write a reply..."></textarea>
+        <textarea class="edit-input reply-input" rows="2" placeholder="@L["WriteReplyPlaceholder"]"></textarea>
         <div class="reply-actions edit-actions">
-            <button type="button" class="btn-save" onclick="submitReply(@Model.Id, @productId)">Post Reply</button>
-            <button type="button" class="btn-cancel" onclick="toggleReplyForm(@Model.Id, false)">Cancel</button>
+            <button type="button" class="btn-save" onclick="submitReply(@Model.Id, @productId)">@L["PostReply"]</button>
+            <button type="button" class="btn-cancel" onclick="toggleReplyForm(@Model.Id, false)">@L["Cancel"]</button>
         </div>
     </div>
 

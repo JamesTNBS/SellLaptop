@@ -4,49 +4,49 @@
     <form asp-action="Edit" method="post" enctype="multipart/form-data" class="edit-container" onsubmit="syncImagesField()">
         @Html.AntiForgeryToken()
 
-        <h4 style="text-align:center">Edit Product</h4>
+        <h4 style="text-align:center">@L["EditProduct"]</h4>
 
         <input type="hidden" asp-for="Id" />
 
         <div class="edit-group">
-            <label>Title</label>
+            <label>@L["Title"]</label>
             <input asp-for="Title" />
         </div>
 
         <div class="edit-group">
-            <label>Brand</label>
+            <label>@L["Model"]</label>
             <input asp-for="Model" />
         </div>
 
         <div class="edit-group">
-            <label>Price</label>
+            <label>@L["Price"]</label>
             <input asp-for="Price" />
         </div>
 
         <div class="edit-group">
-            <label>Features</label>
+            <label>@L["KeyFeatures"]</label>
             <textarea asp-for="Features"></textarea>
         </div>
 
         <div class="edit-group">
-            <label>Short Description</label>
+            <label>@L["Short Description"]</label>
             <textarea asp-for="Description"></textarea>
         </div>
 
         <div class="edit-group">
-            <label>Images</label>
+            <label>@L["Images"]</label>
             <input asp-for="Images" type="hidden" />
             <span asp-validation-for="Images" class="text-danger"></span>
 
             <div class="image-manager product-image-manager">
                 <div class="image-manager-add">
                     <input type="text" id="image-url-input" class="form-control"
-                           placeholder="Paste an image URL and click Add URL" />
-                    <button type="button" class="post-btn" onclick="addImageUrl()">Add URL</button>
+                           placeholder="@L["PasteImageUrlPlaceholder"]" />
+                    <button type="button" class="post-btn" onclick="addImageUrl()">@L["AddUrl"]</button>
                 </div>
 
                 <div class="image-manager-upload">
-                    <label for="image-files">Upload images from your computer</label>
+                    <label for="image-files">@L["UploadImagesFromComputer"]</label>
                     <input type="file" id="image-files" name="imageFiles" class="form-control" accept="image/*" multiple onchange="handleFileSelection()" />
                 </div>
 
@@ -57,25 +57,33 @@
         <div class="gallery-preview" id="gallery-preview" style="display:none;">
             <div id="preview-thumbnails" class="thumb-column"></div>
             <div class="main-image-container">
-                <img id="preview-main" class="main-img" alt="Preview">
+                <img id="preview-main" class="main-img" alt="@L["Preview"]">
             </div>
         </div>
 
         <div class="edit-group">
-            <label>Full Description</label>
+            <label>@L["FullDescription"]</label>
             <textarea asp-for="FullDescription"></textarea>
         </div>
 
         <div class="edit-group">
-            <label>Condition</label>
+            <label>@L["Currency"]</label>
+            <select asp-for="Currency">
+                <option value="USD">USD ($)</option>
+                <option value="VND">VND (₫)</option>
+            </select>
+        </div>
+
+        <div class="edit-group">
+            <label>@L["Condition"]</label>
             <input asp-for="Condition" />
         </div>
 
         <div class="edit-actions">
-            <button type="submit" class="save-btn">Save</button>
+            <button type="submit" class="save-btn">@L["Save"]</button>
 
             <a asp-action="Details" asp-route-id="@Model.Id" class="cancel-btn">
-                Cancel
+                @L["Cancel"]
             </a>
         </div>
     </form>
@@ -173,7 +181,7 @@
             imageState.existing.forEach((path, index) => {
                 const resolvedUrl = normalizePreviewUrl(path);
                 appendManagerCard({
-                    label: path.startsWith('http') ? 'URL image' : 'Saved image',
+                    label: path.startsWith('http') ? @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["UrlImage"].Value)) : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["SavedImage"].Value)),
                     previewUrl: resolvedUrl,
                     onRemove: `removeExistingImage(${index})`
                 });
@@ -182,7 +190,7 @@
 
             imageState.newFiles.forEach(entry => {
                 appendManagerCard({
-                    label: 'New upload',
+                    label: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["NewUpload"].Value)),
                     previewUrl: entry.previewUrl,
                     onRemove: `removeNewFile('${entry.id}')`
                 });
@@ -201,7 +209,7 @@
                     <div class="image-manager-card">
                         <img src="${item.previewUrl}" alt="${item.label}">
                         <div class="image-manager-meta">${item.label}</div>
-                        <button type="button" class="btn-cancel image-remove-btn" onclick="${item.onRemove}">Remove</button>
+                        <button type="button" class="btn-cancel image-remove-btn" onclick="${item.onRemove}">@L["Remove"]</button>
                     </div>
                 `);
             }

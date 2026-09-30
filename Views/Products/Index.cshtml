@@ -18,11 +18,12 @@
 }
 
 @{
-    ViewData["Title"] = "Shop";
+    ViewData["Title"] = L["Shop"];
 
     var searchTerm = Context.Request.Query["search"].ToString().ToLower().Trim();
     var minPrice = decimal.TryParse(Context.Request.Query["minPrice"], out var minP) ? minP : 0;
-    var maxPrice = decimal.TryParse(Context.Request.Query["maxPrice"], out var maxP) ? maxP : 6000;
+    var priceLimit = Formatter.DisplayPriceLimit;
+    var maxPrice = decimal.TryParse(Context.Request.Query["maxPrice"], out var maxP) ? maxP : priceLimit;
     var selectedConditions = Context.Request.Query["condition"].ToList();
     var selectedBrands = Context.Request.Query["brand"].ToList();
     var sortBy = Context.Request.Query["sort"].ToString().ToLower();
@@ -38,15 +39,15 @@
     <main class="main-content shop-main">
 
         <div class="shop-top-bar">
-            <div class="results-count">@finalProducts.Count() products found</div>
+            <div class="results-count">@L["ProductsFound", finalProducts.Count()]</div>
 
             <div class="sort-section">
-                <label>Sort by:</label>
+                <label>@L["SortBy"]</label>
                 <select id="sort-select" onchange="applyFilters()">
-                    <option value="">Featured</option>
-                    <option value="price-low" selected="@(sortBy == "price-low")">Price: Low to High</option>
-                    <option value="price-high" selected="@(sortBy == "price-high")">Price: High to Low</option>
-                    <option value="newest" selected="@(sortBy == "newest")">Newest Arrivals</option>
+                    <option value="">@L["Featured"]</option>
+                    <option value="price-low" selected="@(sortBy == "price-low")">@L["PriceLowToHigh"]</option>
+                    <option value="price-high" selected="@(sortBy == "price-high")">@L["PriceHighToLow"]</option>
+                    <option value="newest" selected="@(sortBy == "newest")">@L["NewestArrivals"]</option>
                 </select>
             </div>
         </div>
@@ -58,29 +59,29 @@
                     aria-expanded="@(filtersOpen ? "true" : "false")"
                     onclick="toggleMobileFilters(this)">
                 <i class="fas fa-sliders-h"></i>
-                <span>@(filtersOpen ? "Hide Filters" : "Show Filters")</span>
+                <span>@(filtersOpen ? L["HideFilters"] : L["ShowFilters"])</span>
             </button>
 
             <aside class="shop-filters @(filtersOpen ? "mobile-open" : "")" id="shop-filters">
-                <h3>Price Range</h3>
+                <h3>@L["PriceRange"]</h3>
                 <div class="price-range">
-                    <input type="range" id="price-slider" min="0" max="6000"
-                           value="@(maxPrice > 0 ? maxPrice : 6000)"
+                    <input type="range" id="price-slider" min="0" max="@priceLimit" step="@(Formatter.DisplayCurrency == "VND" ? "100000" : "100")"
+                           value="@(maxPrice > 0 ? maxPrice : priceLimit)"
                            oninput="updatePriceDisplay(this.value)">
-                    <div class="price-display" id="price-display">$0 - $@maxPrice</div>
+                    <div class="price-display" id="price-display">@Formatter.FormatDisplay(0) - @Formatter.FormatDisplay(maxPrice)</div>
                 </div>
 
-                <h3>Condition</h3>
+                <h3>@L["Condition"]</h3>
                 @foreach (var cond in new[] { "New", "Like New", "Used - Excellent", "Used - Good", "Used - Fair" })
                 {
                     bool isChecked = selectedConditions.Contains(cond);
                     <label>
                         <input type="checkbox" name="condition" value="@cond"
-                               @(isChecked ? "checked" : "")> @cond
+                               @(isChecked ? "checked" : "")> @Formatter.TranslateCondition(cond)
                     </label>
                 }
 
-                <h3>Brands</h3>
+                <h3>@L["Brands"]</h3>
                 @foreach (var brand in new[] { "ASUS", "Acer", "Lenovo", "Dell", "HP", "Apple", "Samsung", "Microsoft", "MSI", "Razer" })
                 {
                     bool isChecked = selectedBrands.Contains(brand);
@@ -90,8 +91,8 @@
                     </label>
                 }
 
-                <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
-                <button class="apply-btn" style="background:#666; margin-top:8px;" onclick="resetFilters()">Reset Filters</button>
+                <button class="apply-btn" onclick="applyFilters()">@L["ApplyFilters"]</button>
+                <button class="apply-btn" style="background:#666; margin-top:8px;" onclick="resetFilters()">@L["ResetFilters"]</button>
             </aside>
 
             <div class="shop-products">
@@ -100,7 +101,7 @@
                     {
                         <div id="no-products">
                             <i class="fas fa-laptop" style="font-size:60px; opacity:0.4;"></i>
-                            <h3>No products match your filters</h3>
+                            <h3>@L["NoProductsMatch"]</h3>
                         </div>
                     }
                     else
@@ -122,15 +123,15 @@
                                 <div class="product-info">
                                     <h3>@product.Title</h3>
                                     <div class="model">@product.Model</div>
-                                    <div class="price">$@product.Price.ToString("N0")</div>
-                                    <div class="condition">@product.Condition</div>
-                                    <div class="seller">Seller: @product.Seller</div>
+                                    <div class="price">@Formatter.Format(product)</div>
+                                    <div class="condition">@Formatter.TranslateCondition(product.Condition)</div>
+                                    <div class="seller">@L["Seller"]: @product.Seller</div>
 
                                     <div class="product-actions">
                                         <button type="button"
                                                 onclick="addToCart(@product.Id, event);"
                                                 class="add-to-cart-btn">
-                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                            <i class="fas fa-cart-plus"></i> @L["AddToCart"]
                                         </button>
 
                                         @if (ViewBag.Role == "Admin")
@@ -140,7 +141,7 @@
                                                   class="confirm-delete-product-form">
                                                 <input type="hidden" name="id" value="@product.Id" />
                                                 <button type="submit" class="delete-product-btn" onclick="event.stopPropagation();">
-                                                    <i class="fas fa-trash"></i> Delete
+                                                    <i class="fas fa-trash"></i> @L["Delete"]
                                                 </button>
                                             </form>
                                         }
@@ -156,8 +157,17 @@
 </div>
 
 <script>
+    const priceFilterUi = {
+        locale: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.DisplayCurrency == "VND" ? "vi-VN" : "en-US")),
+        currencySuffix: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.DisplayCurrency == "VND" ? " ₫" : " $")),
+        minimum: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.FormatDisplay(0)))
+    };
+
     function updatePriceDisplay(value) {
-        document.getElementById("price-display").textContent = `$0 - $${value}`;
+        const formattedValue = new Intl.NumberFormat(priceFilterUi.locale, {
+            maximumFractionDigits: 0
+        }).format(Number(value));
+        document.getElementById("price-display").textContent = `${priceFilterUi.minimum} - ${formattedValue}${priceFilterUi.currencySuffix}`;
     }
 
     function applyFilters() {
@@ -167,7 +177,7 @@
             url += `search=@searchTerm&`;
         }
 
-        const maxPrice = document.getElementById("price-slider").value || 6000;
+        const maxPrice = document.getElementById("price-slider").value || @priceLimit;
         url += `minPrice=0&maxPrice=${maxPrice}&`;
 
         document.querySelectorAll('input[name="condition"]:checked').forEach(cb => {
@@ -196,7 +206,7 @@
         const filters = document.getElementById('shop-filters');
         const isOpen = filters.classList.toggle('mobile-open');
         button.setAttribute('aria-expanded', String(isOpen));
-        button.querySelector('span').textContent = isOpen ? 'Hide Filters' : 'Show Filters';
+        button.querySelector('span').textContent = isOpen ? @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["HideFilters"].Value)) : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["ShowFilters"].Value));
     }
 
     function goToDetails(productId, event) {
@@ -215,8 +225,8 @@
             .then(res => res.json())
             .then(data => {
                 if (data.requireLogin) openLogin();
-                else if (data.success) showToast("Added to cart!", "success");
-                else showToast(data.message || "Failed to add to cart", "error");
+                else if (data.success) showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddedToCart"].Value)), "success");
+                else showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddToCartFailed"].Value)), "error");
             });
     }
 
@@ -224,8 +234,8 @@
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
             const confirmed = await showConfirm(
-                "Are you sure you want to delete this product? This action cannot be undone.",
-                "Delete Product"
+                @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProductConfirmation"].Value)),
+                @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProduct"].Value))
             );
             if (confirmed) {
                 form.submit();
