@@ -3,16 +3,21 @@ using Laptop.Extensions;
 using Laptop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Laptop.Services;
+using Microsoft.Extensions.Localization;
+using Laptop.Resources;
 
 namespace Laptop.Controllers
 {
     public class CartController : BaseController
     {
-        private readonly ApplicationDbContext _context;
+        private readonly StorefrontFormatter _formatter;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public CartController(ApplicationDbContext context) : base(context)
+        public CartController(ApplicationDbContext context, StorefrontFormatter formatter, IStringLocalizer<SharedResource> localizer) : base(context)
         {
-            _context = context;
+            _formatter = formatter;
+            _localizer = localizer;
         }
 
         public IActionResult Index()
@@ -38,7 +43,7 @@ namespace Laptop.Controllers
             var items = GetCartItems(username);
             if (!items.Any())
             {
-                TempData["CheckoutError"] = "Your cart is empty.";
+                TempData["CheckoutError"] = _localizer["CartEmpty"].Value;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -87,6 +92,7 @@ namespace Laptop.Controllers
                     ProductId = product.Id,
                     Title = product.Title,
                     Price = product.Price,
+                    Currency = StorefrontFormatter.NormalizeCurrency(product.Currency),
                     Image = firstImage,
                     Quantity = 1,
                     Username = username
@@ -119,7 +125,7 @@ namespace Laptop.Controllers
 
             if (item == null)
             {
-                return Json(new { success = false, message = "Cart item not found" });
+                return Json(new { success = false, message = _localizer["CartItemNotFound"].Value });
             }
 
             item.Quantity++;
@@ -143,7 +149,7 @@ namespace Laptop.Controllers
 
             if (item == null)
             {
-                return Json(new { success = false, message = "Cart item not found" });
+                return Json(new { success = false, message = _localizer["CartItemNotFound"].Value });
             }
 
             item.Quantity--;
@@ -173,7 +179,7 @@ namespace Laptop.Controllers
 
             if (item == null)
             {
-                return Json(new { success = false, message = "Cart item not found" });
+                return Json(new { success = false, message = _localizer["CartItemNotFound"].Value });
             }
 
             _context.CartItems.Remove(item);
@@ -198,7 +204,7 @@ namespace Laptop.Controllers
 
             if (!items.Any())
             {
-                TempData["CheckoutError"] = "Your cart is empty.";
+                TempData["CheckoutError"] = _localizer["CartEmpty"].Value;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -224,15 +230,18 @@ namespace Laptop.Controllers
                 City = model.City.Trim(),
                 StateOrProvince = model.StateOrProvince.Trim(),
                 PostalCode = model.PostalCode.Trim(),
-                PaymentMethod = model.PaymentMethod.Trim(),
+                PaymentMethod = model.PaymentMethod?.Trim() ?? "Cash on Delivery",
                 Notes = model.Notes?.Trim() ?? string.Empty,
-                TotalAmount = items.Sum(x => x.Price * x.Quantity),
+                Currency = _formatter.DisplayCurrency,
+                ExchangeRate = StorefrontFormatter.VndPerUsd,
+                TotalAmount = items.Sum(x => _formatter.ToDisplayAmount(x) * x.Quantity),
                 CreatedAt = DateTime.Now,
                 Items = items.Select(x => new OrderItem
                 {
                     ProductId = x.ProductId,
                     Title = x.Title,
                     Price = x.Price,
+                    Currency = StorefrontFormatter.NormalizeCurrency(x.Currency),
                     Quantity = x.Quantity,
                     Image = x.Image
                 }).ToList()
@@ -317,12 +326,12 @@ namespace Laptop.Controllers
 
             if (order == null)
             {
-                return Json(new { success = false, message = "Order not found." });
+                return Json(new { success = false, message = _localizer["OrderNotFound"].Value });
             }
 
             if (order.Status == "Delivered" || order.Status == "Cancelled")
             {
-                return Json(new { success = false, message = $"This order is already {order.Status.ToLower()}." });
+                return Json(new { success = false, message = string.Format(_localizer["OrderAlreadyStatus"].Value, _formatter.TranslateOrderStatus(order.Status)) });
             }
 
             order.Status = "Cancelled";
@@ -332,7 +341,7 @@ namespace Laptop.Controllers
             {
                 success = true,
                 status = order.Status,
-                message = $"Order #{order.Id} cancelled."
+                message = string.Format(_localizer["OrderCancelledNumber"].Value, order.Id)
             });
         }
 
@@ -343,7 +352,7 @@ namespace Laptop.Controllers
                 .ToList();
 
             var itemCount = cartItems.Sum(c => c.Quantity);
-            var subtotal = cartItems.Sum(c => c.Price * c.Quantity);
+            var subtotal = cartItems.Sum(c => _formatter.ToDisplayAmount(c) * c.Quantity);
 
             return new
             {
@@ -351,10 +360,12 @@ namespace Laptop.Controllers
                 removed,
                 itemId = item.Id,
                 quantity = removed ? 0 : item.Quantity,
-                itemTotal = removed ? 0 : item.Price * item.Quantity,
+                itemTotal = removed ? 0 : _formatter.ToDisplayAmount(item) * item.Quantity,
+                itemTotalFormatted = removed ? _formatter.FormatDisplay(0) : _formatter.FormatDisplay(_formatter.ToDisplayAmount(item) * item.Quantity),
                 cartCount = itemCount,
                 itemCount,
-                subtotal
+                subtotal,
+                subtotalFormatted = _formatter.FormatDisplay(subtotal)
             };
         }
 

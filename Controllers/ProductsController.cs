@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,18 +11,21 @@ using Laptop.Data;
 using Laptop.Models;
 using Laptop.Extensions;
 using Laptop.Models.DTOs;
+using Laptop.Services;
 
 namespace Laptop.Controllers
 {
     public class ProductsController : BaseController
     {
-        private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly StorefrontFormatter _formatter;
+        private readonly Microsoft.Extensions.Localization.IStringLocalizer<Laptop.Resources.SharedResource> _localizer;
 
-        public ProductsController(ApplicationDbContext context, IWebHostEnvironment environment) : base(context)
+        public ProductsController(ApplicationDbContext context, IWebHostEnvironment environment, StorefrontFormatter formatter, Microsoft.Extensions.Localization.IStringLocalizer<Laptop.Resources.SharedResource> localizer) : base(context)
         {
-            _context = context;
             _environment = environment;
+            _formatter = formatter;
+            _localizer = localizer;
         }
 
         // GET: Products
@@ -42,15 +45,9 @@ namespace Laptop.Controllers
                     (p.Description != null && p.Description.ToLower().Contains(searchTerm)));
             }
 
-            // 2. Price Range (Fixed)
+            // 2. Price range is expressed in the visitor's selected display currency.
             var minPriceStr = Request.Query["minPrice"].ToString();
             var maxPriceStr = Request.Query["maxPrice"].ToString();
-
-            if (decimal.TryParse(minPriceStr, out var minPrice) && minPrice > 0)
-                query = query.Where(p => p.Price >= minPrice);
-
-            if (decimal.TryParse(maxPriceStr, out var maxPrice) && maxPrice > 0)
-                query = query.Where(p => p.Price <= maxPrice);
 
             // 3. Condition filter
             var selectedConditions = Request.Query["condition"].ToList();
@@ -60,25 +57,33 @@ namespace Laptop.Controllers
             }
 
             // 4. Model filter
-            var selectedBrands = Request.Query["brand"].ToList();
+            var selectedBrands = Request.Query["brand"]
+                .Where(brand => !string.IsNullOrWhiteSpace(brand))
+                .Select(brand => brand!)
+                .ToList();
 
             if (selectedBrands.Any())
             {
                 query = query.Where(p => p.Model != null &&
-                    selectedBrands.Any(b => p.Model.ToLower().Contains(b.ToLower())));
+                    selectedBrands.Any(b => (p.Model ?? string.Empty).ToLower().Contains(b.ToLower())));
             }
 
-            // 5. Sorting
+            // 5. Finish currency-aware filtering and sorting in memory. Product counts are
+            // small for this storefront and this avoids treating native USD and VND values alike.
             var sortBy = Request.Query["sort"].ToString().ToLower();
-            query = sortBy switch
-            {
-                "price-low" => query.OrderBy(p => p.Price),
-                "price-high" => query.OrderByDescending(p => p.Price),
-                "newest" => query.OrderByDescending(p => p.Id),
-                _ => query.OrderBy(p => p.Title)
-            };
-
             var products = await query.ToListAsync();
+            if (decimal.TryParse(minPriceStr, out var minPrice) && minPrice > 0)
+                products = products.Where(p => _formatter.ToDisplayAmount(p) >= minPrice).ToList();
+            if (decimal.TryParse(maxPriceStr, out var maxPrice) && maxPrice > 0)
+                products = products.Where(p => _formatter.ToDisplayAmount(p) <= maxPrice).ToList();
+
+            products = sortBy switch
+            {
+                "price-low" => products.OrderBy(p => _formatter.ToDisplayAmount(p)).ToList(),
+                "price-high" => products.OrderByDescending(p => _formatter.ToDisplayAmount(p)).ToList(),
+                "newest" => products.OrderByDescending(p => p.Id).ToList(),
+                _ => products.OrderBy(p => p.Title).ToList()
+            };
 
             ViewBag.Role = HttpContext.Session.GetString("Role");
 
@@ -127,11 +132,12 @@ namespace Laptop.Controllers
         public async Task<IActionResult> Create(Product product, List<IFormFile>? imageFiles)
         {
             product.Seller = "Admin";
+            product.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
             product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
 
             if (string.IsNullOrWhiteSpace(product.Images))
             {
-                ModelState.AddModelError("Images", "Add at least one image URL or upload an image from your computer.");
+                ModelState.AddModelError("Images", _localizer["AddAtLeastOneImage"].Value);
             }
 
             if (ModelState.IsValid)
@@ -175,7 +181,7 @@ namespace Laptop.Controllers
 
                     await _context.SaveChangesAsync();
 
-                    TempData["Success"] = "Product added successfully!";
+                    TempData["Success"] = _localizer["ProductAddedSuccessfully"].Value;
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -206,7 +212,7 @@ namespace Laptop.Controllers
         // POST: Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Model,Price,Features,Description,Images,FullDescription,Condition")] Product product, List<IFormFile>? imageFiles)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Model,Price,Currency,Features,Description,Images,FullDescription,Condition")] Product product, List<IFormFile>? imageFiles)
         {
             if (id != product.Id)
             {
@@ -238,6 +244,7 @@ namespace Laptop.Controllers
                     existingProduct.Title = product.Title;
                     existingProduct.Model = product.Model;
                     existingProduct.Price = product.Price;
+                    existingProduct.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
                     existingProduct.Features = product.Features;
                     existingProduct.Description = product.Description;
                     existingProduct.Images = product.Images;
@@ -286,13 +293,14 @@ namespace Laptop.Controllers
                     {
                         item.Title = existingProduct.Title;
                         item.Price = existingProduct.Price;
+                        item.Currency = existingProduct.Currency;
                         item.Image = firstImage;
                     }
 
                     _context.CartItems.UpdateRange(cartItems);
                     await _context.SaveChangesAsync();
 
-                    TempData["ToastMessage"] = "Product updated!";
+                    TempData["ToastMessage"] = _localizer["ProductUpdatedSuccessfully"].Value;
                     TempData["ToastType"] = "success";
 
                     return RedirectToAction("Details", new { id = existingProduct.Id });
@@ -330,7 +338,7 @@ namespace Laptop.Controllers
             var product = await _context.Products.FindAsync(id);
             if (product == null)
             {
-                return Json(new { success = false, message = "Product not found" });
+                return Json(new { success = false, message = _localizer["ProductNotFound"].Value });
             }
 
             try
@@ -345,7 +353,7 @@ namespace Laptop.Controllers
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Product deleted successfully" });
+                return Json(new { success = true, message = _localizer["ProductDeletedSuccessfully"].Value });
             }
             catch (Exception ex)
             {
@@ -463,12 +471,12 @@ namespace Laptop.Controllers
 
             if (data == null || string.IsNullOrWhiteSpace(data.Text))
             {
-                return Json(new { success = false, message = "Comment cannot be empty" });
+                return Json(new { success = false, message = _localizer["CommentCannotBeEmpty"].Value });
             }
 
             if (!_context.Products.Any(p => p.Id == data.ProductId))
             {
-                return Json(new { success = false, message = "Product not found" });
+                return Json(new { success = false, message = _localizer["ProductNotFound"].Value });
             }
 
             if (data.ParentCommentId.HasValue)
@@ -476,7 +484,7 @@ namespace Laptop.Controllers
                 var parentComment = _context.Comments.FirstOrDefault(c => c.Id == data.ParentCommentId.Value);
                 if (parentComment == null || parentComment.ProductId != data.ProductId)
                 {
-                    return Json(new { success = false, message = "Reply target not found" });
+                    return Json(new { success = false, message = _localizer["ReplyTargetNotFound"].Value });
                 }
             }
 
@@ -519,13 +527,13 @@ namespace Laptop.Controllers
 
             var comment = _context.Comments.FirstOrDefault(c => c.Id == id);
             if (comment == null)
-                return Json(new { success = false, message = "Comment not found" });
+                return Json(new { success = false, message = _localizer["CommentNotFound"].Value });
 
             // Admin can delete any comment
             // Normal user can only delete their own comment
             if (role != "Admin" && comment.UserId != userId)
             {
-                return Json(new { success = false, message = "You can only delete your own comments" });
+                return Json(new { success = false, message = _localizer["CanOnlyDeleteOwnComments"].Value });
             }
 
             var parentCommentId = comment.ParentCommentId;
