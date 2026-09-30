@@ -178,6 +178,7 @@ h2 {
     align-items: center;
     justify-content: center;
     transition: background 0.3s ease, color 0.3s ease;
+    margin-bottom: 15px;
 }
 
 /* Light mode theme styles */
