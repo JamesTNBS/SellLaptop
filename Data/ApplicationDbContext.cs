@@ -29,6 +29,10 @@ namespace Laptop.Data
                 .Property(p => p.Price)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Order>()
+                .Property(o => o.ExchangeRate)
+                .HasPrecision(18, 6);
+
             modelBuilder.Entity<CartItem>()
                 .Property(c => c.Price)
                 .HasPrecision(18, 2);
