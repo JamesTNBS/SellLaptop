@@ -6,16 +6,18 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Laptop.Security;
+using Microsoft.Extensions.Localization;
+using Laptop.Resources;
 
 namespace Laptop.Controllers
 {
     public class AccountController : BaseController
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AccountController(ApplicationDbContext context) : base(context)
+        public AccountController(ApplicationDbContext context, IStringLocalizer<SharedResource> localizer) : base(context)
         {
-            _context = context;
+            _localizer = localizer;
         }
 
 
@@ -33,17 +35,17 @@ namespace Laptop.Controllers
                 string.IsNullOrWhiteSpace(email) ||
                 string.IsNullOrWhiteSpace(password))
             {
-                return Json(new { success = false, message = "All fields are required" });
+                return Json(new { success = false, message = _localizer["AllFieldsRequired"].Value });
             }
 
             if (_context.Users.Any(u => u.Username.ToLower() == username.ToLower()))
             {
-                return Json(new { success = false, message = "Username already exists" });
+                return Json(new { success = false, message = _localizer["UsernameAlreadyExists"].Value });
             }
 
             if (_context.Users.Any(u => u.Email.ToLower() == email.ToLower()))
             {
-                return Json(new { success = false, message = "Email already exists" });
+                return Json(new { success = false, message = _localizer["EmailAlreadyExists"].Value });
             }
 
             var user = new User
@@ -58,7 +60,7 @@ namespace Laptop.Controllers
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            return Json(new { success = true, message = "Registration successful!" });
+            return Json(new { success = true, message = _localizer["RegistrationSuccessful"].Value });
         }
 
         // LOGIN
@@ -70,7 +72,7 @@ namespace Laptop.Controllers
 
             if (user == null || !PasswordSecurity.VerifyPassword(user, password, out var needsUpgrade))
             {
-                return Json(new { success = false, message = "Invalid username or password" });
+                return Json(new { success = false, message = _localizer["InvalidUsernameOrPassword"].Value });
             }
 
             if (needsUpgrade)
@@ -112,12 +114,12 @@ namespace Laptop.Controllers
         {
             if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(newPassword))
             {
-                return Json(new { success = false, message = "Username/email and new password are required." });
+                return Json(new { success = false, message = _localizer["UsernameOrEmailAndNewPasswordRequired"].Value });
             }
 
             if (newPassword.Length < 6)
             {
-                return Json(new { success = false, message = "Password must be at least 6 characters." });
+                return Json(new { success = false, message = _localizer["PasswordMinLength"].Value });
             }
 
             var lookup = usernameOrEmail.Trim().ToLower();
@@ -127,13 +129,13 @@ namespace Laptop.Controllers
 
             if (user == null)
             {
-                return Json(new { success = false, message = "No account found with that username or email." });
+                return Json(new { success = false, message = _localizer["NoAccountFound"].Value });
             }
 
             user.Password = PasswordSecurity.HashPassword(user, newPassword);
             _context.SaveChanges();
 
-            return Json(new { success = true, message = "Password reset successfully. You can log in now." });
+            return Json(new { success = true, message = _localizer["PasswordResetSuccessLogin"].Value });
         }
 
         // LOGOUT
