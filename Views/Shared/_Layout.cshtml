@@ -4,11 +4,12 @@
 @{
     var user = Context.Session.GetString("User");
     var role = Context.Session.GetString("Role");
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
 }
 
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@currentCulture">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,7 +17,7 @@
     <script type="importmap"></script>
     <link rel="icon" type="image/png" href="~/images/favicon.png" asp-append-version="true" />
     <link rel="stylesheet" href="~/Laptop.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
@@ -30,7 +31,7 @@
         <div class="side-panel" id="sidePanel">
             <p id="#user-display" style=" text-align:center">
                 <i class="fas fa-user"></i>
-                <span id="username-text">@(user ?? "Guest")</span>
+                <span id="username-text">@(user ?? L["Guest"].Value)</span>
             </p>
 
             <div class="separate1"></div>
@@ -38,22 +39,22 @@
             <!-- NAV -->
             <div class="nav-links">
                 <a asp-controller="Products" asp-action="Index">
-                    <span>🏠</span> Home
+                    <span>🏠</span> @L["Home"]
                 </a>
 
                 <a href="#" onclick="goToCart(); return false;" class="cart-link">
-                    🛒 Cart <span class="cart-badge">@ViewBag.CartCount</span>
+                    🛒 @L["Cart"] <span class="cart-badge">@ViewBag.CartCount</span>
                 </a>
 
                 @if (!string.IsNullOrEmpty(user))
                 {
                     <a asp-controller="Cart" asp-action="MyOrders">
-                        <i class="fas fa-receipt"></i> My Orders
+                        <i class="fas fa-receipt"></i> @L["MyOrders"]
                     </a>
                 }
 
                 <a href="#" onclick="openSearchPopup(); return false;">
-                    <span>🔍</span> Search
+                    <span>🔍</span> @L["Search"]
                 </a>
 
                 <a href="https://zalo.me/0792351781" target="_blank" rel="noopener noreferrer">
@@ -65,12 +66,12 @@
 
                     <!-- Add Laptop -->
                     <a asp-controller="Products" asp-action="Create">
-                        <i class="fas fa-plus-circle"></i> Add Laptop
+                        <i class="fas fa-plus-circle"></i> @L["AddLaptop"]
                     </a>
 
                     <!-- Admin Dashboard Button -->
                     <a asp-controller="Admin" asp-action="Index">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                        <i class="fas fa-tachometer-alt"></i> @L["Dashboard"]
                     </a>
                 }
             </div>
@@ -78,15 +79,24 @@
             <div class="separate2"></div>
 
             <!-- Dark Mode -->
-            <button style="width: 100%;"  class="toggle-light-mode">
+                <form asp-controller="Language" asp-action="Set" method="post" style="margin:0 0 15px;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <select id="language-selector" name="culture" aria-label="@L["ChooseLanguage"]" onchange="this.form.submit()" style="width:100%; padding:8px; border-radius:6px;">
+                        <option value="en-US" selected="@(currentCulture == "en-US")">@L["English"]</option>
+                        <option value="vi-VN" selected="@(currentCulture == "vi-VN")">@L["Vietnamese"]</option>
+                    </select>
+                </form>
+
+                <button style="width: 100%;" class="toggle-light-mode" title="@L["DarkMode"]">
                 <i class="fas fa-sun"></i>
             </button>
 
             <!-- AUTH BUTTONS -->
             @if (string.IsNullOrEmpty(user))
             {
-                <button class="auth-btn login-btn" onclick="openLogin()">Login</button>
-                <button class="auth-btn register-btn" onclick="openRegister()">Register</button>
+                <button class="auth-btn login-btn" onclick="openLogin()">@L["Login"]</button>
+                <button class="auth-btn register-btn" onclick="openRegister()">@L["Register"]</button>
             }
             else
             {
@@ -95,7 +105,7 @@
                       method="post">
                     <input type="hidden" name="returnUrl"
                            value="@Context.Request.Path@Context.Request.QueryString" />
-                    <button class="auth-btn logout-btn">Logout</button>
+                    <button class="auth-btn logout-btn">@L["Logout"]</button>
                 </form>
             }
 
@@ -119,35 +129,35 @@
     <div id="login-modal" class="popup-overlay">
         <div class="popup-box">
             <span class="popup-close" onclick="closeLogin()">×</span>
-            <h4>Login</h4>
+            <h4>@L["Login"]</h4>
 
             <!-- Login Popup Form -->
             <form id="login-form" onsubmit="submitLogin(event)">
                 <input type="text"
                        id="login-username"
-                       placeholder="Username"
+                       placeholder="@L["Username"]"
                        required
-                       oninvalid="this.setCustomValidity('Username is required')"
+                       oninvalid="this.setCustomValidity('@L["UsernameRequired"]')"
                        oninput="this.setCustomValidity('')" />
                 <div class="password-field">
                     <input type="password"
                            id="login-password"
-                           placeholder="Password"
+                           placeholder="@L["Password"]"
                            required
-                           oninvalid="this.setCustomValidity('Password is required')"
+                           oninvalid="this.setCustomValidity('@L["PasswordRequired"]')"
                            oninput="this.setCustomValidity('')" />
                     <span onclick="togglePassword('login-password')">👁</span>
                 </div>
-                <button type="submit">Login</button>
+                <button type="submit">@L["Login"]</button>
             </form>
 
             <p class="popup-switch">
-                <a href="#" onclick="switchToForgotPassword(); return false;">Forgot password?</a>
+                <a href="#" onclick="switchToForgotPassword(); return false;">@L["ForgotPassword"]</a>
             </p>
 
             <p class="popup-switch">
-                Don't have an account?
-                <a href="#" onclick="switchToRegister(); return false;">Register here</a>
+                @L["NoAccount"]
+                <a href="#" onclick="switchToRegister(); return false;">@L["RegisterHere"]</a>
             </p>
         </div>
     </div>
@@ -155,30 +165,30 @@
     <div id="forgot-password-modal" class="popup-overlay">
         <div class="popup-box">
             <span class="popup-close" onclick="closeForgotPassword()">×</span>
-            <h4>Reset Password</h4>
+            <h4>@L["ResetPassword"]</h4>
             <form id="forgot-password-form" onsubmit="submitForgotPassword(event)">
                 <input type="text"
                        id="forgot-lookup"
-                       placeholder="Username or email"
+                       placeholder="@L["UsernameOrEmail"]"
                        required
-                       oninvalid="this.setCustomValidity('Username or email is required')"
+                       oninvalid="this.setCustomValidity('@L["UsernameOrEmailRequired"]')"
                        oninput="this.setCustomValidity('')" />
                 <div class="password-field">
                     <input type="password"
                            id="forgot-new-password"
-                           placeholder="New password"
+                           placeholder="@L["NewPassword"]"
                            required
                            minlength="6"
-                           oninvalid="this.setCustomValidity('New password is required')"
+                           oninvalid="this.setCustomValidity('@L["NewPasswordRequired"]')"
                            oninput="this.setCustomValidity('')" />
                     <span onclick="togglePassword('forgot-new-password')">👁</span>
                 </div>
-                <button type="submit">Reset Password</button>
+                <button type="submit">@L["ResetPassword"]</button>
             </form>
 
             <p class="popup-switch">
-                Remembered it?
-                <a href="#" onclick="switchForgotToLogin(); return false;">Login here</a>
+                @L["RememberedPassword"]
+                <a href="#" onclick="switchForgotToLogin(); return false;">@L["LoginHere"]</a>
             </p>
         </div>
     </div>
@@ -186,7 +196,7 @@
     <div id="register-modal" class="popup-overlay">
         <div class="popup-box">
             <span class="popup-close" onclick="closeRegister()">×</span>
-            <h4>Create Account</h4>
+            <h4>@L["CreateAccount"]</h4>
             <form id="register-form" onsubmit="submitRegister(event)">
                 @Html.AntiForgeryToken()
 
@@ -196,17 +206,17 @@
                 <!-- Username -->
                 <input type="text"
                        name="username"
-                       placeholder="Username"
+                       placeholder="@L["Username"]"
                        required
-                       oninvalid="this.setCustomValidity('Username is required')"
+                       oninvalid="this.setCustomValidity('@L["UsernameRequired"]')"
                        oninput="this.setCustomValidity('')" />
 
                 <!-- Email -->
                 <input type="email"
                        name="email"
-                       placeholder="Email Address"
+                       placeholder="@L["EmailAddress"]"
                        required
-                       oninvalid="this.setCustomValidity('Please enter a valid email address')"
+                       oninvalid="this.setCustomValidity('@L["ValidEmailRequired"]')"
                        oninput="this.setCustomValidity('')" />
 
                 <!-- Password -->
@@ -214,19 +224,19 @@
                     <input type="password"
                            id="register-pass"
                            name="password"
-                           placeholder="Enter your password"
+                           placeholder="@L["EnterPassword"]"
                            required
-                           oninvalid="this.setCustomValidity('Password is required')"
+                           oninvalid="this.setCustomValidity('@L["PasswordRequired"]')"
                            oninput="this.setCustomValidity('')" />
                     <span onclick="togglePassword('register-pass')">👁</span>
                 </div>
 
-                <button type="submit">Register</button>
+                <button type="submit">@L["Register"]</button>
             </form>
 
             <p class="popup-switch">
-                Already have an account?
-                <a href="#" onclick="switchToLogin(); return false;">Login here</a>
+                @L["AlreadyHaveAccount"]
+                <a href="#" onclick="switchToLogin(); return false;">@L["LoginHere"]</a>
             </p>
         </div>
     </div>
@@ -235,20 +245,20 @@
     <div id="search-modal" class="popup-overlay search-popup">
         <div class="popup-box search-popup-box">
             <span class="close-search" onclick="closeSearchPopup()">×</span>
-            <h4>Search Laptops</h4>
-            <input type="text" id="search-input" placeholder="Enter your search...">
-            <button type="button" onclick="performSearch()">Search</button>
+            <h4>@L["SearchLaptops"]</h4>
+            <input type="text" id="search-input" placeholder="@L["EnterSearch"]">
+            <button type="button" onclick="performSearch()">@L["Search"]</button>
         </div>
     </div>
 
     <div id="confirm-modal" class="popup-overlay confirm-overlay">
         <div class="popup-box confirm-box">
             <span class="popup-close" onclick="closeConfirm(false)">×</span>
-            <h4 id="confirm-title">Please Confirm</h4>
+            <h4 id="confirm-title">@L["PleaseConfirm"]</h4>
             <p id="confirm-message" class="confirm-message"></p>
             <div class="confirm-actions">
-                <button type="button" class="confirm-cancel-btn" onclick="closeConfirm(false)">No</button>
-                <button type="button" class="confirm-confirm-btn" onclick="closeConfirm(true)">Yes</button>
+                <button type="button" class="confirm-cancel-btn" onclick="closeConfirm(false)">@L["No"]</button>
+                <button type="button" class="confirm-confirm-btn" onclick="closeConfirm(true)">@L["Yes"]</button>
             </div>
         </div>
     </div>
@@ -290,7 +300,19 @@
 
             let confirmResolver = null;
 
-            function showConfirm(message, title = "Please Confirm") {
+            const localizedUi = {
+                addedToCart: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddedToCart"].Value)),
+                addToCartFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["AddToCartFailed"].Value)),
+                loginFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["LoginFailed"].Value)),
+                loginError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["LoginError"].Value)),
+                passwordReset: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PasswordReset"].Value)),
+                passwordResetFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PasswordResetFailed"].Value)),
+                passwordResetError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PasswordResetError"].Value)),
+                registrationError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["RegistrationError"].Value)),
+                pleaseConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PleaseConfirm"].Value))
+            };
+
+            function showConfirm(message, title = localizedUi.pleaseConfirm) {
                 const modal = document.getElementById("confirm-modal");
                 const titleElement = document.getElementById("confirm-title");
                 const messageElement = document.getElementById("confirm-message");
@@ -347,9 +369,9 @@
                         openLogin();
                     } else if (data.success) {
                         document.querySelector(".cart-badge").textContent = data.cartCount;
-                        showToast("Added to cart!", "success");
+                        showToast(localizedUi.addedToCart, "success");
                     } else {
-                        showToast(data.message || "Failed to add to cart", "error");
+                        showToast(data.message || localizedUi.addToCartFailed, "error");
                     }
                 });
             }
@@ -420,12 +442,12 @@
                         closeLogin();
                         location.reload();
                     } else {
-                        showToast(data.message || "Login failed", "error");
+                        showToast(data.message || localizedUi.loginFailed, "error");
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    showToast("Login error occurred", "error");
+                    showToast(localizedUi.loginError, "error");
                 });
             }
 
@@ -447,16 +469,16 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        showToast(data.message || "Password reset successfully", "success");
+                        showToast(data.message || localizedUi.passwordReset, "success");
                         document.getElementById("forgot-password-form").reset();
                         switchForgotToLogin();
                     } else {
-                        showToast(data.message || "Could not reset password", "error");
+                        showToast(data.message || localizedUi.passwordResetFailed, "error");
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    showToast("Password reset error occurred", "error");
+                    showToast(localizedUi.passwordResetError, "error");
                 });
             }
 
@@ -491,7 +513,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    showToast("Registration error occurred", "error");
+                    showToast(localizedUi.registrationError, "error");
                 });
             }
 

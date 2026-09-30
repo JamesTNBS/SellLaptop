@@ -35,7 +35,7 @@
 }
 
 @{
-    ViewData["Title"] = "My Orders";
+    ViewData["Title"] = L["MyOrders"].Value;
     var orders = Model.ToList();
     var currentProductImages = ViewBag.CurrentProductImages as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
@@ -45,12 +45,12 @@
 
     <div class="my-orders-header">
         <div>
-            <p class="my-orders-kicker">Order history</p>
-            <h1>My Orders</h1>
+            <p class="my-orders-kicker">@L["OrderHistory"]</p>
+            <h1>@L["MyOrders"]</h1>
         </div>
 
         <a asp-controller="Products" asp-action="Index" class="my-orders-shop-link">
-            Continue Shopping
+            @L["ContinueShopping"]
         </a>
     </div>
 
@@ -58,9 +58,9 @@
     {
         <div class="my-orders-empty">
             <i class="fas fa-receipt"></i>
-            <h2>No orders yet</h2>
-            <p>Your checkout history will show up here after you place an order.</p>
-            <a asp-controller="Products" asp-action="Index" class="checkout-btn">Browse Laptops</a>
+            <h2>@L["NoOrdersYet"]</h2>
+            <p>@L["NoOrdersSubtitle"]</p>
+            <a asp-controller="Products" asp-action="Index" class="checkout-btn">@L["BrowseLaptops"]</a>
         </div>
     }
     else
@@ -74,29 +74,29 @@
                 <section class="my-order-card" data-order-id="@order.Id">
                     <div class="my-order-top">
                         <div>
-                            <div class="my-order-id">Order #@order.Id</div>
-                            <div class="my-order-date">@order.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            <div class="my-order-id">@L["OrderNumberFormat", order.Id]</div>
+                            <div class="my-order-date">@order.CreatedAt.ToString("g")</div>
                         </div>
 
                         <div class="my-order-status-area">
                             <span class="status-badge @GetStatusBadgeClass(order.Status)" data-status-badge>
-                                @order.Status
+                                @Formatter.TranslateOrderStatus(order.Status)
                             </span>
-                            <div class="my-order-total">$@order.TotalAmount.ToString("N2")</div>
+                            <div class="my-order-total">@Formatter.FormatOrderTotal(order)</div>
                         </div>
                     </div>
 
                     <div class="my-order-info-grid">
                         <div>
-                            <span>Payment</span>
-                            <strong>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "-" : order.PaymentMethod)</strong>
+                            <span>@L["Payment"]</span>
+                            <strong>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "-" : Formatter.TranslatePaymentMethod(order.PaymentMethod))</strong>
                         </div>
                         <div>
-                            <span>Phone</span>
+                            <span>@L["Phone"]</span>
                             <strong>@(string.IsNullOrWhiteSpace(order.Phone) ? "-" : order.Phone)</strong>
                         </div>
                         <div>
-                            <span>Delivery</span>
+                            <span>@L["Delivery"]</span>
                             <strong>
                                 @if (string.IsNullOrWhiteSpace(order.AddressLine1))
                                 {
@@ -122,9 +122,9 @@
                                 <img src="@ResolveProductImage(image)" alt="@item.Title" />
                                 <div>
                                     <div class="my-order-item-title">@item.Title</div>
-                                    <div class="my-order-item-meta">$@item.Price.ToString("N2") each &middot; Qty @item.Quantity</div>
+                                    <div class="my-order-item-meta">@L["OrderItemMeta", Formatter.Format(item), item.Quantity]</div>
                                 </div>
-                                <strong>$@((item.Price * item.Quantity).ToString("N2"))</strong>
+                                <strong>@Formatter.FormatDisplay(Formatter.ToDisplayAmount(item) * item.Quantity)</strong>
                             </div>
                         }
                     </div>
@@ -133,13 +133,13 @@
                         @if (canCancel)
                         {
                             <button type="button" class="my-order-cancel-btn" onclick="cancelOrder(@order.Id)">
-                                Cancel Order
+                                @L["CancelOrder"]
                             </button>
                         }
                         else
                         {
                             <span class="my-order-muted">
-                                @(order.Status == "Cancelled" ? "Order cancelled" : "Delivered orders cannot be cancelled")
+                                @(order.Status == "Cancelled" ? L["OrderCancelled"] : L["DeliveredCannotCancel"])
                             </span>
                         }
                     </div>
@@ -161,18 +161,20 @@
             ? 'status-pending-payment'
             : `status-${status.toLowerCase()}`;
 
-        badge.textContent = status;
+        badge.textContent = status === 'Cancelled' ? @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.TranslateOrderStatus("Cancelled"))) : status;
         badge.className = `status-badge ${statusClass}`;
 
         if (status === 'Cancelled') {
-            actions.innerHTML = '<span class="my-order-muted">Order cancelled</span>';
+            actions.innerHTML = `<span class="my-order-muted">${@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["OrderCancelled"].Value))}</span>`;
         }
     }
 
     async function cancelOrder(orderId) {
+        const cancelConfirmTemplate = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CancelOrderConfirm"].Value));
+        const cancelTitle = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CancelOrder"].Value));
         const confirmed = await showConfirm(
-            `Cancel order #${orderId}?`,
-            'Cancel Order'
+            cancelConfirmTemplate.replace('{0}', orderId),
+            cancelTitle
         );
 
         if (!confirmed) {
@@ -195,7 +197,7 @@
             }
 
             if (!data.success) {
-                showToast(data.message || 'Could not cancel order', 'error');
+                showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CouldNotCancelOrder"].Value)), 'error');
                 return;
             }
 
@@ -204,11 +206,11 @@
                 setOrderStatus(card, data.status);
             }
 
-            showToast(data.message || 'Order cancelled', 'success');
+            showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["OrderCancelledSuccess"].Value)), 'success');
         })
         .catch(err => {
             console.error(err);
-            showToast('Could not cancel order', 'error');
+            showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CouldNotCancelOrder"].Value)), 'error');
         });
     }
 </script>

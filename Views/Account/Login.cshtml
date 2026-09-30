@@ -1,8 +1,8 @@
-﻿@{
-    ViewData["Title"] = "Login";
+@{
+    ViewData["Title"] = L["Login"];
 }
 
-<h2>Login</h2>
+<h2>@L["Login"]</h2>
 
 @if (ViewBag.Error != null)
 {
@@ -11,14 +11,14 @@
 
 <form asp-controller="Account" asp-action="Login" method="post">
     <div>
-        <label>Username</label>
+        <label>@L["Username"]</label>
         <input type="text" name="username" required />
     </div>
 
     <div>
-        <label>Password</label>
+        <label>@L["Password"]</label>
         <input type="password" name="password" required />
     </div>
 
-    <button type="submit">Login</button>
+    <button type="submit">@L["Login"]</button>
 </form>

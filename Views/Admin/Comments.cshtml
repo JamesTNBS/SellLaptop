@@ -61,21 +61,21 @@
     }
 </style>
 
-<h1>Manage Comments</h1>
+<h1>@L["ManageComments"]</h1>
 
 <div class="admin-toolbar">
     <form method="get" class="admin-filters">
-        <input type="text" name="search" value="@search" placeholder="Search user, product, or comment" />
-        <button type="submit">Search</button>
+        <input type="text" name="search" value="@search" placeholder="@L["SearchCommentsPlaceholder"]" />
+        <button type="submit">@L["Search"]</button>
     </form>
 
-    <span class="admin-pill">@totalCount thread(s)</span>
+    <span class="admin-pill">@L["ThreadCountBadge", totalCount]</span>
 </div>
 
 <div class="admin-section">
     @if (!rootCommentIds.Any())
     {
-        <p class="admin-muted">No comments match your filters.</p>
+        <p class="admin-muted">@L["NoCommentsMatchFilter"]</p>
     }
     else
     {
@@ -103,14 +103,14 @@
     <div class="admin-pagination">
         @if (currentPage > 1)
         {
-            <a asp-action="Comments" asp-route-search="@search" asp-route-page="@(currentPage - 1)">Previous</a>
+            <a asp-action="Comments" asp-route-search="@search" asp-route-page="@(currentPage - 1)">@L["Previous"]</a>
         }
 
-        <span class="current">Page @currentPage of @totalPages</span>
+        <span class="current">@L["PageOf", currentPage, totalPages]</span>
 
         @if (currentPage < totalPages)
         {
-            <a asp-action="Comments" asp-route-search="@search" asp-route-page="@(currentPage + 1)">Next</a>
+            <a asp-action="Comments" asp-route-search="@search" asp-route-page="@(currentPage + 1)">@L["Next"]</a>
         }
     </div>
 }
@@ -118,11 +118,16 @@
 @Html.AntiForgeryToken()
 
 <script>
+    const commentsUi = {
+        hideReplies: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["HideReplies"].Value)),
+        seeReplies: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["SeeReplies"].Value))
+    };
+
     function saveAdminEdit(id) {
         const text = document.getElementById(`text-${id}`).value.trim();
 
         if (!text) {
-            showToast("Comment cannot be empty", "error");
+            showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CommentCannotBeEmpty"].Value)), "error");
             return;
         }
 
@@ -141,15 +146,15 @@
                 const row = document.getElementById(`row-${id}`);
                 row.style.background = "#d4edda";
                 setTimeout(() => row.style.background = "", 1000);
-                showToast("Comment updated", "success");
+                showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CommentUpdated"].Value)), "success");
             } else {
-                showToast(data.message || "Update failed", "error");
+                showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["EditFailed"].Value)), "error");
             }
         });
     }
 
     async function deleteAdminComment(id) {
-        const confirmed = await showConfirm("Delete this comment and all of its replies?", "Delete Comment");
+        const confirmed = await showConfirm(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteCommentConfirmation"].Value)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteComment"].Value)));
         if (!confirmed) return;
 
         fetch('/Products/DeleteComment', {
@@ -163,10 +168,10 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast("Comment thread deleted", "success");
+                showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CommentThreadDeleted"].Value)), "success");
                 setTimeout(() => window.location.reload(), 500);
             } else {
-                showToast(data.message || "Delete failed", "error");
+                showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteFailed"].Value)), "error");
             }
         });
     }
@@ -178,7 +183,7 @@
         const shouldShow = container.style.display === 'none' || container.style.display === '';
         container.style.display = shouldShow ? 'grid' : 'none';
         button.textContent = shouldShow
-            ? 'Hide replies'
-            : `See replies (${button.getAttribute('data-reply-count')})`;
+            ? commentsUi.hideReplies
+            : commentsUi.seeReplies.replace('{0}', button.getAttribute('data-reply-count'));
     }
 </script>

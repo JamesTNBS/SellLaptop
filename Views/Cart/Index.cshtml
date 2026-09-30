@@ -2,7 +2,7 @@
 
 @{
     var items = Model.ToList();
-    var subtotal = items.Sum(x => x.Price * x.Quantity);
+    var subtotal = items.Sum(x => Formatter.ToDisplayAmount(x) * x.Quantity);
     var itemCount = items.Sum(x => x.Quantity);
 }
 
@@ -17,16 +17,16 @@
     }
 
     <h1 id="cart-title" style="text-align:center;">
-        Your Cart (@itemCount items)
+        @L["YourCartItems", itemCount]
     </h1>
 
     <div id="cart-empty-state" style="text-align: center; padding: 60px 20px; display:@(items.Any() ? "none" : "block");">
         <i class="fas fa-shopping-cart" style="font-size:64px; color:#7348d9;"></i>
-        <h3>Your cart is empty</h3>
+        <h3>@L["CartEmpty"]</h3>
         <a asp-controller="Products" asp-action="Index"
            class="button"
            style="display: inline-block; margin-top: 20px; padding: 12px 28px; background: #7348d9; color: white; border-radius: 8px; text-decoration: none;">
-            Continue Shopping
+            @L["ContinueShopping"]
         </a>
     </div>
 
@@ -34,7 +34,7 @@
         <div id="cart-items" class="cart-items-list">
             @foreach (var item in items)
             {
-                var itemTotal = item.Price * item.Quantity;
+                var itemTotal = Formatter.ToDisplayAmount(item) * item.Quantity;
 
                 <div class="cart-item clickable-item"
                      data-cart-item-id="@item.Id"
@@ -52,7 +52,7 @@
 
                     <div class="cart-item-info">
                         <h4>@item.Title</h4>
-                        <p class="price">$@item.Price</p>
+                        <p class="price">@Formatter.Format(item)</p>
 
                         <div class="quantity">
                             <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Decrease')">-</button>
@@ -60,14 +60,14 @@
                             <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Increase')">+</button>
                         </div>
 
-                        <p class="subtotal">Item Total: <span class="item-total">$@itemTotal</span></p>
+                        <p class="subtotal">@L["ItemTotal"]: <span class="item-total">@Formatter.FormatDisplay(itemTotal)</span></p>
                     </div>
 
                     <div class="cart-item-actions">
                         <button type="button"
                                 class="remove-btn"
                                 onclick="event.stopPropagation(); removeCartItem(@item.Id)">
-                            <i class="fas fa-trash"></i> Remove
+                            <i class="fas fa-trash"></i> @L["Remove"]
                         </button>
                     </div>
                 </div>
@@ -76,25 +76,27 @@
 
         <div class="cart-summary" id="cart-summary">
             <div class="summary-row">
-                <span>Subtotal</span>
-                <span id="cart-subtotal">$@subtotal</span>
+                <span>@L["Subtotal"]</span>
+                <span id="cart-subtotal">@Formatter.FormatDisplay(subtotal)</span>
             </div>
             <div class="summary-row">
-                <span>Shipping</span>
-                <span>Calculated at checkout</span>
+                <span>@L["Shipping"]</span>
+                <span>@L["CalculatedAtCheckout"]</span>
             </div>
             <div class="summary-row total">
-                <strong>Total</strong>
-                <strong id="cart-total">$@subtotal</strong>
+                <strong>@L["Total"]</strong>
+                <strong id="cart-total">@Formatter.FormatDisplay(subtotal)</strong>
             </div>
 
             <a asp-action="Checkout" class="checkout-btn" style="display:block; text-align:center; text-decoration:none;">
-                Proceed to Checkout
+                @L["ProceedToCheckout"]
             </a>
         </div>
     </div>
 
     <script>
+        const cartTitleTemplate = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["YourCartItems"].Value));
+
         function goToDetails(id) {
             window.location.href = `/Products/Details/${id}`;
         }
@@ -113,13 +115,13 @@
         function updateCartHeader(itemCount) {
             const title = document.getElementById('cart-title');
             if (title) {
-                title.textContent = `Your Cart (${itemCount} items)`;
+                title.textContent = cartTitleTemplate.replace('{0}', itemCount);
             }
         }
 
-        function updateCartSummary(subtotal) {
-            document.getElementById('cart-subtotal').textContent = `$${subtotal}`;
-            document.getElementById('cart-total').textContent = `$${subtotal}`;
+        function updateCartSummary(subtotalFormatted) {
+            document.getElementById('cart-subtotal').textContent = subtotalFormatted;
+            document.getElementById('cart-total').textContent = subtotalFormatted;
         }
 
         function toggleCartState(itemCount) {
@@ -144,7 +146,7 @@
                 }
 
                 if (!data.success) {
-                    showToast(data.message || 'Cart update failed', 'error');
+                    showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CartUpdateFailed"].Value)), 'error');
                     return;
                 }
 
@@ -154,18 +156,18 @@
                     const itemElement = document.querySelector(`[data-cart-item-id='${id}']`);
                     if (itemElement) {
                         itemElement.querySelector('.item-quantity').textContent = data.quantity;
-                        itemElement.querySelector('.item-total').textContent = `$${data.itemTotal}`;
+                        itemElement.querySelector('.item-total').textContent = data.itemTotalFormatted;
                     }
                 }
 
                 updateCartBadge(data.cartCount);
                 updateCartHeader(data.itemCount);
-                updateCartSummary(data.subtotal);
+                updateCartSummary(data.subtotalFormatted);
                 toggleCartState(data.itemCount);
             })
             .catch(err => {
                 console.error(err);
-                showToast('Error updating cart', 'error');
+                showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["CartUpdateError"].Value)), 'error');
             });
         }
 
@@ -181,19 +183,19 @@
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
-                    showToast(data.message || 'Failed to remove item', 'error');
+                    showToast(data.message || @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["RemoveItemFailed"].Value)), 'error');
                     return;
                 }
 
                 document.querySelector(`[data-cart-item-id='${id}']`)?.remove();
                 updateCartBadge(data.cartCount);
                 updateCartHeader(data.itemCount);
-                updateCartSummary(data.subtotal);
+                updateCartSummary(data.subtotalFormatted);
                 toggleCartState(data.itemCount);
             })
             .catch(err => {
                 console.error(err);
-                showToast('Error removing item', 'error');
+                showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["RemoveItemError"].Value)), 'error');
             });
         }
     </script>

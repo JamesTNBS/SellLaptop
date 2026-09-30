@@ -237,30 +237,30 @@
     }
 </style>
 
-<h1>Dashboard Overview</h1>
+<h1>@L["DashboardOverview"]</h1>
 
 <div class="dashboard-stats">
     <div class="dashboard-card">
-        <div class="dashboard-label">Total Users</div>
+        <div class="dashboard-label">@L["TotalUsers"]</div>
         <div class="dashboard-value">@ViewBag.TotalUsers</div>
     </div>
     <div class="dashboard-card">
-        <div class="dashboard-label">Total Products</div>
+        <div class="dashboard-label">@L["TotalProducts"]</div>
         <div class="dashboard-value">@ViewBag.TotalProducts</div>
     </div>
     <div class="dashboard-card">
-        <div class="dashboard-label">Total Orders</div>
+        <div class="dashboard-label">@L["TotalOrders"]</div>
         <div class="dashboard-value">@ViewBag.TotalOrders</div>
     </div>
     <div class="dashboard-card">
-        <div class="dashboard-label">Total Revenue</div>
-        <div class="dashboard-value">$@(((decimal)ViewBag.TotalRevenue).ToString("N2"))</div>
+        <div class="dashboard-label">@L["TotalRevenue"]</div>
+        <div class="dashboard-value">@Formatter.FormatDisplay((decimal)ViewBag.TotalRevenue)</div>
     </div>
 </div>
 
 <div class="dashboard-charts">
     <section class="chart-card">
-        <h2>Orders by Status</h2>
+        <h2>@L["OrdersByStatus"]</h2>
         <div class="status-chart">
             @foreach (var status in statusOrder)
             {
@@ -268,7 +268,7 @@
                 var width = Math.Round((count / (double)maxStatusCount) * 100);
 
                 <div class="chart-row">
-                    <span class="status-badge @GetStatusBadgeClass(status)">@status</span>
+                    <span class="status-badge @GetStatusBadgeClass(status)">@Formatter.TranslateOrderStatus(status)</span>
                     <div class="chart-track">
                         <div class="chart-fill" style="width:@width%;"></div>
                     </div>
@@ -279,14 +279,14 @@
     </section>
 
     <section class="chart-card">
-        <h2>Revenue Last 7 Days</h2>
+        <h2>@L["RevenueLast7Days"]</h2>
         <div class="revenue-chart">
             @foreach (var day in revenueByDay)
             {
                 var height = Math.Max(8, Math.Round((day.Value / maxRevenue) * 150));
 
                 <div class="revenue-bar-wrap">
-                    <div class="revenue-value">$@day.Value.ToString("N0")</div>
+                            <div class="revenue-value">@Formatter.FormatDisplay(day.Value)</div>
                     <div class="revenue-bar" style="height:@(height)px;"></div>
                     <div class="revenue-label">@day.Key</div>
                 </div>
@@ -295,10 +295,10 @@
     </section>
 
     <section class="chart-card">
-        <h2>Top Selling Products</h2>
+        <h2>@L["TopSellingProducts"]</h2>
         @if (!topProducts.Any())
         {
-            <p class="admin-muted">No sold products yet.</p>
+            <p class="admin-muted">@L["NoSoldProductsYet"]</p>
         }
         else
         {
@@ -323,13 +323,13 @@
 <div class="dashboard-grid">
     <section class="admin-section">
         <div class="admin-toolbar">
-            <h2 style="margin:0;">Recent Orders</h2>
-            <a asp-action="Orders" class="dashboard-link">View all</a>
+            <h2 style="margin:0;">@L["RecentOrders"]</h2>
+            <a asp-action="Orders" class="dashboard-link">@L["ViewAll"]</a>
         </div>
 
         @if (!recentOrders.Any())
         {
-            <p class="admin-muted">No orders yet.</p>
+            <p class="admin-muted">@L["NoOrdersYet"]</p>
         }
         else
         {
@@ -338,10 +338,10 @@
                 {
                     <div class="dashboard-item">
                         <div>
-                            <div class="dashboard-title">Order #@order.Id</div>
-                            <div class="dashboard-meta">@(order.User?.Username ?? order.Username) • @order.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            <div class="dashboard-title">@L["OrderNumberFormat", order.Id]</div>
+                            <div class="dashboard-meta">@(order.User?.Username ?? order.Username) • @order.CreatedAt.ToString("g")</div>
                         </div>
-                        <div class="dashboard-title">$@order.TotalAmount.ToString("N2")</div>
+                        <div class="dashboard-title">@Formatter.FormatOrderTotal(order)</div>
                     </div>
                 }
             </div>
@@ -350,13 +350,13 @@
 
     <section class="admin-section">
         <div class="admin-toolbar">
-            <h2 style="margin:0;">Recent Comments</h2>
-            <a asp-action="Comments" class="dashboard-link">View all</a>
+            <h2 style="margin:0;">@L["RecentComments"]</h2>
+            <a asp-action="Comments" class="dashboard-link">@L["ViewAll"]</a>
         </div>
 
         @if (!recentComments.Any())
         {
-            <p class="admin-muted">No comments yet.</p>
+            <p class="admin-muted">@L["NoCommentsYet"]</p>
         }
         else
         {
@@ -365,10 +365,10 @@
                 {
                     <div class="dashboard-item">
                         <div>
-                            <div class="dashboard-title">@comment.User.Username on @comment.Product.Title</div>
+                            <div class="dashboard-title">@comment.User.Username @L["On"] @comment.Product.Title</div>
                             <div class="dashboard-meta">@comment.Text</div>
                         </div>
-                        <a asp-controller="Products" asp-action="Details" asp-route-id="@comment.ProductId" class="dashboard-link">Open</a>
+                        <a asp-controller="Products" asp-action="Details" asp-route-id="@comment.ProductId" class="dashboard-link">@L["Open"]</a>
                     </div>
                 }
             </div>
@@ -377,13 +377,13 @@
 
     <section class="admin-section">
         <div class="admin-toolbar">
-            <h2 style="margin:0;">Newest Products</h2>
-            <a asp-controller="Products" asp-action="Index" class="dashboard-link">Shop view</a>
+            <h2 style="margin:0;">@L["NewestProducts"]</h2>
+            <a asp-controller="Products" asp-action="Index" class="dashboard-link">@L["ShopView"]</a>
         </div>
 
         @if (!newestProducts.Any())
         {
-            <p class="admin-muted">No products yet.</p>
+            <p class="admin-muted">@L["NoProductsYet"]</p>
         }
         else
         {
@@ -393,9 +393,9 @@
                     <div class="dashboard-item">
                         <div>
                             <div class="dashboard-title">@product.Title</div>
-                            <div class="dashboard-meta">@product.Model • @product.Condition</div>
+                            <div class="dashboard-meta">@product.Model • @Formatter.TranslateCondition(product.Condition)</div>
                         </div>
-                        <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="dashboard-link">$@product.Price.ToString("N0")</a>
+                        <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="dashboard-link">@Formatter.Format(product)</a>
                     </div>
                 }
             </div>

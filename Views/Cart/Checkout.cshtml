@@ -180,9 +180,9 @@
 
 <div class="checkout-shell">
     <section class="checkout-panel">
-        <h1 style="margin-top:0;">Checkout</h1>
+        <h1 style="margin-top:0;">@L["Checkout"]</h1>
         <p style="margin-bottom:20px; color:inherit; opacity:.78;">
-            Fill in your delivery details and review your order before placing it.
+            @L["CheckoutSubtitle"]
         </p>
 
         <form asp-action="PlaceOrder" method="post">
@@ -211,20 +211,20 @@
                 <div class="checkout-field">
                     <label asp-for="PaymentMethod"></label>
                     <select asp-for="PaymentMethod">
-                        <option>Cash on Delivery</option>
-                        <option>Bank Transfer</option>
+                        <option value="Cash on Delivery">@Formatter.TranslatePaymentMethod("Cash on Delivery")</option>
+                        <option value="Bank Transfer">@Formatter.TranslatePaymentMethod("Bank Transfer")</option>
                     </select>
                     <span asp-validation-for="PaymentMethod"></span>
                 </div>
 
                 <div class="checkout-field checkout-field-full">
-                    <label asp-for="AddressLine1">Address Line 1</label>
+                    <label asp-for="AddressLine1">@L["AddressLine1"]</label>
                     <input asp-for="AddressLine1" />
                     <span asp-validation-for="AddressLine1"></span>
                 </div>
 
                 <div class="checkout-field checkout-field-full">
-                    <label asp-for="AddressLine2">Address Line 2</label>
+                    <label asp-for="AddressLine2">@L["AddressLine2"]</label>
                     <input asp-for="AddressLine2" />
                     <span asp-validation-for="AddressLine2"></span>
                 </div>
@@ -236,29 +236,29 @@
                 </div>
 
                 <div class="checkout-field">
-                    <label asp-for="StateOrProvince">State / Province</label>
+                    <label asp-for="StateOrProvince">@L["StateOrProvince"]</label>
                     <input asp-for="StateOrProvince" />
                     <span asp-validation-for="StateOrProvince"></span>
                 </div>
 
                 <div class="checkout-field">
-                    <label asp-for="PostalCode">Postal Code</label>
+                    <label asp-for="PostalCode">@L["PostalCode"]</label>
                     <input asp-for="PostalCode" />
                     <span asp-validation-for="PostalCode"></span>
                 </div>
 
                 <div class="checkout-field checkout-field-full">
-                    <label asp-for="Notes">Order Notes</label>
-                    <textarea asp-for="Notes" rows="4" placeholder="Delivery note, building number, preferred contact time, etc."></textarea>
+                    <label asp-for="Notes">@L["OrderNotes"]</label>
+                    <textarea asp-for="Notes" rows="4" placeholder="@L["OrderNotesPlaceholder"]"></textarea>
                 </div>
             </div>
 
-            <button type="submit" class="checkout-submit">Place Order</button>
+            <button type="submit" class="checkout-submit">@L["PlaceOrder"]</button>
         </form>
     </section>
 
     <aside class="checkout-panel">
-        <h2 style="margin-top:0;">Order Summary</h2>
+        <h2 style="margin-top:0;">@L["OrderSummary"]</h2>
         <div class="checkout-items">
             @foreach (var item in Model.Items)
             {
@@ -266,24 +266,24 @@
                     <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
                     <div>
                         <div style="font-weight:700;">@item.Title</div>
-                        <div style="opacity:.78;">$@item.Price.ToString("N2") x @item.Quantity</div>
+                        <div style="opacity:.78;">@Formatter.Format(item) x @item.Quantity</div>
                     </div>
-                    <strong>$@((item.Price * item.Quantity).ToString("N2"))</strong>
+                    <strong>@Formatter.FormatDisplay(Formatter.ToDisplayAmount(item) * item.Quantity)</strong>
                 </div>
             }
         </div>
 
         <div class="checkout-total-row">
-            <span>Items</span>
+            <span>@L["Items"]</span>
             <strong>@Model.ItemCount</strong>
         </div>
         <div class="checkout-total-row">
-            <span>Shipping</span>
-            <span>Free</span>
+            <span>@L["Shipping"]</span>
+            <span>@L["Free"]</span>
         </div>
         <div class="checkout-total-row" style="font-size:18px; font-weight:700;">
-            <span>Total</span>
-            <span>$@Model.Subtotal.ToString("N2")</span>
+            <span>@L["Total"]</span>
+            <span>@Formatter.FormatDisplay(Model.Items.Sum(x => Formatter.ToDisplayAmount(x) * x.Quantity))</span>
         </div>
     </aside>
 </div>

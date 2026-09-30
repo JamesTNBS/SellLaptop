@@ -16,14 +16,15 @@
 
 @{
     Layout = null;
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@currentCulture">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard</title>
+    <title>@L["AdminDashboard"]</title>
     <link rel="icon" type="image/png" href="~/images/favicon.png" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -99,26 +100,34 @@
 </head>
 <body>
     <div class="sidebar">
-        <h2>Admin Panel</h2>
-        <a asp-controller="Admin" asp-action="Index" class="@GetAdminLinkClass("Admin", "Index")"><i class="fas fa-home"></i> Dashboard</a>
-        <a asp-controller="Admin" asp-action="Users" class="@GetAdminLinkClass("Admin", "Users")"><i class="fas fa-users"></i>Manage Users</a>
+        <h2>@L["AdminPanel"]</h2>
+        <a asp-controller="Admin" asp-action="Index" class="@GetAdminLinkClass("Admin", "Index")"><i class="fas fa-home"></i> @L["Dashboard"]</a>
+        <a asp-controller="Admin" asp-action="Users" class="@GetAdminLinkClass("Admin", "Users")"><i class="fas fa-users"></i> @L["ManageUsers"]</a>
         <a asp-controller="Admin" asp-action="CartItems" class="@GetAdminLinkClass("Admin", "CartItems")">
-            <i class="fas fa-shopping-cart"></i> Manage Cart Items
+            <i class="fas fa-shopping-cart"></i> @L["ManageCartItems"]
         </a>
         <a asp-controller="Admin" asp-action="Orders" class="@GetAdminLinkClass("Admin", "Orders")">
-            <i class="fas fa-receipt"></i> Manage Orders
+            <i class="fas fa-receipt"></i> @L["ManageOrders"]
         </a>
         <a asp-controller="Admin" asp-action="Comments" class="admin-link @GetAdminLinkClass("Admin", "Comments")">
-            <i class="fas fa-comments"></i> Manage Comments
+            <i class="fas fa-comments"></i> @L["ManageComments"]
         </a>
-        <a asp-controller="Products" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to Site</a>
+        <form asp-controller="Language" asp-action="Set" method="post" style="padding:12px 20px 15px;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            <select id="admin-language-selector" name="culture" aria-label="@L["ChooseLanguage"]" onchange="this.form.submit()" style="width:100%; padding:7px; border-radius:5px;">
+                <option value="en-US" selected="@(currentCulture == "en-US")">@L["English"]</option>
+                <option value="vi-VN" selected="@(currentCulture == "vi-VN")">@L["Vietnamese"]</option>
+            </select>
+        </form>
+        <a asp-controller="Products" asp-action="Index"><i class="fas fa-arrow-left"></i> @L["BackToSite"]</a>
     </div>
 
     <div class="content">
         <div class="topbar">
             <span>
-                Logged in as: <strong>@(Context.Session.GetString("User") ?? "Unknown")</strong>
-                (@(Context.Session.GetString("Role") ?? "User"))
+                @L["LoggedInAs"]: <strong>@(Context.Session.GetString("User") ?? L["Unknown"])</strong>
+                (@(Formatter.TranslateRole(Context.Session.GetString("Role")) ?? L["User"]))
             </span>
             <form id="logoutForm"
                   asp-controller="Account"
@@ -129,7 +138,7 @@
             </form>
 
             <a href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
-                Logout
+                @L["Logout"]
             </a>
         </div>
         @RenderBody()
@@ -137,11 +146,11 @@
     <div id="confirm-modal" class="confirm-overlay">
         <div class="confirm-box">
             <span class="confirm-close" onclick="closeConfirm(false)">×</span>
-            <h4 id="confirm-title">Please Confirm</h4>
+            <h4 id="confirm-title">@L["PleaseConfirm"]</h4>
             <p id="confirm-message" class="confirm-message"></p>
             <div class="confirm-actions">
-                <button type="button" class="confirm-cancel-btn" onclick="closeConfirm(false)">No</button>
-                <button type="button" class="confirm-confirm-btn" onclick="closeConfirm(true)">Yes</button>
+                <button type="button" class="confirm-cancel-btn" onclick="closeConfirm(false)">@L["No"]</button>
+                <button type="button" class="confirm-confirm-btn" onclick="closeConfirm(true)">@L["Yes"]</button>
             </div>
         </div>
     </div>
@@ -166,7 +175,7 @@
 
         let confirmResolver = null;
 
-        function showConfirm(message, title = "Please Confirm") {
+        function showConfirm(message, title = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["PleaseConfirm"].Value))) {
             const modal = document.getElementById("confirm-modal");
             const titleElement = document.getElementById("confirm-title");
             const messageElement = document.getElementById("confirm-message");

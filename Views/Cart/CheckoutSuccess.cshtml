@@ -8,13 +8,13 @@
     <section class="checkout-success-card">
         <div class="checkout-success-header">
             <div>
-                <p class="checkout-success-kicker">Order saved</p>
-                <h1>Order Placed</h1>
-                <p>Your checkout is complete. You can track this order from My Orders.</p>
+                <p class="checkout-success-kicker">@L["OrderSaved"]</p>
+                <h1>@L["OrderPlaced"]</h1>
+                <p>@L["OrderPlacedMessage"]</p>
             </div>
 
             <span class="status-badge @(Model.Status == "Pending Payment" ? "status-pending-payment" : "status-pending")">
-                @Model.Status
+                @Formatter.TranslateOrderStatus(Model.Status)
             </span>
         </div>
 
@@ -22,34 +22,34 @@
         {
             <div class="bank-payment-panel">
                 <div class="bank-payment-qr">
-                    <img src="~/images/QR_code.jpg" alt="BIDV payment QR code" />
+                    <img src="~/images/QR_code.jpg" alt="@L["BidvBankTransfer"]" />
                 </div>
 
                 <div class="bank-payment-details">
-                    <h2>BIDV Bank Transfer</h2>
-                    <p>Please transfer the exact order total and use the order number as your transfer message.</p>
+                    <h2>@L["BidvBankTransfer"]</h2>
+                    <p>@L["BankTransferInstruction"]</p>
 
                     <div class="bank-payment-grid">
                         <div>
-                            <span>Account Name</span>
+                            <span>@L["AccountName"]</span>
                             <strong>Thanabouasy Phonesavanh</strong>
                         </div>
                         <div>
-                            <span>Account Number</span>
+                            <span>@L["AccountNumber"]</span>
                             <strong>8841398782</strong>
                         </div>
                         <div>
-                            <span>Amount</span>
-                            <strong>$@Model.TotalAmount.ToString("N2")</strong>
+                            <span>@L["Amount"]</span>
+                            <strong>@Formatter.FormatOrderTotal(Model)</strong>
                         </div>
                         <div>
-                            <span>Transfer Message</span>
+                            <span>@L["TransferMessage"]</span>
                             <strong>ORDER-@Model.Id</strong>
                         </div>
                     </div>
 
                     <p class="bank-payment-note">
-                        Your order will stay as Pending Payment until admin confirms the transfer.
+                        @L["BankTransferPendingNote"]
                     </p>
                 </div>
             </div>
@@ -57,33 +57,33 @@
 
         <div class="checkout-success-details">
             <div>
-                <span>Order Number</span>
+                <span>@L["OrderNumber"]</span>
                 <strong>#@Model.Id</strong>
             </div>
             <div>
-                <span>Customer</span>
+                <span>@L["Customer"]</span>
                 <strong>@Model.FullName</strong>
             </div>
             <div>
-                <span>Email</span>
+                <span>@L["Email"]</span>
                 <strong>@Model.Email</strong>
             </div>
             <div>
-                <span>Phone</span>
+                <span>@L["Phone"]</span>
                 <strong>@Model.Phone</strong>
             </div>
             <div>
-                <span>Payment</span>
-                <strong>@Model.PaymentMethod</strong>
+                <span>@L["Payment"]</span>
+                <strong>@Formatter.TranslatePaymentMethod(Model.PaymentMethod)</strong>
             </div>
             <div>
-                <span>Total</span>
-                <strong>$@Model.TotalAmount.ToString("N2")</strong>
+                <span>@L["Total"]</span>
+                <strong>@Formatter.FormatOrderTotal(Model)</strong>
             </div>
         </div>
 
         <div class="checkout-success-address">
-            <span>Delivery</span>
+            <span>@L["Delivery"]</span>
             <strong>
                 @Model.AddressLine1
                 @if (!string.IsNullOrWhiteSpace(Model.AddressLine2))
@@ -97,14 +97,14 @@
         @if (!string.IsNullOrWhiteSpace(Model.Notes))
         {
             <div class="checkout-success-notes">
-                <span>Order Notes</span>
+                <span>@L["OrderNotes"]</span>
                 <p>@Model.Notes</p>
             </div>
         }
 
         <div class="checkout-success-actions">
-            <a asp-controller="Cart" asp-action="MyOrders" class="checkout-btn">View My Orders</a>
-            <a asp-controller="Products" asp-action="Index" class="checkout-secondary-btn">Continue Shopping</a>
+            <a asp-controller="Cart" asp-action="MyOrders" class="checkout-btn">@L["ViewMyOrders"]</a>
+            <a asp-controller="Products" asp-action="Index" class="checkout-secondary-btn">@L["ContinueShopping"]</a>
         </div>
     </section>
 </div>

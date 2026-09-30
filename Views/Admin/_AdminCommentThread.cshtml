@@ -17,7 +17,7 @@
                 <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.ProductId" style="color:#7348d9; text-decoration:none;">
                     @Model.Product.Title
                 </a>
-                • @Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")
+                • @Model.CreatedAt.ToString("g")
             </div>
         </div>
 
@@ -28,14 +28,14 @@
                         class="comment-toggle-btn"
                         data-reply-count="@replies.Count"
                         onclick="toggleReplies(@Model.Id, this)">
-                    See replies (@replies.Count)
+                    @L["SeeReplies", replies.Count]
                 </button>
             }
             <button onclick="saveAdminEdit(@Model.Id)">
-                Save
+                @L["Save"]
             </button>
             <button onclick="deleteAdminComment(@Model.Id)" class="admin-danger">
-                Delete
+                @L["Delete"]
             </button>
         </div>
     </div>

@@ -35,7 +35,7 @@
     var orders = Model.ToList();
     var totalRevenue = orders
         .Where(o => o.Status == "Paid" || o.Status == "Delivered")
-        .Sum(o => o.TotalAmount);
+        .Sum(o => Formatter.ToDisplayAmount(o.TotalAmount, o.Currency));
     var totalItemsSold = orders.Sum(o => o.Items?.Sum(i => i.Quantity) ?? 0);
     var latestOrder = orders.FirstOrDefault();
     var currentPage = (int)(ViewBag.CurrentPage ?? 1);
@@ -270,7 +270,7 @@
     }
 </style>
 
-<h1>Manage Orders</h1>
+<h1>@L["ManageOrders"]</h1>
 
 @if (TempData["OrderStatusSuccess"] is string statusSuccess)
 {
@@ -288,43 +288,43 @@
 
 <div class="admin-toolbar">
     <form method="get" class="admin-filters">
-        <input type="text" name="search" value="@search" placeholder="Search customer, email, phone, city..." />
+        <input type="text" name="search" value="@search" placeholder="@L["SearchOrdersPlaceholder"]" />
         <select name="status">
-            <option value="All" selected="@(statusFilter == "All")">All statuses</option>
-            <option value="Pending" selected="@(statusFilter == "Pending")">Pending</option>
-            <option value="Pending Payment" selected="@(statusFilter == "Pending Payment")">Pending Payment</option>
-            <option value="Paid" selected="@(statusFilter == "Paid")">Paid</option>
-            <option value="Delivered" selected="@(statusFilter == "Delivered")">Delivered</option>
-            <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Cancelled</option>
+            <option value="All" selected="@(statusFilter == "All")">@L["AllStatuses"]</option>
+            <option value="Pending" selected="@(statusFilter == "Pending")">@Formatter.TranslateOrderStatus("Pending")</option>
+            <option value="Pending Payment" selected="@(statusFilter == "Pending Payment")">@Formatter.TranslateOrderStatus("Pending Payment")</option>
+            <option value="Paid" selected="@(statusFilter == "Paid")">@Formatter.TranslateOrderStatus("Paid")</option>
+            <option value="Delivered" selected="@(statusFilter == "Delivered")">@Formatter.TranslateOrderStatus("Delivered")</option>
+            <option value="Cancelled" selected="@(statusFilter == "Cancelled")">@Formatter.TranslateOrderStatus("Cancelled")</option>
         </select>
-        <button type="submit">Apply</button>
+        <button type="submit">@L["Apply"]</button>
     </form>
 
-    <span class="admin-pill">@totalCount order(s)</span>
+    <span class="admin-pill">@L["OrderCountBadge", totalCount]</span>
 </div>
 
 <div class="orders-summary">
     <div class="orders-card">
-        <div class="label">Total Orders</div>
+        <div class="label">@L["TotalOrders"]</div>
         <div class="value">@orders.Count</div>
     </div>
     <div class="orders-card">
-        <div class="label">Revenue</div>
-        <div class="value">$@totalRevenue.ToString("N2")</div>
+        <div class="label">@L["TotalRevenue"]</div>
+        <div class="value">@Formatter.FormatDisplay(totalRevenue)</div>
     </div>
     <div class="orders-card">
-        <div class="label">Items Sold</div>
+        <div class="label">@L["ItemsSold"]</div>
         <div class="value">@totalItemsSold</div>
     </div>
     <div class="orders-card">
-        <div class="label">Latest Order</div>
+        <div class="label">@L["LatestOrder"]</div>
         <div class="value" style="font-size:18px;">
-            @(latestOrder is null ? "No orders yet" : $"#{latestOrder.Id}")
+            @(latestOrder is null ? L["NoOrdersYet"] : $"#{latestOrder.Id}")
         </div>
         @if (latestOrder is not null)
         {
             <p class="order-subtle" style="margin-top:6px;">
-                @latestOrder.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")
+                @latestOrder.CreatedAt.ToString("g")
             </p>
         }
     </div>
@@ -333,7 +333,7 @@
 @if (!orders.Any())
 {
     <div class="orders-card orders-empty">
-        No orders yet.
+        @L["NoOrdersYet"]
     </div>
 }
 else
@@ -346,27 +346,27 @@ else
             <section class="order-card">
                 <div class="order-header">
                     <div class="order-meta">
-                        <div class="order-id">Order #@order.Id</div>
-                        <div class="order-subtle">Customer: @(string.IsNullOrWhiteSpace(order.FullName) ? (order.User?.Username ?? order.Username) : order.FullName)</div>
-                        <div class="order-subtle">@order.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
-                        <span class="status-badge @GetStatusBadgeClass(order.Status)">@order.Status</span>
+                        <div class="order-id">@L["OrderNumberFormat", order.Id]</div>
+                        <div class="order-subtle">@L["Customer"]: @(string.IsNullOrWhiteSpace(order.FullName) ? (order.User?.Username ?? order.Username) : order.FullName)</div>
+                        <div class="order-subtle">@order.CreatedAt.ToString("g")</div>
+                        <span class="status-badge @GetStatusBadgeClass(order.Status)">@Formatter.TranslateOrderStatus(order.Status)</span>
                     </div>
 
                     <div class="order-total">
-                        <div class="order-subtle">@orderItems.Sum(i => i.Quantity) item(s)</div>
-                        <span class="value">$@order.TotalAmount.ToString("N2")</span>
+                        <div class="order-subtle">@L["ItemsCount", orderItems.Sum(i => i.Quantity)]</div>
+                        <span class="value">@Formatter.FormatOrderTotal(order)</span>
                         <div class="order-top-actions">
                             <form asp-action="UpdateOrderStatus" method="post" style="display:flex; gap:8px; align-items:center;">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@order.Id" />
                                 <select name="status">
-                                    <option value="Pending" selected="@(order.Status == "Pending")">Pending</option>
-                                    <option value="Pending Payment" selected="@(order.Status == "Pending Payment")">Pending Payment</option>
-                                    <option value="Paid" selected="@(order.Status == "Paid")">Paid</option>
-                                    <option value="Delivered" selected="@(order.Status == "Delivered")">Delivered</option>
-                                    <option value="Cancelled" selected="@(order.Status == "Cancelled")">Cancelled</option>
+                                    <option value="Pending" selected="@(order.Status == "Pending")">@Formatter.TranslateOrderStatus("Pending")</option>
+                                    <option value="Pending Payment" selected="@(order.Status == "Pending Payment")">@Formatter.TranslateOrderStatus("Pending Payment")</option>
+                                    <option value="Paid" selected="@(order.Status == "Paid")">@Formatter.TranslateOrderStatus("Paid")</option>
+                                    <option value="Delivered" selected="@(order.Status == "Delivered")">@Formatter.TranslateOrderStatus("Delivered")</option>
+                                    <option value="Cancelled" selected="@(order.Status == "Cancelled")">@Formatter.TranslateOrderStatus("Cancelled")</option>
                                 </select>
-                                <button type="submit">Save Status</button>
+                                <button type="submit">@L["SaveStatus"]</button>
                             </form>
                             <form asp-action="DeleteOrder" method="post" class="order-delete-form" data-order-id="@order.Id">
                                 @Html.AntiForgeryToken()
@@ -375,7 +375,7 @@ else
                                 <input type="hidden" name="status" value="@statusFilter" />
                                 <input type="hidden" name="page" value="@currentPage" />
                                 <button type="submit" class="admin-danger">
-                                    <i class="fas fa-trash"></i> Delete
+                                    <i class="fas fa-trash"></i> @L["Delete"]
                                 </button>
                             </form>
                         </div>
@@ -384,19 +384,19 @@ else
 
                 <div class="order-details-grid">
                     <div>
-                        <div class="order-details-label">Email</div>
+                        <div class="order-details-label">@L["Email"]</div>
                         <div>@(string.IsNullOrWhiteSpace(order.Email) ? "-" : order.Email)</div>
                     </div>
                     <div>
-                        <div class="order-details-label">Phone</div>
+                        <div class="order-details-label">@L["Phone"]</div>
                         <div>@(string.IsNullOrWhiteSpace(order.Phone) ? "-" : order.Phone)</div>
                     </div>
                     <div>
-                        <div class="order-details-label">Payment</div>
-                        <div>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "-" : order.PaymentMethod)</div>
+                        <div class="order-details-label">@L["Payment"]</div>
+                        <div>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "-" : Formatter.TranslatePaymentMethod(order.PaymentMethod))</div>
                     </div>
                     <div>
-                        <div class="order-details-label">Delivery Address</div>
+                        <div class="order-details-label">@L["DeliveryAddress"]</div>
                         <div>
                             @if (string.IsNullOrWhiteSpace(order.AddressLine1) && string.IsNullOrWhiteSpace(order.City))
                             {
@@ -420,7 +420,7 @@ else
                 @if (!string.IsNullOrWhiteSpace(order.Notes))
                 {
                     <div style="margin-bottom:12px;">
-                        <div class="order-details-label">Notes</div>
+                        <div class="order-details-label">@L["OrderNotes"]</div>
                         <div>@order.Notes</div>
                     </div>
                 }
@@ -441,12 +441,12 @@ else
                             <div>
                                 <div class="order-item-title">@item.Title</div>
                                 <div class="order-item-meta">
-                                    $@item.Price.ToString("N2") each • Qty @item.Quantity
+                                    @L["OrderItemMeta", Formatter.Format(item), item.Quantity]
                                 </div>
                             </div>
 
                             <div class="order-line-total">
-                                $@((item.Price * item.Quantity).ToString("N2"))
+                                @Formatter.FormatDisplay(Formatter.ToDisplayAmount(item) * item.Quantity)
                             </div>
                         </div>
                     }
@@ -457,13 +457,16 @@ else
 }
 
 <script>
+    const deleteOrderConfirmationTemplate = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteOrderConfirmation"].Value));
+    const deleteOrderTitle = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteOrder"].Value));
+
     document.querySelectorAll('.order-delete-form').forEach(form => {
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
             const orderId = form.dataset.orderId;
             const confirmed = await showConfirm(
-                `Delete order #${orderId}? This will remove the order and its items.`,
-                'Delete Order'
+                deleteOrderConfirmationTemplate.replace('{0}', orderId),
+                deleteOrderTitle
             );
 
             if (confirmed) {
@@ -481,17 +484,17 @@ else
             <a asp-action="Orders"
                asp-route-search="@search"
                asp-route-status="@statusFilter"
-               asp-route-page="@(currentPage - 1)">Previous</a>
+               asp-route-page="@(currentPage - 1)">@L["Previous"]</a>
         }
 
-        <span class="current">Page @currentPage of @totalPages</span>
+        <span class="current">@L["PageOf", currentPage, totalPages]</span>
 
         @if (currentPage < totalPages)
         {
             <a asp-action="Orders"
                asp-route-search="@search"
                asp-route-status="@statusFilter"
-               asp-route-page="@(currentPage + 1)">Next</a>
+               asp-route-page="@(currentPage + 1)">@L["Next"]</a>
         }
     </div>
 }
