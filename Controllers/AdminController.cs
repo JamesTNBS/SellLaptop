@@ -1,9 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Laptop.Data;
 using Laptop.Models;
 using Laptop.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Laptop.Services;
+using Laptop.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace Laptop.Controllers
 {
@@ -11,10 +14,14 @@ namespace Laptop.Controllers
     {
         private const int DefaultPageSize = 8;
         private readonly ApplicationDbContext _context;
+        private readonly StorefrontFormatter _formatter;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, StorefrontFormatter formatter, IStringLocalizer<SharedResource> localizer)
         {
             _context = context;
+            _formatter = formatter;
+            _localizer = localizer;
         }
 
         // Only Admins can access this page
@@ -30,7 +37,8 @@ namespace Laptop.Controllers
             ViewBag.TotalOrders = _context.Orders.Count();
             ViewBag.TotalRevenue = _context.Orders
                 .Where(o => revenueStatuses.Contains(o.Status))
-                .Sum(o => (decimal?)o.TotalAmount) ?? 0m;
+                .AsEnumerable()
+                .Sum(o => _formatter.ToDisplayAmount(o.TotalAmount, o.Currency));
             ViewBag.RecentOrders = _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.Items)
@@ -55,10 +63,10 @@ namespace Laptop.Controllers
             var revenueStartDate = DateTime.Today.AddDays(-6);
             var recentRevenue = _context.Orders
                 .Where(o => revenueStatuses.Contains(o.Status) && o.CreatedAt >= revenueStartDate)
-                .Select(o => new { o.CreatedAt, o.TotalAmount })
+                .Select(o => new { o.CreatedAt, o.TotalAmount, o.Currency })
                 .AsEnumerable()
                 .GroupBy(o => o.CreatedAt.Date)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.TotalAmount));
+                .ToDictionary(g => g.Key, g => g.Sum(x => _formatter.ToDisplayAmount(x.TotalAmount, x.Currency)));
 
             ViewBag.RevenueByDay = Enumerable.Range(0, 7)
                 .Select(offset =>
@@ -187,20 +195,20 @@ namespace Laptop.Controllers
 
             if (user == null)
             {
-                TempData["Error"] = "User not found.";
+                TempData["Error"] = _localizer["UserNotFound"].Value;
                 return RedirectToAction("Users");
             }
 
             // Security checks
             if (user.Username == "JamesTNBS")
             {
-                TempData["Error"] = "Cannot delete the main administrator account (JamesTNBS).";
+                TempData["Error"] = _localizer["CannotDeleteMainAdmin"].Value;
                 return RedirectToAction("Users");
             }
 
             if (user.Role == "Admin")
             {
-                TempData["Error"] = "Cannot delete another administrator account.";
+                TempData["Error"] = _localizer["CannotDeleteAnotherAdmin"].Value;
                 return RedirectToAction("Users");
             }
 
@@ -219,7 +227,7 @@ namespace Laptop.Controllers
 
             _context.SaveChanges();
 
-            TempData["Success"] = $"User '{user.Username}' and all their data (cart items and comments) have been successfully deleted.";
+            TempData["Success"] = string.Format(_localizer["UserDeletedSuccess"].Value, user.Username);
 
             return RedirectToAction("Users");
         }
@@ -308,10 +316,10 @@ namespace Laptop.Controllers
 
             var comment = _context.Comments.Find(id);
             if (comment == null)
-                return Json(new { success = false, message = "Not found" });
+                return Json(new { success = false, message = _localizer["CommentNotFound"].Value });
 
             if (role != "Admin" && comment.UserId != userId)
-                return Json(new { success = false, message = "Unauthorized" });
+                return Json(new { success = false, message = _localizer["Unauthorized"].Value });
 
             comment.Text = text.Trim();
             _context.SaveChanges();
@@ -427,21 +435,21 @@ namespace Laptop.Controllers
             var allowedStatuses = new[] { "Pending", "Pending Payment", "Paid", "Delivered", "Cancelled" };
             if (!allowedStatuses.Contains(status))
             {
-                TempData["OrderStatusError"] = "Invalid order status.";
+                TempData["OrderStatusError"] = _localizer["InvalidOrderStatus"].Value;
                 return RedirectToAction(nameof(Orders));
             }
 
             var order = _context.Orders.Find(id);
             if (order == null)
             {
-                TempData["OrderStatusError"] = "Order not found.";
+                TempData["OrderStatusError"] = _localizer["OrderNotFound"].Value;
                 return RedirectToAction(nameof(Orders));
             }
 
             order.Status = status;
             _context.SaveChanges();
 
-            TempData["OrderStatusSuccess"] = $"Order #{order.Id} updated to {status}.";
+            TempData["OrderStatusSuccess"] = string.Format(_localizer["OrderUpdatedStatus"].Value, order.Id, status);
             return RedirectToAction(nameof(Orders));
         }
 
@@ -458,14 +466,14 @@ namespace Laptop.Controllers
 
             if (order == null)
             {
-                TempData["OrderStatusError"] = "Order not found.";
+                TempData["OrderStatusError"] = _localizer["OrderNotFound"].Value;
                 return RedirectToAction(nameof(Orders), new { search, status, page });
             }
 
             _context.Orders.Remove(order);
             _context.SaveChanges();
 
-            TempData["OrderStatusSuccess"] = $"Order #{id} deleted.";
+            TempData["OrderStatusSuccess"] = string.Format(_localizer["OrderDeletedSuccess"].Value, id);
             return RedirectToAction(nameof(Orders), new { search, status, page });
         }
 
