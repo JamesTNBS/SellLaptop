@@ -4,33 +4,43 @@ namespace Laptop.Models
 {
     public class CheckoutViewModel
     {
-        [Required(ErrorMessage = "Full name is required")]
+        [Required]
+        [Display(Name = "FullName")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Phone number is required")]
+        [Required]
+        [Display(Name = "Phone")]
         public string Phone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Address is required")]
+        [Required]
+        [Display(Name = "AddressLine1")]
         public string AddressLine1 { get; set; } = string.Empty;
 
+        [Display(Name = "AddressLine2")]
         public string AddressLine2 { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "City is required")]
+        [Required]
+        [Display(Name = "City")]
         public string City { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Province or state is required")]
+        [Required]
+        [Display(Name = "StateOrProvince")]
         public string StateOrProvince { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Postal code is required")]
+        [Required]
+        [Display(Name = "PostalCode")]
         public string PostalCode { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Select a payment method")]
+        [Required]
+        [Display(Name = "PaymentMethod")]
         public string PaymentMethod { get; set; } = "Cash on Delivery";
 
+        [Display(Name = "OrderNotes")]
         public string Notes { get; set; } = string.Empty;
 
         public List<CartItem> Items { get; set; } = new();

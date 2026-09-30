@@ -35,6 +35,10 @@ namespace Laptop.Models
 
         public decimal TotalAmount { get; set; }
 
+        // The visitor's display currency and rate at checkout, retained for order history.
+        public string Currency { get; set; } = "USD";
+        public decimal ExchangeRate { get; set; } = 1m;
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public User User { get; set; } = null!;

@@ -13,6 +13,6 @@ namespace Laptop.Models
         public string ImageUrl { get; set; } = "";
 
         [ForeignKey("ProductId")]
-        public Product Product { get; set; }
+        public Product Product { get; set; } = null!;
     }
 }

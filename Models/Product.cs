@@ -6,17 +6,21 @@ namespace Laptop.Models
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Title is required")]
+        [Required]
         [Display(Name = "Title")]
         public string Title { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Model is required")]
+        [Required]
         [Display(Name = "Model")]
         public string Model { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Price is required")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+        [Required]
+        [Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
+
+        [Required]
+        [StringLength(3)]
+        public string Currency { get; set; } = "USD";
 
         // Temporary fields for Create/Edit form only
         [Display(Name = "Key Features (one per line)")]
@@ -25,7 +29,7 @@ namespace Laptop.Models
         [Display(Name = "Images (comma-separated URLs)")]
         public string? Images { get; set; }
 
-        [Required(ErrorMessage = "Short Description is required")]
+        [Required]
         [Display(Name = "Short Description")]
         public string Description { get; set; } = string.Empty;
 
