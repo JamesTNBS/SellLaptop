@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Home" xml:space="preserve"><value>Trang chủ</value></data>
+  <data name="Cart" xml:space="preserve"><value>Giỏ hàng</value></data>
+  <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
+  <data name="Search" xml:space="preserve"><value>Tìm kiếm</value></data>
+  <data name="Login" xml:space="preserve"><value>Đăng nhập</value></data>
+  <data name="Register" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
+  <data name="English" xml:space="preserve"><value>English</value></data>
+  <data name="Vietnamese" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Chuyển chế độ sáng/tối</value></data>
+  <data name="PriceRange" xml:space="preserve"><value>Khoảng giá</value></data>
+  <data name="Condition" xml:space="preserve"><value>Tình trạng</value></data>
+  <data name="AddToCart" xml:space="preserve"><value>Thêm vào giỏ</value></data>
+  <data name="InStock" xml:space="preserve"><value>Còn hàng</value></data>
+  <data name="Seller" xml:space="preserve"><value>Người bán</value></data>
+  <data name="OrderStatus" xml:space="preserve"><value>Trạng thái đơn hàng</value></data>
+  <data name="ValidationRequired" xml:space="preserve"><value>Trường này là bắt buộc.</value></data>
+  <data name="ProductNotFound" xml:space="preserve"><value>Không tìm thấy sản phẩm.</value></data>
+  <data name="CartItemNotFound" xml:space="preserve"><value>Không tìm thấy sản phẩm trong giỏ.</value></data>
+  <data name="The {0} field is required." xml:space="preserve"><value>Trường {0} là bắt buộc.</value></data>
+  <data name="The field {0} must be between {1} and {2}." xml:space="preserve"><value>Trường {0} phải nằm trong khoảng từ {1} đến {2}.</value></data>
+  <data name="The {0} field is not a valid e-mail address." xml:space="preserve"><value>Trường {0} không phải là địa chỉ email hợp lệ.</value></data>
+  <data name="Title" xml:space="preserve"><value>Tên sản phẩm</value></data>
+  <data name="Model" xml:space="preserve"><value>Thương hiệu</value></data>
+  <data name="Price" xml:space="preserve"><value>Giá</value></data>
+  <data name="Short Description" xml:space="preserve"><value>Mô tả ngắn</value></data>
+  <data name="FullName" xml:space="preserve"><value>Họ và tên</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Phone" xml:space="preserve"><value>Số điện thoại</value></data>
+  <data name="AddressLine1" xml:space="preserve"><value>Địa chỉ</value></data>
+  <data name="City" xml:space="preserve"><value>Thành phố</value></data>
+  <data name="StateOrProvince" xml:space="preserve"><value>Tỉnh/thành</value></data>
+  <data name="PostalCode" xml:space="preserve"><value>Mã bưu chính</value></data>
+  <data name="PaymentMethod" xml:space="preserve"><value>Phương thức thanh toán</value></data>
+  <data name="AdminPanel" xml:space="preserve"><value>Quản trị</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Tổng quan</value></data>
+  <data name="ManageUsers" xml:space="preserve"><value>Quản lý người dùng</value></data>
+  <data name="ManageCartItems" xml:space="preserve"><value>Quản lý giỏ hàng</value></data>
+  <data name="ManageOrders" xml:space="preserve"><value>Quản lý đơn hàng</value></data>
+  <data name="ManageComments" xml:space="preserve"><value>Quản lý bình luận</value></data>
+  <data name="BackToSite" xml:space="preserve"><value>Về trang cửa hàng</value></data>
+  <data name="ChooseLanguage" xml:space="preserve"><value>Chọn ngôn ngữ</value></data>
+  <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
+  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
+  <data name="UsernameRequired" xml:space="preserve"><value>Vui lòng nhập tên đăng nhập</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu</value></data>
+  <data name="ForgotPassword" xml:space="preserve"><value>Quên mật khẩu?</value></data>
+  <data name="NoAccount" xml:space="preserve"><value>Chưa có tài khoản?</value></data>
+  <data name="RegisterHere" xml:space="preserve"><value>Đăng ký tại đây</value></data>
+  <data name="ResetPassword" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
+  <data name="UsernameOrEmail" xml:space="preserve"><value>Tên đăng nhập hoặc email</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
+  <data name="RememberedPassword" xml:space="preserve"><value>Đã nhớ mật khẩu?</value></data>
+  <data name="LoginHere" xml:space="preserve"><value>Đăng nhập tại đây</value></data>
+  <data name="CreateAccount" xml:space="preserve"><value>Tạo tài khoản</value></data>
+  <data name="EmailAddress" xml:space="preserve"><value>Địa chỉ email</value></data>
+  <data name="EnterPassword" xml:space="preserve"><value>Nhập mật khẩu</value></data>
+  <data name="AlreadyHaveAccount" xml:space="preserve"><value>Đã có tài khoản?</value></data>
+  <data name="SearchLaptops" xml:space="preserve"><value>Tìm laptop</value></data>
+  <data name="EnterSearch" xml:space="preserve"><value>Nhập nội dung tìm kiếm...</value></data>
+  <data name="PleaseConfirm" xml:space="preserve"><value>Vui lòng xác nhận</value></data>
+  <data name="Yes" xml:space="preserve"><value>Có</value></data>
+  <data name="No" xml:space="preserve"><value>Không</value></data>
+  <data name="AddedToCart" xml:space="preserve"><value>Đã thêm vào giỏ hàng!</value></data>
+  <data name="AddToCartFailed" xml:space="preserve"><value>Không thể thêm vào giỏ hàng</value></data>
+  <data name="LoginFailed" xml:space="preserve"><value>Đăng nhập thất bại</value></data>
+  <data name="LoginError" xml:space="preserve"><value>Đã xảy ra lỗi khi đăng nhập</value></data>
+  <data name="PasswordReset" xml:space="preserve"><value>Đặt lại mật khẩu thành công</value></data>
+  <data name="PasswordResetFailed" xml:space="preserve"><value>Không thể đặt lại mật khẩu</value></data>
+  <data name="PasswordResetError" xml:space="preserve"><value>Đã xảy ra lỗi khi đặt lại mật khẩu</value></data>
+  <data name="RegistrationError" xml:space="preserve"><value>Đã xảy ra lỗi khi đăng ký</value></data>
+  <data name="LoggedInAs" xml:space="preserve"><value>Đăng nhập với tư cách</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Không xác định</value></data>
+  <data name="User" xml:space="preserve"><value>Người dùng</value></data>
+  <data name="ProductsFound" xml:space="preserve"><value>Tìm thấy {0} sản phẩm</value></data>
+  <data name="SortBy" xml:space="preserve"><value>Sắp xếp theo:</value></data>
+  <data name="Featured" xml:space="preserve"><value>Nổi bật</value></data>
+  <data name="PriceLowToHigh" xml:space="preserve"><value>Giá: thấp đến cao</value></data>
+  <data name="PriceHighToLow" xml:space="preserve"><value>Giá: cao đến thấp</value></data>
+  <data name="NewestArrivals" xml:space="preserve"><value>Mới nhất</value></data>
+  <data name="HideFilters" xml:space="preserve"><value>Ẩn bộ lọc</value></data>
+  <data name="ShowFilters" xml:space="preserve"><value>Hiện bộ lọc</value></data>
+  <data name="Brands" xml:space="preserve"><value>Thương hiệu</value></data>
+  <data name="ApplyFilters" xml:space="preserve"><value>Áp dụng bộ lọc</value></data>
+  <data name="ResetFilters" xml:space="preserve"><value>Đặt lại bộ lọc</value></data>
+  <data name="NoProductsMatch" xml:space="preserve"><value>Không có sản phẩm phù hợp với bộ lọc</value></data>
+  <data name="Delete" xml:space="preserve"><value>Xóa</value></data>
+  <data name="DeleteProduct" xml:space="preserve"><value>Xóa sản phẩm</value></data>
+  <data name="DeleteProductConfirmation" xml:space="preserve"><value>Bạn có chắc muốn xóa sản phẩm này? Thao tác này không thể hoàn tác.</value></data>
+  <data name="YourCartItems" xml:space="preserve"><value>Giỏ hàng của bạn ({0} sản phẩm)</value></data>
+  <data name="CartEmpty" xml:space="preserve"><value>Giỏ hàng của bạn đang trống</value></data>
+  <data name="ContinueShopping" xml:space="preserve"><value>Tiếp tục mua sắm</value></data>
+  <data name="ItemTotal" xml:space="preserve"><value>Tổng sản phẩm</value></data>
+  <data name="Remove" xml:space="preserve"><value>Xóa khỏi giỏ</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Tạm tính</value></data>
+  <data name="Shipping" xml:space="preserve"><value>Giao hàng</value></data>
+  <data name="CalculatedAtCheckout" xml:space="preserve"><value>Tính khi thanh toán</value></data>
+  <data name="Total" xml:space="preserve"><value>Tổng cộng</value></data>
+  <data name="ProceedToCheckout" xml:space="preserve"><value>Tiến hành thanh toán</value></data>
+  <data name="CartUpdateFailed" xml:space="preserve"><value>Cập nhật giỏ hàng thất bại</value></data>
+  <data name="CartUpdateError" xml:space="preserve"><value>Đã xảy ra lỗi khi cập nhật giỏ hàng</value></data>
+  <data name="RemoveItemFailed" xml:space="preserve"><value>Không thể xóa sản phẩm</value></data>
+  <data name="RemoveItemError" xml:space="preserve"><value>Đã xảy ra lỗi khi xóa sản phẩm</value></data>
+
+  <!-- Layout, Nav, Sidebar -->
+  <data name="Guest" xml:space="preserve"><value>Khách</value></data>
+  <data name="AddLaptop" xml:space="preserve"><value>Thêm laptop</value></data>
+  <data name="UsernameOrEmailRequired" xml:space="preserve"><value>Vui lòng nhập tên đăng nhập hoặc email</value></data>
+  <data name="NewPasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu mới</value></data>
+  <data name="ValidEmailRequired" xml:space="preserve"><value>Vui lòng nhập địa chỉ email hợp lệ</value></data>
+  <data name="AdminDashboard" xml:space="preserve"><value>Bảng điều khiển quản trị</value></data>
+  <data name="ViewAll" xml:space="preserve"><value>Xem tất cả</value></data>
+  <data name="ShopView" xml:space="preserve"><value>Xem cửa hàng</value></data>
+  <data name="Open" xml:space="preserve"><value>Mở</value></data>
+  <data name="Save" xml:space="preserve"><value>Lưu</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Edit" xml:space="preserve"><value>Chỉnh sửa</value></data>
+  <data name="Update" xml:space="preserve"><value>Cập nhật</value></data>
+  <data name="Actions" xml:space="preserve"><value>Thao tác</value></data>
+  <data name="Apply" xml:space="preserve"><value>Áp dụng</value></data>
+  <data name="Previous" xml:space="preserve"><value>Trước</value></data>
+  <data name="Next" xml:space="preserve"><value>Sau</value></data>
+  <data name="PageOf" xml:space="preserve"><value>Trang {0} / {1}</value></data>
+  <data name="ErrorOccurred" xml:space="preserve"><value>Đã xảy ra lỗi.</value></data>
+  <data name="SomethingWentWrong" xml:space="preserve"><value>Đã xảy ra lỗi, vui lòng thử lại.</value></data>
+
+  <!-- Buybox & Details -->
+  <data name="BuyNow" xml:space="preserve"><value>Mua ngay</value></data>
+  <data name="AddedToCartRedirecting" xml:space="preserve"><value>Đã thêm vào giỏ! Đang chuyển hướng...</value></data>
+  <data name="BuyNowFailed" xml:space="preserve"><value>Không thể mua sản phẩm</value></data>
+  <data name="NoFeaturesListed" xml:space="preserve"><value>Chưa có thông số nổi bật</value></data>
+  <data name="ProductDescription" xml:space="preserve"><value>Mô tả sản phẩm</value></data>
+
+  <!-- Comments -->
+  <data name="Comments" xml:space="preserve"><value>Bình luận</value></data>
+  <data name="CommentsCount" xml:space="preserve"><value>Bình luận ({0})</value></data>
+  <data name="WriteCommentPlaceholder" xml:space="preserve"><value>Viết bình luận...</value></data>
+  <data name="PostComment" xml:space="preserve"><value>Gửi</value></data>
+  <data name="NoComments" xml:space="preserve"><value>Chưa có bình luận nào</value></data>
+  <data name="Anonymous" xml:space="preserve"><value>Ẩn danh</value></data>
+  <data name="Reply" xml:space="preserve"><value>Trả lời</value></data>
+  <data name="SeeReplies" xml:space="preserve"><value>Xem phản hồi ({0})</value></data>
+  <data name="HideReplies" xml:space="preserve"><value>Ẩn phản hồi</value></data>
+  <data name="WriteReplyPlaceholder" xml:space="preserve"><value>Viết câu trả lời...</value></data>
+  <data name="PostReply" xml:space="preserve"><value>Gửi trả lời</value></data>
+  <data name="PleaseWriteComment" xml:space="preserve"><value>Vui lòng nhập nội dung bình luận</value></data>
+  <data name="FailedPostComment" xml:space="preserve"><value>Gửi bình luận thất bại</value></data>
+  <data name="CouldNotPostComment" xml:space="preserve"><value>Không thể gửi bình luận. Vui lòng thử lại.</value></data>
+  <data name="PleaseWriteReply" xml:space="preserve"><value>Vui lòng nhập câu trả lời</value></data>
+  <data name="FailedPostReply" xml:space="preserve"><value>Gửi câu trả lời thất bại</value></data>
+  <data name="CouldNotPostReply" xml:space="preserve"><value>Không thể gửi câu trả lời. Vui lòng thử lại.</value></data>
+  <data name="DeleteComment" xml:space="preserve"><value>Xóa bình luận</value></data>
+  <data name="DeleteCommentConfirmation" xml:space="preserve"><value>Bạn có chắc muốn xóa bình luận này cùng tất cả câu trả lời?</value></data>
+  <data name="CommentCannotBeEmpty" xml:space="preserve"><value>Bình luận không được để trống</value></data>
+  <data name="CommentUpdated" xml:space="preserve"><value>Đã cập nhật bình luận</value></data>
+  <data name="EditFailed" xml:space="preserve"><value>Chỉnh sửa thất bại</value></data>
+  <data name="CommentThreadDeleted" xml:space="preserve"><value>Đã xóa bình luận</value></data>
+
+  <!-- Checkout -->
+  <data name="Checkout" xml:space="preserve"><value>Thanh toán</value></data>
+  <data name="CheckoutSubtitle" xml:space="preserve"><value>Điền thông tin giao hàng và kiểm tra lại đơn hàng trước khi đặt.</value></data>
+  <data name="AddressLine2" xml:space="preserve"><value>Địa chỉ dòng 2 (tùy chọn)</value></data>
+  <data name="OrderNotes" xml:space="preserve"><value>Ghi chú đơn hàng</value></data>
+  <data name="OrderNotesPlaceholder" xml:space="preserve"><value>Ghi chú giao hàng, số nhà, giờ nhận hàng thuận tiện, v.v.</value></data>
+  <data name="PlaceOrder" xml:space="preserve"><value>Đặt hàng</value></data>
+  <data name="OrderSummary" xml:space="preserve"><value>Tóm tắt đơn hàng</value></data>
+  <data name="Items" xml:space="preserve"><value>Sản phẩm</value></data>
+  <data name="Free" xml:space="preserve"><value>Miễn phí</value></data>
+  <data name="CashOnDelivery" xml:space="preserve"><value>Thanh toán khi nhận hàng (COD)</value></data>
+  <data name="BankTransfer" xml:space="preserve"><value>Chuyển khoản ngân hàng</value></data>
+
+  <!-- Checkout Success -->
+  <data name="OrderSaved" xml:space="preserve"><value>Đã lưu đơn hàng</value></data>
+  <data name="OrderPlaced" xml:space="preserve"><value>Đặt hàng thành công</value></data>
+  <data name="OrderPlacedMessage" xml:space="preserve"><value>Đơn hàng của bạn đã được ghi nhận. Bạn có thể theo dõi đơn hàng trong mục Đơn hàng của tôi.</value></data>
+  <data name="BidvBankTransfer" xml:space="preserve"><value>Chuyển khoản ngân hàng BIDV</value></data>
+  <data name="BankTransferInstruction" xml:space="preserve"><value>Vui lòng chuyển chính xác số tiền và ghi mã đơn hàng vào nội dung chuyển khoản.</value></data>
+  <data name="AccountName" xml:space="preserve"><value>Tên chủ tài khoản</value></data>
+  <data name="AccountNumber" xml:space="preserve"><value>Số tài khoản</value></data>
+  <data name="Amount" xml:space="preserve"><value>Số tiền</value></data>
+  <data name="TransferMessage" xml:space="preserve"><value>Nội dung chuyển khoản</value></data>
+  <data name="BankTransferPendingNote" xml:space="preserve"><value>Đơn hàng sẽ ở trạng thái Chờ thanh toán cho đến khi người quản trị xác nhận.</value></data>
+  <data name="OrderNumber" xml:space="preserve"><value>Mã đơn hàng</value></data>
+  <data name="Customer" xml:space="preserve"><value>Khách hàng</value></data>
+  <data name="Delivery" xml:space="preserve"><value>Giao hàng</value></data>
+  <data name="ViewMyOrders" xml:space="preserve"><value>Xem đơn hàng của tôi</value></data>
+
+  <!-- My Orders -->
+  <data name="OrderHistory" xml:space="preserve"><value>Lịch sử đơn hàng</value></data>
+  <data name="NoOrdersYet" xml:space="preserve"><value>Chưa có đơn hàng nào</value></data>
+  <data name="NoOrdersSubtitle" xml:space="preserve"><value>Lịch sử mua hàng của bạn sẽ xuất hiện ở đây sau khi bạn đặt hàng.</value></data>
+  <data name="BrowseLaptops" xml:space="preserve"><value>Xem danh sách laptop</value></data>
+  <data name="OrderNumberFormat" xml:space="preserve"><value>Đơn hàng #{0}</value></data>
+  <data name="OrderItemMeta" xml:space="preserve"><value>{0}/máy · Số lượng {1}</value></data>
+  <data name="CancelOrder" xml:space="preserve"><value>Hủy đơn hàng</value></data>
+  <data name="OrderCancelled" xml:space="preserve"><value>Đơn hàng đã hủy</value></data>
+  <data name="DeliveredCannotCancel" xml:space="preserve"><value>Đơn hàng đã giao không thể hủy</value></data>
+  <data name="CancelOrderConfirm" xml:space="preserve"><value>Bạn có chắc muốn hủy đơn hàng #{0}?</value></data>
+  <data name="CouldNotCancelOrder" xml:space="preserve"><value>Không thể hủy đơn hàng</value></data>
+  <data name="OrderCancelledSuccess" xml:space="preserve"><value>Đã hủy đơn hàng thành công</value></data>
+
+  <!-- Admin Area -->
+  <data name="DashboardOverview" xml:space="preserve"><value>Tổng quan bảng điều khiển</value></data>
+  <data name="TotalUsers" xml:space="preserve"><value>Tổng người dùng</value></data>
+  <data name="TotalProducts" xml:space="preserve"><value>Tổng sản phẩm</value></data>
+  <data name="TotalOrders" xml:space="preserve"><value>Tổng đơn hàng</value></data>
+  <data name="TotalRevenue" xml:space="preserve"><value>Tổng doanh thu</value></data>
+  <data name="OrdersByStatus" xml:space="preserve"><value>Đơn hàng theo trạng thái</value></data>
+  <data name="RevenueLast7Days" xml:space="preserve"><value>Doanh thu 7 ngày qua</value></data>
+  <data name="TopSellingProducts" xml:space="preserve"><value>Sản phẩm bán chạy</value></data>
+  <data name="NoSoldProductsYet" xml:space="preserve"><value>Chưa có sản phẩm nào được bán.</value></data>
+  <data name="RecentOrders" xml:space="preserve"><value>Đơn hàng gần đây</value></data>
+  <data name="RecentComments" xml:space="preserve"><value>Bình luận gần đây</value></data>
+  <data name="NewestProducts" xml:space="preserve"><value>Sản phẩm mới nhất</value></data>
+  <data name="NoCommentsYet" xml:space="preserve"><value>Chưa có bình luận nào.</value></data>
+  <data name="NoProductsYet" xml:space="preserve"><value>Chưa có sản phẩm nào.</value></data>
+  <data name="SearchOrdersPlaceholder" xml:space="preserve"><value>Tìm khách hàng, email, số điện thoại, thành phố...</value></data>
+  <data name="AllStatuses" xml:space="preserve"><value>Tất cả trạng thái</value></data>
+  <data name="OrderCountBadge" xml:space="preserve"><value>{0} đơn hàng</value></data>
+  <data name="ItemsSold" xml:space="preserve"><value>Số lượng đã bán</value></data>
+  <data name="LatestOrder" xml:space="preserve"><value>Đơn hàng mới nhất</value></data>
+  <data name="ItemsCount" xml:space="preserve"><value>{0} sản phẩm</value></data>
+  <data name="SaveStatus" xml:space="preserve"><value>Lưu trạng thái</value></data>
+  <data name="DeliveryAddress" xml:space="preserve"><value>Địa chỉ giao hàng</value></data>
+  <data name="DeleteOrderConfirmation" xml:space="preserve"><value>Xóa đơn hàng #{0}? Thao tác này sẽ xóa đơn hàng và các mặt hàng bên trong.</value></data>
+  <data name="DeleteOrder" xml:space="preserve"><value>Xóa đơn hàng</value></data>
+  <data name="SearchCommentsPlaceholder" xml:space="preserve"><value>Tìm người dùng, sản phẩm hoặc bình luận</value></data>
+  <data name="ThreadCountBadge" xml:space="preserve"><value>{0} luồng bình luận</value></data>
+  <data name="NoCommentsMatchFilter" xml:space="preserve"><value>Không có bình luận nào khớp với bộ lọc.</value></data>
+  <data name="UserCountBadge" xml:space="preserve"><value>{0} người dùng</value></data>
+  <data name="AllRoles" xml:space="preserve"><value>Tất cả vai trò</value></data>
+  <data name="Role" xml:space="preserve"><value>Vai trò</value></data>
+  <data name="ActivitySummary" xml:space="preserve"><value>Tóm tắt hoạt động</value></data>
+  <data name="OrdersCountLabel" xml:space="preserve"><value>Đơn hàng: {0}</value></data>
+  <data name="CommentsCountLabel" xml:space="preserve"><value>Bình luận: {0}</value></data>
+  <data name="CartItemsCountLabel" xml:space="preserve"><value>Giỏ hàng: {0}</value></data>
+  <data name="MakeAdmin" xml:space="preserve"><value>Cấp quyền Admin</value></data>
+  <data name="RemoveAdmin" xml:space="preserve"><value>Hủy quyền Admin</value></data>
+  <data name="DeleteUser" xml:space="preserve"><value>Xóa người dùng</value></data>
+  <data name="DeleteUserConfirmation" xml:space="preserve"><value>Bạn có chắc muốn xóa người dùng "{0}"?&#10;&#10;Đơn hàng: {1}&#10;Bình luận: {2}&#10;Giỏ hàng: {3}&#10;&#10;Thao tác này không thể hoàn tác.</value></data>
+  <data name="UserPromotedToAdmin" xml:space="preserve"><value>Đã cấp quyền quản trị cho người dùng</value></data>
+  <data name="AdminRoleRemoved" xml:space="preserve"><value>Đã gỡ quyền quản trị</value></data>
+  <data name="DeletedUser" xml:space="preserve"><value>Đã xóa {0}</value></data>
+  <data name="NoUsersMatchFilter" xml:space="preserve"><value>Không có người dùng nào khớp với bộ lọc.</value></data>
+  <data name="SearchUsersPlaceholder" xml:space="preserve"><value>Tìm tên đăng nhập hoặc email</value></data>
+  <data name="SearchCartPlaceholder" xml:space="preserve"><value>Tìm người dùng hoặc sản phẩm</value></data>
+  <data name="CartItemCountBadge" xml:space="preserve"><value>{0} sản phẩm giỏ hàng</value></data>
+  <data name="Product" xml:space="preserve"><value>Sản phẩm</value></data>
+  <data name="Qty" xml:space="preserve"><value>SL</value></data>
+  <data name="DeleteCartItem" xml:space="preserve"><value>Xóa khỏi giỏ</value></data>
+  <data name="DeleteCartItemConfirmation" xml:space="preserve"><value>Xóa sản phẩm này khỏi giỏ hàng?</value></data>
+  <data name="CartItemDeleted" xml:space="preserve"><value>Đã xóa sản phẩm khỏi giỏ hàng</value></data>
+  <data name="NoCartItemsMatchFilter" xml:space="preserve"><value>Không có sản phẩm giỏ hàng nào khớp với bộ lọc.</value></data>
+
+  <!-- Product Create / Edit -->
+  <data name="AddNewLaptop" xml:space="preserve"><value>Thêm laptop mới vào cửa hàng</value></data>
+  <data name="EditProduct" xml:space="preserve"><value>Chỉnh sửa sản phẩm</value></data>
+  <data name="Currency" xml:space="preserve"><value>Đơn vị tiền tệ</value></data>
+  <data name="KeyFeatures" xml:space="preserve"><value>Đặc điểm nổi bật (mỗi dòng 1 mục)</value></data>
+  <data name="KeyFeaturesPlaceholder" xml:space="preserve"><value>GPU RTX 5090&#10;RAM 32GB&#10;SSD 1TB&#10;Màn hình 240Hz</value></data>
+  <data name="Images" xml:space="preserve"><value>Hình ảnh</value></data>
+  <data name="PasteImageUrlPlaceholder" xml:space="preserve"><value>Dán liên kết ảnh và nhấn Thêm URL</value></data>
+  <data name="AddUrl" xml:space="preserve"><value>Thêm URL</value></data>
+  <data name="UploadImagesFromComputer" xml:space="preserve"><value>Tải ảnh lên từ máy tính của bạn</value></data>
+  <data name="FullDescription" xml:space="preserve"><value>Mô tả chi tiết</value></data>
+  <data name="AddToShop" xml:space="preserve"><value>Thêm vào cửa hàng</value></data>
+  <data name="BackToList" xml:space="preserve"><value>Quay lại danh sách</value></data>
+  <data name="TitlePlaceholder" xml:space="preserve"><value>VD: ASUS ROG Zephyrus G16 2025 - RTX 5090</value></data>
+  <data name="BrandPlaceholder" xml:space="preserve"><value>VD: Lenovo</value></data>
+  <data name="ShortDescriptionPlaceholder" xml:space="preserve"><value>Tóm tắt ngắn, tình trạng máy, bảo hành...</value></data>
+  <data name="ProductImage" xml:space="preserve"><value>Hình ảnh sản phẩm</value></data>
+  <data name="NoImage" xml:space="preserve"><value>Không có hình ảnh</value></data>
+  <data name="On" xml:space="preserve"><value>về</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Xóa thất bại</value></data>
+  <data name="Payment" xml:space="preserve"><value>Phương thức thanh toán</value></data>
+  <data name="Shop" xml:space="preserve"><value>Cửa hàng</value></data>
+  <data name="Preview" xml:space="preserve"><value>Xem trước</value></data>
+  <data name="UrlImage" xml:space="preserve"><value>Ảnh từ URL</value></data>
+  <data name="SavedImage" xml:space="preserve"><value>Ảnh đã lưu</value></data>
+  <data name="NewUpload" xml:space="preserve"><value>Ảnh tải lên mới</value></data>
+  <data name="HomePage" xml:space="preserve"><value>Trang chủ</value></data>
+  <data name="Welcome" xml:space="preserve"><value>Chào mừng bạn</value></data>
+  <data name="HomeLearnMore" xml:space="preserve"><value>Tìm hiểu về</value></data>
+  <data name="AspNetBuildingWebApps" xml:space="preserve"><value>xây dựng ứng dụng Web với ASP.NET Core</value></data>
+  <data name="PrivacyPolicy" xml:space="preserve"><value>Chính sách bảo mật</value></data>
+  <data name="PrivacyPolicyDescription" xml:space="preserve"><value>Trang này cung cấp thông tin chi tiết về chính sách bảo mật của trang web.</value></data>
+  <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="ErrorProcessingRequest" xml:space="preserve"><value>Đã xảy ra lỗi trong khi xử lý yêu cầu của bạn.</value></data>
+  <data name="RequestId" xml:space="preserve"><value>Mã yêu cầu (Request ID)</value></data>
+  <data name="DevelopmentMode" xml:space="preserve"><value>Chế độ phát triển (Development Mode)</value></data>
+  <data name="DevelopmentModeSwapInfo" xml:space="preserve"><value>Chuyển sang môi trường &lt;strong&gt;Development&lt;/strong&gt; sẽ hiển thị thông tin chi tiết hơn về lỗi đã xảy ra.</value></data>
+  <data name="DevelopmentModeWarning" xml:space="preserve"><value>&lt;strong&gt;Không nên bật môi trường Development cho ứng dụng đã triển khai.&lt;/strong&gt; Môi trường này có thể hiển thị thông tin nhạy cảm từ các ngoại lệ đến người dùng cuối. Để gỡ lỗi cục bộ, hãy bật môi trường &lt;strong&gt;Development&lt;/strong&gt; bằng cách thiết lập biến môi trường &lt;strong&gt;ASPNETCORE_ENVIRONMENT&lt;/strong&gt; thành &lt;strong&gt;Development&lt;/strong&gt; và khởi động lại ứng dụng.</value></data>
+  <data name="Key Features (one per line)" xml:space="preserve"><value>Tính năng nổi bật (mỗi dòng một tính năng)</value></data>
+  <data name="Images (comma-separated URLs)" xml:space="preserve"><value>Hình ảnh (danh sách URL cách nhau bởi dấu phẩy)</value></data>
+  <data name="Full Description" xml:space="preserve"><value>Mô tả chi tiết</value></data>
+  <data name="ShortDescription" xml:space="preserve"><value>Mô tả ngắn</value></data>
+  <data name="AllFieldsRequired" xml:space="preserve"><value>Vui lòng nhập đầy đủ các trường</value></data>
+  <data name="UsernameAlreadyExists" xml:space="preserve"><value>Tên đăng nhập đã tồn tại</value></data>
+  <data name="EmailAlreadyExists" xml:space="preserve"><value>Email đã tồn tại</value></data>
+  <data name="RegistrationSuccessful" xml:space="preserve"><value>Đăng ký tài khoản thành công!</value></data>
+  <data name="InvalidUsernameOrPassword" xml:space="preserve"><value>Tên đăng nhập hoặc mật khẩu không chính xác</value></data>
+  <data name="UsernameOrEmailAndNewPasswordRequired" xml:space="preserve"><value>Vui lòng nhập tên đăng nhập/email và mật khẩu mới.</value></data>
+  <data name="PasswordMinLength" xml:space="preserve"><value>Mật khẩu phải có ít nhất 6 ký tự.</value></data>
+  <data name="NoAccountFound" xml:space="preserve"><value>Không tìm thấy tài khoản với tên đăng nhập hoặc email đó.</value></data>
+  <data name="PasswordResetSuccessLogin" xml:space="preserve"><value>Đặt lại mật khẩu thành công. Bạn có thể đăng nhập ngay bây giờ.</value></data>
+  <data name="OrderNotFound" xml:space="preserve"><value>Không tìm thấy đơn hàng.</value></data>
+  <data name="OrderAlreadyStatus" xml:space="preserve"><value>Đơn hàng này hiện đã {0}.</value></data>
+  <data name="OrderCancelledNumber" xml:space="preserve"><value>Đơn hàng #{0} đã được hủy.</value></data>
+  <data name="AddAtLeastOneImage" xml:space="preserve"><value>Vui lòng thêm ít nhất một URL hình ảnh hoặc tải ảnh lên từ máy tính của bạn.</value></data>
+  <data name="ProductAddedSuccessfully" xml:space="preserve"><value>Thêm sản phẩm mới thành công!</value></data>
+  <data name="ProductUpdatedSuccessfully" xml:space="preserve"><value>Cập nhật sản phẩm thành công!</value></data>
+  <data name="ProductDeletedSuccessfully" xml:space="preserve"><value>Xóa sản phẩm thành công</value></data>
+  <data name="ReplyTargetNotFound" xml:space="preserve"><value>Không tìm thấy bình luận cần trả lời</value></data>
+  <data name="CommentNotFound" xml:space="preserve"><value>Không tìm thấy bình luận</value></data>
+  <data name="CanOnlyDeleteOwnComments" xml:space="preserve"><value>Bạn chỉ có thể xóa bình luận của chính mình</value></data>
+  <data name="UserNotFound" xml:space="preserve"><value>Không tìm thấy người dùng.</value></data>
+  <data name="CannotDeleteMainAdmin" xml:space="preserve"><value>Không thể xóa tài khoản quản trị viên chính (JamesTNBS).</value></data>
+  <data name="CannotDeleteAnotherAdmin" xml:space="preserve"><value>Không thể xóa tài khoản quản trị viên khác.</value></data>
+  <data name="UserDeletedSuccess" xml:space="preserve"><value>Người dùng &apos;{0}&apos; cùng tất cả dữ liệu liên quan (giỏ hàng và bình luận) đã được xóa thành công.</value></data>
+  <data name="InvalidOrderStatus" xml:space="preserve"><value>Trạng thái đơn hàng không hợp lệ.</value></data>
+  <data name="OrderUpdatedStatus" xml:space="preserve"><value>Đơn hàng #{0} đã được cập nhật thành {1}.</value></data>
+  <data name="OrderDeletedSuccess" xml:space="preserve"><value>Đơn hàng #{0} đã được xóa thành công.</value></data>
+  <data name="NotFound" xml:space="preserve"><value>Không tìm thấy</value></data>
+  <data name="Unauthorized" xml:space="preserve"><value>Không có quyền truy cập</value></data>
+</root>
