@@ -183,6 +183,7 @@
   <data name="Amount" xml:space="preserve"><value>Số tiền</value></data>
   <data name="TransferMessage" xml:space="preserve"><value>Nội dung chuyển khoản</value></data>
   <data name="BankTransferPendingNote" xml:space="preserve"><value>Đơn hàng sẽ ở trạng thái Chờ thanh toán cho đến khi người quản trị xác nhận.</value></data>
+  <data name="ContinuePayment" xml:space="preserve"><value>Tiếp tục thanh toán</value></data>
   <data name="OrderNumber" xml:space="preserve"><value>Mã đơn hàng</value></data>
   <data name="Customer" xml:space="preserve"><value>Khách hàng</value></data>
   <data name="Delivery" xml:space="preserve"><value>Giao hàng</value></data>
@@ -325,4 +326,137 @@
   <data name="OrderDeletedSuccess" xml:space="preserve"><value>Đơn hàng #{0} đã được xóa thành công.</value></data>
   <data name="NotFound" xml:space="preserve"><value>Không tìm thấy</value></data>
   <data name="Unauthorized" xml:space="preserve"><value>Không có quyền truy cập</value></data>
+  <data name="Specifications" xml:space="preserve"><value>Thông số kỹ thuật</value></data>
+  <data name="TechnicalSpecifications" xml:space="preserve"><value>Thông số kỹ thuật chi tiết</value></data>
+
+  <data name="Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="Specification" xml:space="preserve"><value>Thông số</value></data>
+  <data name="SpecPerformance" xml:space="preserve"><value>Bộ xử lý &amp; Đồ họa</value></data>
+  <data name="SpecMemory" xml:space="preserve"><value>RAM &amp; Lưu trữ</value></data>
+  <data name="SpecDisplay" xml:space="preserve"><value>Màn hình</value></data>
+  <data name="SpecConnectivity" xml:space="preserve"><value>Kết nối</value></data>
+  <data name="SpecPower" xml:space="preserve"><value>Pin &amp; Nguồn</value></data>
+  <data name="SpecGeneral" xml:space="preserve"><value>Thông số khác</value></data>
+  <data name="YouMightAlsoLike" xml:space="preserve"><value>Có thể bạn cũng thích</value></data>
+  <data name="RecommendationTypes" xml:space="preserve"><value>Loại gợi ý</value></data>
+  <data name="CheckOutUsedItems" xml:space="preserve"><value>Khám phá máy đã qua sử dụng</value></data>
+  <data name="SimilarProducts" xml:space="preserve"><value>Sản phẩm tương tự</value></data>
+  <data name="SaveProduct" xml:space="preserve"><value>Lưu sản phẩm</value></data>
+  <data name="NoUsedRecommendations" xml:space="preserve"><value>Hiện chưa có sản phẩm đã qua sử dụng.</value></data>
+  <data name="NoSimilarRecommendations" xml:space="preserve"><value>Hiện chưa có sản phẩm tương tự.</value></data>
+  <data name="SpecificationsPlaceholder" xml:space="preserve"><value>Nhập mỗi thông số trên một dòng, ví dụ: CPU: Intel Core i7&#10;RAM: 16GB&#10;Lưu trữ: SSD 512GB&#10;Màn hình: 15.6 inch Full HD</value></data>
+  <data name="Filter" xml:space="preserve"><value>Lọc</value></data>
+  <data name="ViewMore" xml:space="preserve"><value>Xem thêm</value></data>
+  <data name="ViewLess" xml:space="preserve"><value>Thu gọn</value></data>
+  <data name="FilterStorage" xml:space="preserve"><value>Dung lượng lưu trữ</value></data>
+  <data name="FilterUsage" xml:space="preserve"><value>Nhu cầu sử dụng</value></data>
+  <data name="FilterRam" xml:space="preserve"><value>Dung lượng RAM</value></data>
+  <data name="FilterCpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="FilterScreenSize" xml:space="preserve"><value>Kích thước màn hình</value></data>
+  <data name="FilterResolution" xml:space="preserve"><value>Độ phân giải</value></data>
+  <data name="FilterGraphics" xml:space="preserve"><value>Card đồ họa</value></data>
+  <data name="FilterSpecialFeatures" xml:space="preserve"><value>Tính năng đặc biệt</value></data>
+  <data name="FilterOption_256gb" xml:space="preserve"><value>256GB</value></data>
+  <data name="FilterOption_512gb" xml:space="preserve"><value>512GB</value></data>
+  <data name="FilterOption_1tb" xml:space="preserve"><value>1TB</value></data>
+  <data name="FilterOption_hdd1tb" xml:space="preserve"><value>HDD: 1TB</value></data>
+  <data name="FilterOption_2tb" xml:space="preserve"><value>2TB</value></data>
+  <data name="FilterOption_128gb" xml:space="preserve"><value>128GB</value></data>
+  <data name="FilterOption_studyoffice" xml:space="preserve"><value>Học tập - Văn phòng</value></data>
+  <data name="FilterOption_thinandlight" xml:space="preserve"><value>Mỏng nhẹ</value></data>
+  <data name="FilterOption_highend" xml:space="preserve"><value>Cao cấp</value></data>
+  <data name="FilterOption_graphics" xml:space="preserve"><value>Đồ họa</value></data>
+  <data name="FilterOption_contentcreation" xml:space="preserve"><value>Sáng tạo nội dung</value></data>
+  <data name="FilterOption_4gb" xml:space="preserve"><value>4GB</value></data>
+  <data name="FilterOption_8gb" xml:space="preserve"><value>8GB</value></data>
+  <data name="FilterOption_16gb" xml:space="preserve"><value>16GB</value></data>
+  <data name="FilterOption_24gb" xml:space="preserve"><value>24GB</value></data>
+  <data name="FilterOption_32gb" xml:space="preserve"><value>32GB</value></data>
+  <data name="FilterOption_64gb" xml:space="preserve"><value>64GB</value></data>
+
+  <data name="FilterOption_intelcorei3" xml:space="preserve"><value>Intel Core i3</value></data>
+  <data name="FilterOption_intelcorei5" xml:space="preserve"><value>Intel Core i5</value></data>
+  <data name="FilterOption_intelcorei7" xml:space="preserve"><value>Intel Core i7</value></data>
+  <data name="FilterOption_amdryzen5" xml:space="preserve"><value>AMD Ryzen 5</value></data>
+  <data name="FilterOption_amdryzen9" xml:space="preserve"><value>AMD Ryzen 9</value></data>
+  <data name="FilterOption_amdryzen7" xml:space="preserve"><value>AMD Ryzen 7</value></data>
+  <data name="FilterOption_intelceleron" xml:space="preserve"><value>Intel Celeron</value></data>
+  <data name="FilterOption_amdryzenai" xml:space="preserve"><value>AMD Ryzen AI</value></data>
+  <data name="FilterOption_intelcoreu9" xml:space="preserve"><value>Intel Core U9</value></data>
+  <data name="FilterOption_intelcoreu7" xml:space="preserve"><value>Intel Core U7</value></data>
+  <data name="FilterOption_core5" xml:space="preserve"><value>Core 5</value></data>
+  <data name="FilterOption_core7" xml:space="preserve"><value>Core 7</value></data>
+  <data name="FilterOption_core3" xml:space="preserve"><value>Core 3</value></data>
+  <data name="FilterOption_intelcoreu5" xml:space="preserve"><value>Intel Core U5</value></data>
+  <data name="FilterOption_qualcommsnapdragon" xml:space="preserve"><value>Qualcomm Snapdragon</value></data>
+  <data name="FilterOption_snapdragonxplus" xml:space="preserve"><value>Snapdragon X Plus</value></data>
+  <data name="FilterOption_approximately14inches" xml:space="preserve"><value>Khoảng 14 inch</value></data>
+  <data name="FilterOption_approximately13inches" xml:space="preserve"><value>Khoảng 13 inch</value></data>
+  <data name="FilterOption_approximately15inches" xml:space="preserve"><value>Khoảng 15 inch</value></data>
+  <data name="FilterOption_approximately16inches" xml:space="preserve"><value>Khoảng 16 inch</value></data>
+  <data name="FilterOption_over16inches" xml:space="preserve"><value>Trên 16 inch</value></data>
+  <data name="FilterOption_fullhd" xml:space="preserve"><value>Full HD</value></data>
+  <data name="FilterOption_wqxga" xml:space="preserve"><value>WQXGA</value></data>
+  <data name="FilterOption_wuxga" xml:space="preserve"><value>WUXGA</value></data>
+  <data name="FilterOption_hd" xml:space="preserve"><value>HD</value></data>
+  <data name="FilterOption_onboard" xml:space="preserve"><value>Tích hợp</value></data>
+  <data name="FilterOption_nvidiageforce" xml:space="preserve"><value>NVIDIA GeForce</value></data>
+  <data name="FilterOption_amdradeon" xml:space="preserve"><value>AMD Radeon</value></data>
+  <data name="FilterOption_wifi6" xml:space="preserve"><value>Wi-Fi 6</value></data>
+  <data name="FilterOption_fingerprintsecurity" xml:space="preserve"><value>Bảo mật vân tay</value></data>
+  <data name="FilterOption_touchscreen" xml:space="preserve"><value>Màn hình cảm ứng</value></data>
+  <data name="FilterOption_facialrecognition" xml:space="preserve"><value>Nhận diện khuôn mặt</value></data>
+  <data name="FilterOption_ultrathinbezels" xml:space="preserve"><value>Viền màn hình siêu mỏng</value></data>
+  <data name="FilterOption_360degreerotatingandfolding2in1" xml:space="preserve"><value>Xoay gập 360 độ (2 trong 1)</value></data>
+  <data name="FilterOption_wifi7" xml:space="preserve"><value>Wi-Fi 7</value></data>
+  <data name="FilterOption_oledscreen" xml:space="preserve"><value>Màn hình OLED</value></data>
+  <data name="FilterOption_muxswitch" xml:space="preserve"><value>MUX Switch</value></data>
+  <data name="TechnicalSpecificationsPlaceholder" xml:space="preserve"><value>Giữ nguyên các tiêu đề và nhập giá trị sau từng nhãn. Ví dụ: CPU type: Intel Core i7</value></data>
+  <data name="SpecificationField_graphicscardtype" xml:space="preserve"><value>Loại card đồ họa</value></data>
+  <data name="SpecificationField_ramcapacity" xml:space="preserve"><value>Dung lượng RAM</value></data>
+  <data name="SpecificationField_ramtype" xml:space="preserve"><value>Loại RAM</value></data>
+  <data name="SpecificationField_numberoframslots" xml:space="preserve"><value>Số khe RAM</value></data>
+  <data name="SpecificationField_storage" xml:space="preserve"><value>Bộ nhớ lưu trữ</value></data>
+  <data name="SpecificationField_displaytechnology" xml:space="preserve"><value>Công nghệ màn hình</value></data>
+  <data name="SpecificationField_operatingsystem" xml:space="preserve"><value>Hệ điều hành</value></data>
+  <data name="SpecificationField_operatingsystemuponrelease" xml:space="preserve"><value>Hệ điều hành khi xuất xưởng</value></data>
+  <data name="SpecificationField_cputype" xml:space="preserve"><value>Loại CPU</value></data>
+  <data name="SpecificationField_screensize" xml:space="preserve"><value>Kích thước màn hình</value></data>
+  <data name="SpecificationField_screenresolution" xml:space="preserve"><value>Độ phân giải màn hình</value></data>
+  <data name="SpecificationField_battery" xml:space="preserve"><value>Pin</value></data>
+  <data name="SpecificationField_communicationport" xml:space="preserve"><value>Cổng kết nối</value></data>
+  <data name="SpecificationField_scanningfrequency" xml:space="preserve"><value>Tần số quét</value></data>
+  <data name="SpecificationField_substratematerial" xml:space="preserve"><value>Chất liệu tấm nền</value></data>
+  <data name="SpecificationField_audiotechnology" xml:space="preserve"><value>Công nghệ âm thanh</value></data>
+  <data name="SpecificationField_material" xml:space="preserve"><value>Chất liệu</value></data>
+  <data name="SpecificationField_screencasingmaterial" xml:space="preserve"><value>Chất liệu khung màn hình</value></data>
+  <data name="SpecificationField_topshellmaterial" xml:space="preserve"><value>Chất liệu mặt trên</value></data>
+  <data name="SpecificationField_bottomshellmaterial" xml:space="preserve"><value>Chất liệu mặt đáy</value></data>
+  <data name="SpecificationField_specialfeatures" xml:space="preserve"><value>Tính năng đặc biệt</value></data>
+  <data name="SpecificationField_keyboardbacklighttype" xml:space="preserve"><value>Loại đèn nền bàn phím</value></data>
+  <data name="SpecificationField_security" xml:space="preserve"><value>Bảo mật</value></data>
+  <data name="SpecificationField_webcam" xml:space="preserve"><value>Webcam</value></data>
+  <data name="SpecificationField_wifi" xml:space="preserve"><value>Wi-Fi</value></data>
+  <data name="SpecificationField_bluetooth" xml:space="preserve"><value>Bluetooth</value></data>
+  <data name="SpecificationField_size" xml:space="preserve"><value>Kích thước</value></data>
+  <data name="SpecificationField_weight" xml:space="preserve"><value>Trọng lượng</value></data>
+  <data name="TechnicalGroup_configurationmemory" xml:space="preserve"><value>Cấu hình &amp; Bộ nhớ</value></data>
+  <data name="TechnicalGroup_ram" xml:space="preserve"><value>RAM</value></data>
+  <data name="TechnicalGroup_screen" xml:space="preserve"><value>Màn hình</value></data>
+  <data name="TechnicalGroup_sound" xml:space="preserve"><value>Âm thanh</value></data>
+  <data name="TechnicalGroup_sizeweight" xml:space="preserve"><value>Kích thước &amp; Trọng lượng</value></data>
+  <data name="TechnicalGroup_otheramenities" xml:space="preserve"><value>Tiện ích khác</value></data>
+  <data name="TechnicalGroup_otherfeatures" xml:space="preserve"><value>Tính năng khác</value></data>
+  <data name="TechnicalGroup_batterieschargingtechnology" xml:space="preserve"><value>Pin &amp; Công nghệ sạc</value></data>
+  <data name="TechnicalGroup_communicationconnection" xml:space="preserve"><value>Giao tiếp &amp; Kết nối</value></data>
+  <data name="TechnicalGroup_designmaterials" xml:space="preserve"><value>Thiết kế &amp; Chất liệu</value></data>
+  <data name="TechnicalGroup_connectionport" xml:space="preserve"><value>Cổng kết nối</value></data>
 </root>
+
+
+
+
+
+
+
+

@@ -16,6 +16,20 @@
 
         return Url.Content("~/" + imagePath.TrimStart('/'));
     }
+
+    public string LocalizeSpecificationLabel(string label)
+    {
+        var key = string.Concat(label.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+        var localized = L[$"SpecificationField_{key}"];
+        return localized.ResourceNotFound ? label : localized.Value;
+    }
+
+    public string LocalizeTechnicalGroup(string group)
+    {
+        var key = string.Concat(group.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+        var localized = L[$"TechnicalGroup_{key}"];
+        return localized.ResourceNotFound ? group : localized.Value;
+    }
 }
 
 @{
@@ -30,6 +44,62 @@
 
     var currentRole = ViewBag.Role?.ToString() ?? "";
     var currentUserIdValue = ViewBag.UserId is int userId ? userId : 0;
+
+    var specificationLabelPrefix = L["Specification"].Value;
+    var specificationLines = (Model.Features ?? string.Empty)
+        .Split(new[] { '\n', '|', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(line => line.Trim().TrimStart('•', '-', '*').Trim())
+        .Where(line => !string.IsNullOrWhiteSpace(line))
+        .Select((line, index) =>
+        {
+            var separator = line.IndexOf(':');
+            if (separator < 1) separator = line.IndexOf(' ');
+            var label = separator > 0 ? line[..separator].Trim() : $"{specificationLabelPrefix} {index + 1}";
+            var value = separator > 0 ? line[(separator + 1)..].Trim() : line;
+            var normalized = label.ToLowerInvariant();
+            var group = normalized.Contains("ram") || normalized.Contains("memory") || normalized.Contains("ssd") || normalized.Contains("storage") || normalized.Contains("drive") || normalized.Contains("lưu trữ") || normalized.Contains("bộ nhớ")
+                ? "memory"
+                : normalized.Contains("screen") || normalized.Contains("display") || normalized.Contains("màn hình")
+                    ? "display"
+                    : normalized.Contains("port") || normalized.Contains("wi-fi") || normalized.Contains("wifi") || normalized.Contains("bluetooth") || normalized.Contains("cổng") || normalized.Contains("kết nối")
+                        ? "connectivity"
+                        : normalized.Contains("battery") || normalized.Contains("pin") || normalized.Contains("charging")
+                            ? "power"
+                            : normalized.Contains("cpu") || normalized.Contains("processor") || normalized.Contains("gpu") || normalized.Contains("graphics") || normalized.Contains("chip") || normalized.Contains("cpu") || normalized.Contains("đồ họa") || normalized.Contains("vi xử lý")
+                                ? "performance"
+                                : "general";
+            return (Label: label, Value: value, Group: group);
+        })
+        .Where(spec => !string.IsNullOrWhiteSpace(spec.Value))
+        .ToList();
+    var technicalGroupHeadings = new HashSet<string>(new[]
+    {
+        "Configuration & Memory", "RAM", "Screen", "Sound", "Size & Weight", "Other amenities",
+        "Other features", "Batteries & Charging Technology", "Communication & Connection", "Design & Materials", "Connection port"
+    }, StringComparer.OrdinalIgnoreCase);
+    var currentTechnicalGroup = "Other features";
+    var technicalSpecificationLines = new List<(string Label, string Value, string Group)>();
+    foreach (var technicalLine in (Model.TechnicalSpecifications ?? string.Empty)
+        .Split(new[] { '\n', '|' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        var line = technicalLine.Trim().TrimStart('•', '-', '*').Trim();
+        if (technicalGroupHeadings.Contains(line))
+        {
+            currentTechnicalGroup = line;
+            continue;
+        }
+
+        var separator = line.IndexOf(':');
+        if (separator < 1) separator = line.IndexOf(' ');
+        var label = separator > 0 ? line[..separator].Trim() : specificationLabelPrefix;
+        var value = separator > 0 ? line[(separator + 1)..].Trim() : line;
+        if (!string.IsNullOrWhiteSpace(value)) technicalSpecificationLines.Add((label, value, currentTechnicalGroup));
+    }
+    var modalSpecificationLines = technicalSpecificationLines.Count > 0 ? technicalSpecificationLines : specificationLines.Select(spec => (spec.Label, spec.Value, spec.Group)).ToList();
+    var previewSpecificationSource = specificationLines.Count > 0 ? specificationLines.Select(spec => (spec.Label, spec.Value, spec.Group)).ToList() : technicalSpecificationLines;
+    var previewSpecifications = previewSpecificationSource.Where(spec => !string.IsNullOrWhiteSpace(spec.Value)).Take(6).ToList();
+    var usedRecommendations = ViewBag.UsedRecommendations as List<Laptop.Models.Product> ?? new List<Laptop.Models.Product>();
+    var similarRecommendations = ViewBag.SimilarRecommendations as List<Laptop.Models.Product> ?? new List<Laptop.Models.Product>();
 }
 
 <div class="product-page-container">
@@ -67,20 +137,32 @@
                 @Formatter.Format(Model)
             </div>
 
-            <ul class="features" id="laptop-features">
-                @if (!string.IsNullOrEmpty(Model.Features))
-                {
-                    var featuresList = Model.Features.Split(new[] { '\n', '|' }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var feature in featuresList)
-                    {
-                        <li>@feature.Trim()</li>
-                    }
-                }
-                else
-                {
+            @if (specificationLines.Count > 0 || technicalSpecificationLines.Count > 0)
+            {
+                <section class="product-specifications" aria-labelledby="specifications-heading">
+                    <div class="specifications-heading-row">
+                        <h2 id="specifications-heading">@L["Specifications"]</h2>
+                        <button type="button" class="specifications-view-all" onclick="openSpecifications()">
+                            @L["ViewAll"] <span aria-hidden="true">›</span>
+                        </button>
+                    </div>
+                    <div class="specifications-table specifications-preview">
+                        @foreach (var spec in previewSpecifications)
+                        {
+                            <div class="specification-row">
+                                <div class="specification-label">@LocalizeSpecificationLabel(spec.Label)</div>
+                                <div class="specification-value">@spec.Value</div>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+            else
+            {
+                <ul class="features" id="laptop-features">
                     <li>@L["NoFeaturesListed"]</li>
-                }
-            </ul>
+                </ul>
+            }
 
             <p class="short-desc">@Model.Description</p>
         </div>
@@ -126,6 +208,80 @@
         <p class="full-description">@Model.FullDescription</p>
     </div>
 
+    @if (usedRecommendations.Any() || similarRecommendations.Any())
+    {
+        var showUsedRecommendations = usedRecommendations.Any();
+        <section class="recommendations-section" aria-labelledby="recommendations-title">
+            <h2 id="recommendations-title">@L["YouMightAlsoLike"]</h2>
+            <div class="recommendations-tabs" role="tablist" aria-label="@L["RecommendationTypes"]">
+                <button type="button" class="recommendation-tab @(showUsedRecommendations ? "is-active" : "")" id="used-tab" role="tab" aria-selected="@(showUsedRecommendations ? "true" : "false")" aria-controls="used-recommendations" onclick="switchRecommendationTab('used')">@L["CheckOutUsedItems"]</button>
+                <button type="button" class="recommendation-tab @(!showUsedRecommendations ? "is-active" : "")" id="similar-tab" role="tab" aria-selected="@(!showUsedRecommendations ? "true" : "false")" aria-controls="similar-recommendations" onclick="switchRecommendationTab('similar')">@L["SimilarProducts"]</button>
+            </div>
+
+            <div class="recommendation-panel @(showUsedRecommendations ? "is-active" : "")" id="used-recommendations" role="tabpanel" aria-labelledby="used-tab" @(!showUsedRecommendations ? "hidden" : null)>
+                @if (usedRecommendations.Any())
+                {
+                    <div class="recommendations-grid">
+                        @foreach (var item in usedRecommendations)
+                        {
+                            var image = item.Images?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+                            <div class="recommendation-card">
+                                <a class="recommendation-card-link" asp-action="Details" asp-route-id="@item.Id">
+                                <div class="recommendation-image-wrap">
+                                    <img src="@ResolveProductImage(image)" alt="@item.Title" loading="lazy" />
+                                    <span class="recommendation-condition">@Formatter.TranslateCondition(item.Condition)</span>
+                                </div>
+                                <div class="recommendation-card-info">
+                                    <h3>@item.Title</h3>
+                                    <p class="recommendation-model">@item.Model</p>
+                                    <p class="recommendation-price">@Formatter.Format(item)</p>
+                                </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="recommendations-empty">@L["NoUsedRecommendations"]</p>
+                }
+            </div>
+
+            <div class="recommendation-panel @(!showUsedRecommendations ? "is-active" : "")" id="similar-recommendations" role="tabpanel" aria-labelledby="similar-tab" @(showUsedRecommendations ? "hidden" : null)>
+                @if (similarRecommendations.Any())
+                {
+                    <div class="recommendations-grid">
+                        @foreach (var item in similarRecommendations)
+                        {
+                            var image = item.Images?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+                            <div class="recommendation-card">
+                                <a class="recommendation-card-link" asp-action="Details" asp-route-id="@item.Id">
+                                <div class="recommendation-image-wrap">
+                                    <img src="@ResolveProductImage(image)" alt="@item.Title" loading="lazy" />
+                                    <span class="recommendation-condition">@Formatter.TranslateCondition(item.Condition)</span>
+                                </div>
+                                <div class="recommendation-card-info">
+                                    <h3>@item.Title</h3>
+                                    <p class="recommendation-model">@item.Model</p>
+                                    <p class="recommendation-price">@Formatter.Format(item)</p>
+                                </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="recommendations-empty">@L["NoSimilarRecommendations"]</p>
+                }
+            </div>
+            @if (usedRecommendations.Count > 4 || similarRecommendations.Count > 4)
+            {
+                <button type="button" class="recommendations-view-more" onclick="toggleMoreRecommendations(this)" aria-expanded="false">@L["ViewMore"]</button>
+            }
+        </section>
+    }
+
     <div id="comment-section">
         <h3>@L["CommentsCount", Model.Comments?.Count ?? 0]</h3>
 
@@ -159,6 +315,46 @@
     </div>
 
 </div>
+
+@if (specificationLines.Count > 0 || technicalSpecificationLines.Count > 0)
+{
+    <div id="specifications-modal" class="specifications-modal" aria-hidden="true">
+        <div class="specifications-dialog" role="dialog" aria-modal="true" aria-labelledby="specifications-modal-title" tabindex="-1">
+            <div class="specifications-modal-header">
+                <h2 id="specifications-modal-title">@L["TechnicalSpecifications"]</h2>
+                <button type="button" class="specifications-close" onclick="closeSpecifications()" aria-label="@L["Close"]">×</button>
+            </div>
+            <div class="specifications-modal-body">
+                @{
+                    var groupLabels = new Dictionary<string, string>
+                    {
+                        ["performance"] = L["SpecPerformance"].Value,
+                        ["memory"] = L["SpecMemory"].Value,
+                        ["display"] = L["SpecDisplay"].Value,
+                        ["connectivity"] = L["SpecConnectivity"].Value,
+                        ["power"] = L["SpecPower"].Value,
+                        ["general"] = L["SpecGeneral"].Value
+                    };
+                }
+                @foreach (var group in modalSpecificationLines.GroupBy(spec => spec.Group))
+                {
+                    <section class="specifications-group">
+                        <h3>@(technicalSpecificationLines.Count > 0 ? LocalizeTechnicalGroup(group.Key) : groupLabels[group.Key])</h3>
+                        <div class="specifications-table">
+                            @foreach (var spec in group)
+                            {
+                                <div class="specification-row">
+                                    <div class="specification-label">@LocalizeSpecificationLabel(spec.Label)</div>
+                                    <div class="specification-value">@spec.Value</div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 <div id="image-popup" class="popup">
     <button class="close-btn" onclick="closePopup()">×</button>
@@ -206,6 +402,53 @@
     function closePopup() {
         document.getElementById("image-popup").style.display = "none";
     }
+
+    function openSpecifications() {
+        const modal = document.getElementById('specifications-modal');
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('specifications-modal-open');
+        modal.querySelector('.specifications-close')?.focus();
+    }
+
+    function closeSpecifications() {
+        const modal = document.getElementById('specifications-modal');
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('specifications-modal-open');
+        document.querySelector('.specifications-view-all')?.focus();
+    }
+
+    document.getElementById('specifications-modal')?.addEventListener('click', function (event) {
+        if (event.target === this) closeSpecifications();
+    });
+
+    function switchRecommendationTab(tab) {
+        const showUsed = tab === 'used';
+        document.getElementById('used-tab')?.classList.toggle('is-active', showUsed);
+        document.getElementById('similar-tab')?.classList.toggle('is-active', !showUsed);
+        document.getElementById('used-tab')?.setAttribute('aria-selected', showUsed ? 'true' : 'false');
+        document.getElementById('similar-tab')?.setAttribute('aria-selected', showUsed ? 'false' : 'true');
+        document.getElementById('used-recommendations')?.classList.toggle('is-active', showUsed);
+        document.getElementById('used-recommendations')?.toggleAttribute('hidden', !showUsed);
+        document.getElementById('similar-recommendations')?.classList.toggle('is-active', !showUsed);
+        document.getElementById('similar-recommendations')?.toggleAttribute('hidden', showUsed);
+    }
+
+    function toggleMoreRecommendations(button) {
+        const section = button.closest('.recommendations-section');
+        const isExpanded = section.classList.toggle('is-expanded');
+        button.setAttribute('aria-expanded', String(isExpanded));
+        button.textContent = isExpanded
+            ? @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["ViewLess"].Value))
+            : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["ViewMore"].Value));
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && document.getElementById('specifications-modal')?.classList.contains('is-open')) closeSpecifications();
+    });
 
     document.getElementById("image-popup").addEventListener('click', function (e) {
         if (e.target === this) closePopup();

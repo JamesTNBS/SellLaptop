@@ -17,7 +17,7 @@ namespace Laptop.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -30,11 +30,11 @@ namespace Laptop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Image")
+                    b.Property<string>("Currency")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Currency")
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -190,11 +190,11 @@ namespace Laptop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Image")
+                    b.Property<string>("Currency")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Currency")
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -263,6 +263,10 @@ namespace Laptop.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Seller")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechnicalSpecifications")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -444,6 +448,11 @@ namespace Laptop.Migrations
                     b.Navigation("Replies");
                 });
 
+            modelBuilder.Entity("Laptop.Models.Order", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("Laptop.Models.Product", b =>
                 {
                     b.Navigation("Comments");
@@ -460,11 +469,6 @@ namespace Laptop.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("Laptop.Models.Order", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +58,12 @@ namespace Laptop.Controllers
                 query = query.Where(p => selectedConditions.Contains(p.Condition));
             }
 
+            var specificationFilters = new[] { "storage", "usage", "ram", "cpu", "screenSize", "resolution", "graphics", "specialFeatures" }
+                .ToDictionary(key => key, key => Request.Query[key]
+                    .Select(value => value?.ToLowerInvariant() ?? string.Empty)
+                    .Where(value => value.Length > 0)
+                    .ToList());
+
             // 4. Model filter
             var selectedBrands = Request.Query["brand"]
                 .Where(brand => !string.IsNullOrWhiteSpace(brand))
@@ -72,6 +80,10 @@ namespace Laptop.Controllers
             // small for this storefront and this avoids treating native USD and VND values alike.
             var sortBy = Request.Query["sort"].ToString().ToLower();
             var products = await query.ToListAsync();
+            foreach (var filter in specificationFilters.Where(pair => pair.Value.Count > 0))
+            {
+                products = products.Where(product => filter.Value.Any(value => MatchesSpecificationFilter(product, filter.Key, value))).ToList();
+            }
             if (decimal.TryParse(minPriceStr, out var minPrice) && minPrice > 0)
                 products = products.Where(p => _formatter.ToDisplayAmount(p) >= minPrice).ToList();
             if (decimal.TryParse(maxPriceStr, out var maxPrice) && maxPrice > 0)
@@ -109,6 +121,53 @@ namespace Laptop.Controllers
                 return NotFound();
             }
 
+            product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
+
+            var otherProducts = await _context.Products
+                .AsNoTracking()
+                .Where(p => p.Id != product.Id)
+                .ToListAsync();
+
+            ViewBag.UsedRecommendations = otherProducts
+                .Where(p => !string.Equals(p.Condition, "New", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(p => p.Id)
+                .Take(8)
+                .ToList();
+
+            var productBrand = (product.Model ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+            var currentFeatureWords = (product.Features ?? string.Empty)
+                .Split(new[] { ' ', '\n', '|', ',', ';', ':' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(word => word.ToLowerInvariant())
+                .Where(word => word.Length >= 3)
+                .ToHashSet();
+            var similarRecommendations = otherProducts
+                .Select(candidate =>
+                {
+                    var score = string.Equals(candidate.Model, product.Model, StringComparison.OrdinalIgnoreCase) ? 100 : 0;
+                    if (!string.IsNullOrWhiteSpace(productBrand) &&
+                        ((candidate.Model ?? string.Empty).StartsWith(productBrand, StringComparison.OrdinalIgnoreCase) ||
+                         (candidate.Title ?? string.Empty).StartsWith(productBrand, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        score += 30;
+                    }
+
+                    var candidateFeatureWords = (candidate.Features ?? string.Empty)
+                        .Split(new[] { ' ', '\n', '|', ',', ';', ':' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(word => word.ToLowerInvariant())
+                        .Where(word => word.Length >= 3)
+                        .ToHashSet();
+                    score += currentFeatureWords.Intersect(candidateFeatureWords).Count();
+                    return new { Product = candidate, Score = score };
+                })
+                .Where(item => item.Score > 0)
+                .OrderByDescending(item => item.Score)
+                .ThenByDescending(item => item.Product.Id)
+                .Take(8)
+                .Select(item => item.Product)
+                .ToList();
+
+            ViewBag.SimilarRecommendations = similarRecommendations;
+
             ViewBag.Role = HttpContext.Session.GetString("Role");
             ViewBag.UserId = HttpContext.Session.GetInt32("UserId");
 
@@ -118,7 +177,11 @@ namespace Laptop.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Product
+            {
+                Specifications = Product.SpecificationsTemplate,
+                TechnicalSpecifications = Product.TechnicalSpecificationsTemplate
+            });
         }
 
         // POST: Products/Create
@@ -133,6 +196,7 @@ namespace Laptop.Controllers
         {
             product.Seller = "Admin";
             product.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
+            product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
             product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
 
             if (string.IsNullOrWhiteSpace(product.Images))
@@ -206,18 +270,25 @@ namespace Laptop.Controllers
             {
                 return NotFound();
             }
+            product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
+            if (string.IsNullOrWhiteSpace(product.TechnicalSpecifications))
+            {
+                product.TechnicalSpecifications = Product.TechnicalSpecificationsTemplate;
+            }
             return View(product);
         }
 
         // POST: Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Model,Price,Currency,Features,Description,Images,FullDescription,Condition")] Product product, List<IFormFile>? imageFiles)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Model,Price,Currency,Specifications,TechnicalSpecifications,Description,Images,FullDescription,Condition")] Product product, List<IFormFile>? imageFiles)
         {
             if (id != product.Id)
             {
                 return NotFound();
             }
+
+            product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
 
             var existingProduct = await _context.Products
                 .Include(p => p.ProductImages)
@@ -246,6 +317,7 @@ namespace Laptop.Controllers
                     existingProduct.Price = product.Price;
                     existingProduct.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
                     existingProduct.Features = product.Features;
+                    existingProduct.TechnicalSpecifications = product.TechnicalSpecifications;
                     existingProduct.Description = product.Description;
                     existingProduct.Images = product.Images;
                     existingProduct.FullDescription = product.FullDescription;
@@ -377,6 +449,192 @@ namespace Laptop.Controllers
         }
 
         // Helper method
+        private static string EnsureSpecificationTemplate(string? existingText, string template)
+        {
+            var templateLines = template
+                .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim())
+                .ToList();
+            var templateFields = templateLines
+                .Where(line => line.EndsWith(':'))
+                .Select(line => line[..^1].Trim())
+                .ToList();
+            var values = templateFields.ToDictionary(field => field, _ => new List<string>(), StringComparer.OrdinalIgnoreCase);
+            var additionalLines = new List<string>();
+
+            void AddValue(string field, string value)
+            {
+                value = value.Trim();
+                if (value.Length == 0) return;
+                var existingValues = values[field];
+                if (!existingValues.Contains(value, StringComparer.OrdinalIgnoreCase))
+                {
+                    existingValues.Add(value);
+                }
+            }
+
+            string? MatchField(string label)
+            {
+                var normalized = Regex.Replace(label, @"[^a-z0-9]", string.Empty, RegexOptions.IgnoreCase);
+                return normalized.ToLowerInvariant() switch
+                {
+                    "graphicscardtype" or "graphics" or "gpu" => "Graphics card type",
+                    "ramcapacity" or "memorycapacity" => "RAM capacity",
+                    "ramtype" or "memorytype" => "RAM type",
+                    "numberoframslots" or "ramslots" or "memoryslots" => "Number of RAM slots",
+                    "storage" or "harddrive" or "drive" => "Storage",
+                    "displaytechnology" or "displaytype" => "Display technology",
+                    "operatingsystem" or "os" => "Operating system",
+                    "cputype" or "cpu" or "processortype" or "processor" => "CPU type",
+                    "screensize" => "Screen size",
+                    "screenresolution" or "resolution" => "Screen resolution",
+                    "battery" => "Battery",
+                    "communicationport" or "ports" or "port" => "Communication port",
+                    _ => templateFields.FirstOrDefault(field => string.Equals(
+                        Regex.Replace(field, @"[^a-z0-9]", string.Empty, RegexOptions.IgnoreCase),
+                        normalized,
+                        StringComparison.OrdinalIgnoreCase))
+                };
+            }
+
+            void InferLegacyValues(string line)
+            {
+                var matched = false;
+
+                if (Regex.IsMatch(line, @"\b(?:Intel\s+Core|Core\s+Ultra|AMD\s+Ryzen|Ryzen\s+AI|Apple\s+M\d|Snapdragon)\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("CPU type", line);
+                    matched = true;
+                }
+
+                if (Regex.IsMatch(line, @"\b(?:NVIDIA|GeForce|RTX\s*\d|Radeon|Intel\s+(?:Iris|Arc)\s+Graphics|Intel\s+Graphics)\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("Graphics card type", line);
+                    matched = true;
+                }
+
+                var ramCapacity = Regex.Match(line, @"\b\d+\s?GB\b", RegexOptions.IgnoreCase);
+                if (Regex.IsMatch(line, @"\bRAM\b|\bmemory\b", RegexOptions.IgnoreCase) && ramCapacity.Success)
+                {
+                    AddValue("RAM capacity", ramCapacity.Value.Replace(" ", string.Empty));
+                    matched = true;
+                }
+                if (Regex.IsMatch(line, @"\bDDR[345]\b|\bLPDDR[345X]+\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("RAM type", line);
+                    matched = true;
+                }
+
+                if (Regex.IsMatch(line, @"\b(?:SSD|NVMe|HDD|hard\s*drive)\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("Storage", line);
+                    matched = true;
+                }
+
+                var screenSize = Regex.Match(line, @"\b\d{1,2}(?:\.\d)?\s*(?:-|\s)?(?:inches|inch|in\b|[""”])", RegexOptions.IgnoreCase);
+                if (screenSize.Success)
+                {
+                    var number = Regex.Match(screenSize.Value, @"\d{1,2}(?:\.\d)?").Value;
+                    AddValue("Screen size", $"{number} inches");
+                    matched = true;
+                }
+                var resolution = Regex.Match(line, @"\b(?:Full\s*HD|FHD\+?|WQXGA|WUXGA|QHD\+?|UHD\+?|HD\+?)\b", RegexOptions.IgnoreCase);
+                if (resolution.Success)
+                {
+                    AddValue("Screen resolution", resolution.Value.ToUpperInvariant());
+                    matched = true;
+                }
+                if (Regex.IsMatch(line, @"\b(?:OLED|AMOLED|IPS(?:-Level)?|TN|VA|anti-glare|touchscreen)\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("Display technology", line);
+                    matched = true;
+                }
+
+                if (Regex.IsMatch(line, @"\b(?:Windows\s*\d|macOS|Chrome\s*OS|Linux)\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("Operating system", line);
+                    matched = true;
+                }
+                if (Regex.IsMatch(line, @"\bbattery\b|\b\d+\s?Wh\b|\bLi-?ion\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("Battery", line);
+                    matched = true;
+                }
+                if (Regex.IsMatch(line, @"\b(?:USB|HDMI|RJ45|Ethernet|Thunderbolt|headphone|microphone|SDXC?)\b", RegexOptions.IgnoreCase))
+                {
+                    AddValue("Communication port", line);
+                    matched = true;
+                }
+
+                if (!matched) additionalLines.Add(line);
+            }
+
+            foreach (var rawLine in (existingText ?? string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var line = rawLine.Trim().TrimStart('•', '-', '*').Trim();
+                if (line.Length == 0) continue;
+
+                var separator = line.IndexOf(':');
+                if (separator > 0)
+                {
+                    var field = MatchField(line[..separator].Trim());
+                    if (field != null)
+                    {
+                        AddValue(field, line[(separator + 1)..]);
+                        continue;
+                    }
+                }
+
+                var bareField = MatchField(line.TrimEnd(':').Trim());
+                if (bareField != null) continue;
+
+                InferLegacyValues(line);
+            }
+
+            var mergedLines = templateLines.Select(line =>
+            {
+                if (!line.EndsWith(':')) return line;
+                var field = line[..^1].Trim();
+                var fieldValues = values[field];
+                return fieldValues.Count == 0 ? line : $"{line} {string.Join("; ", fieldValues)}";
+            }).ToList();
+
+            mergedLines.AddRange(additionalLines.Select(line => $"Additional specification: {line}"));
+            return string.Join(Environment.NewLine, mergedLines);
+        }
+
+        private static bool MatchesSpecificationFilter(Product product, string filterKey, string value)
+        {
+            var searchableText = string.Join(" ", product.Features, product.Title, product.Model, product.Description)
+                .ToLowerInvariant();
+
+            if (filterKey == "storage" && value == "hdd: 1tb")
+            {
+                return searchableText.Contains("1tb") && (searchableText.Contains("hdd") || searchableText.Contains("hard drive"));
+            }
+
+            if (filterKey == "graphics" && value == "onboard")
+            {
+                return searchableText.Contains("onboard") || searchableText.Contains("integrated") || searchableText.Contains("built-in graphics");
+            }
+
+            if (filterKey == "screenSize")
+            {
+                var requestedSize = Regex.Match(value, @"\d+");
+                if (!requestedSize.Success) return false;
+                var sizes = Regex.Matches(searchableText, @"(?<!\d)(\d{1,2}(?:\.\d)?)(?=\s*(?:inches|inch|in\b|[""”]))", RegexOptions.IgnoreCase);
+                if (value.StartsWith("over", StringComparison.OrdinalIgnoreCase))
+                {
+                    return sizes.Any(match => double.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var size) && size > 16.4);
+                }
+
+                if (!int.TryParse(requestedSize.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var target)) return false;
+                return sizes.Any(match => double.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var size) && Math.Abs(size - target) <= .65);
+            }
+
+            return searchableText.Contains(value, StringComparison.OrdinalIgnoreCase);
+        }
+
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);

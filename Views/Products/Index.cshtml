@@ -27,10 +27,17 @@
     var selectedConditions = Context.Request.Query["condition"].ToList();
     var selectedBrands = Context.Request.Query["brand"].ToList();
     var sortBy = Context.Request.Query["sort"].ToString().ToLower();
-    var filtersOpen = selectedConditions.Any()
-        || selectedBrands.Any()
-        || Context.Request.Query.ContainsKey("minPrice")
-        || Context.Request.Query.ContainsKey("maxPrice");
+    var specificationFilterGroups = new (string Key, string Label, string[] Options)[]
+    {
+        ("storage", "FilterStorage", new[] { "256GB", "512GB", "1TB", "HDD: 1TB", "2TB", "128GB" }),
+        ("usage", "FilterUsage", new[] { "Study - Office", "thin and light", "High-end", "Graphics", "Content creation" }),
+        ("ram", "FilterRam", new[] { "4GB", "8GB", "16GB", "24GB", "32GB", "64GB", "128GB" }),
+        ("cpu", "FilterCpu", new[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "AMD Ryzen 5", "AMD Ryzen 9", "AMD Ryzen 7", "Intel Celeron", "AMD Ryzen AI", "Intel Core U9", "Intel Core U7", "Core 5", "Core 7", "Core 3", "Intel Core U5", "Qualcomm Snapdragon", "Snapdragon X Plus" }),
+        ("screenSize", "FilterScreenSize", new[] { "Approximately 14 inches", "Approximately 13 inches", "Approximately 15 inches", "Approximately 16 inches", "Over 16 inches" }),
+        ("resolution", "FilterResolution", new[] { "Full HD", "WQXGA", "WUXGA", "HD" }),
+        ("graphics", "FilterGraphics", new[] { "Onboard", "NVIDIA GeForce", "AMD Radeon" }),
+        ("specialFeatures", "FilterSpecialFeatures", new[] { "Wi-Fi 6", "Fingerprint security", "Touch screen", "Facial recognition", "Ultra-thin bezels", "360-degree rotating and folding (2 in 1)", "Wi-Fi 7", "OLED screen", "MUX Switch" })
+    };
 
     var finalProducts = Model.ToList();
 }
@@ -43,56 +50,52 @@
 
             <div class="sort-section">
                 <label>@L["SortBy"]</label>
-                <select id="sort-select" onchange="applyFilters()">
+                <select id="sort-select">
                     <option value="">@L["Featured"]</option>
                     <option value="price-low" selected="@(sortBy == "price-low")">@L["PriceLowToHigh"]</option>
                     <option value="price-high" selected="@(sortBy == "price-high")">@L["PriceHighToLow"]</option>
                     <option value="newest" selected="@(sortBy == "newest")">@L["NewestArrivals"]</option>
                 </select>
             </div>
+            <button type="button" id="filter-toggle-button" class="shop-filter-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="specification-filter-popup" onclick="openSpecificationFilters()">
+                <i class="fas fa-sliders-h"></i> @L["Filter"]
+            </button>
         </div>
 
-        <div class="shop-layout">
-            <button type="button"
-                    class="mobile-filter-toggle"
-                    aria-controls="shop-filters"
-                    aria-expanded="@(filtersOpen ? "true" : "false")"
-                    onclick="toggleMobileFilters(this)">
-                <i class="fas fa-sliders-h"></i>
-                <span>@(filtersOpen ? L["HideFilters"] : L["ShowFilters"])</span>
-            </button>
-
-            <aside class="shop-filters @(filtersOpen ? "mobile-open" : "")" id="shop-filters">
+        <div class="shop-layout" id="shop-layout">
+            <aside class="shop-filters" id="shop-filters">
+                <section class="shop-filter-category">
                 <h3>@L["PriceRange"]</h3>
                 <div class="price-range">
                     <input type="range" id="price-slider" min="0" max="@priceLimit" step="@(Formatter.DisplayCurrency == "VND" ? "100000" : "100")"
-                           value="@(maxPrice > 0 ? maxPrice : priceLimit)"
-                           oninput="updatePriceDisplay(this.value)">
+                           value="@(maxPrice > 0 ? maxPrice : priceLimit)">
                     <div class="price-display" id="price-display">@Formatter.FormatDisplay(0) - @Formatter.FormatDisplay(maxPrice)</div>
                 </div>
 
+                </section>
+                <section class="shop-filter-category">
                 <h3>@L["Condition"]</h3>
                 @foreach (var cond in new[] { "New", "Like New", "Used - Excellent", "Used - Good", "Used - Fair" })
                 {
                     bool isChecked = selectedConditions.Contains(cond);
-                    <label>
-                        <input type="checkbox" name="condition" value="@cond"
+                    <label class="shop-filter-option">
+                        <input class="filter-control" type="checkbox" name="condition" value="@cond"
                                @(isChecked ? "checked" : "")> @Formatter.TranslateCondition(cond)
                     </label>
                 }
 
+                </section>
+                <section class="shop-filter-category">
                 <h3>@L["Brands"]</h3>
                 @foreach (var brand in new[] { "ASUS", "Acer", "Lenovo", "Dell", "HP", "Apple", "Samsung", "Microsoft", "MSI", "Razer" })
                 {
                     bool isChecked = selectedBrands.Contains(brand);
-                    <label>
-                        <input type="checkbox" name="brand" value="@brand"
+                    <label class="shop-filter-option">
+                        <input class="filter-control" type="checkbox" name="brand" value="@brand"
                                @(isChecked ? "checked" : "")> @brand
                     </label>
                 }
-
-                <button class="apply-btn" onclick="applyFilters()">@L["ApplyFilters"]</button>
-                <button class="apply-btn" style="background:#666; margin-top:8px;" onclick="resetFilters()">@L["ResetFilters"]</button>
+                </section>
             </aside>
 
             <div class="shop-products">
@@ -118,13 +121,13 @@
                                     }
 
                                     <img src="@ResolveProductImage(firstImage)" alt="@product.Title" />
+                                    <div class="condition condition-tag product-condition-tag">@Formatter.TranslateCondition(product.Condition)</div>
                                 </div>
 
                                 <div class="product-info">
                                     <h3>@product.Title</h3>
                                     <div class="model">@product.Model</div>
                                     <div class="price">@Formatter.Format(product)</div>
-                                    <div class="condition">@Formatter.TranslateCondition(product.Condition)</div>
                                     <div class="seller">@L["Seller"]: @product.Seller</div>
 
                                     <div class="product-actions">
@@ -153,6 +156,37 @@
                 </div>
             </div>
         </div>
+
+        <div id="specification-filter-popup" class="spec-filter-overlay" aria-hidden="true">
+            <section class="spec-filter-dialog" role="dialog" aria-modal="true" aria-labelledby="spec-filter-title" tabindex="-1">
+                <header class="spec-filter-header">
+                    <h2 id="spec-filter-title">@L["Filter"]</h2>
+                    <button type="button" class="spec-filter-close" onclick="closeSpecificationFilters()" aria-label="@L["Close"]">×</button>
+                </header>
+                <div class="spec-filter-content">
+                    <div class="shop-filter-groups">
+                @foreach (var group in specificationFilterGroups)
+                {
+                    <section class="shop-filter-category">
+                        <h3>@L[group.Label]</h3>
+                        @foreach (var option in group.Options)
+                        {
+                            var isChecked = Context.Request.Query[group.Key].Contains(option);
+                            var optionKey = option.ToLowerInvariant().Replace(" ", "").Replace("-", "").Replace(":", "").Replace("(", "").Replace(")", "").Replace(".", "");
+                            <label class="shop-filter-option">
+                                <input class="filter-control" type="checkbox" name="@group.Key" value="@option" @(isChecked ? "checked" : "") />
+                                @L[$"FilterOption_{optionKey}"]
+                            </label>
+                        }
+                    </section>
+                }
+                </div>
+                <div class="shop-filter-actions">
+                    <button type="button" class="shop-filter-reset" onclick="resetFilters()">@L["ResetFilters"]</button>
+                </div>
+        </div>
+        </section>
+        </div>
     </main>
 </div>
 
@@ -170,44 +204,105 @@
         document.getElementById("price-display").textContent = `${priceFilterUi.minimum} - ${formattedValue}${priceFilterUi.currencySuffix}`;
     }
 
-    function applyFilters() {
-        let url = "/Products/Index?";
+    let filterRefreshTimer;
+    let activeFilterRequest;
 
-        if ("@searchTerm" !== "") {
-            url += `search=@searchTerm&`;
+    function openSpecificationFilters() {
+        const popup = document.getElementById('specification-filter-popup');
+        popup.classList.add('is-open');
+        popup.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('spec-filter-open');
+        document.querySelector('.spec-filter-close')?.focus();
+    }
+
+    function closeSpecificationFilters() {
+        const popup = document.getElementById('specification-filter-popup');
+        popup.classList.remove('is-open');
+        popup.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('spec-filter-open');
+        document.getElementById('filter-toggle-button')?.focus();
+    }
+
+    function buildFilterUrl() {
+        const params = new URLSearchParams();
+        const search = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(searchTerm));
+        if (search) params.set('search', search);
+        params.set('minPrice', '0');
+        params.set('maxPrice', document.getElementById('price-slider').value || '@priceLimit');
+        document.querySelectorAll('.filter-control:checked').forEach(input => params.append(input.name, input.value));
+        const sort = document.getElementById('sort-select').value;
+        if (sort) params.set('sort', sort);
+        return `/Products/Index?${params.toString()}`;
+    }
+
+    async function applyFilters() {
+        clearTimeout(filterRefreshTimer);
+        const url = buildFilterUrl();
+        activeFilterRequest?.abort();
+        activeFilterRequest = new AbortController();
+        const grid = document.getElementById('products-grid');
+        grid?.classList.add('is-filtering');
+        try {
+            const response = await fetch(url, { signal: activeFilterRequest.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!response.ok) throw new Error('Could not refresh products');
+            const html = await response.text();
+            const refreshedPage = new DOMParser().parseFromString(html, 'text/html');
+            const refreshedGrid = refreshedPage.getElementById('products-grid');
+            const refreshedCount = refreshedPage.querySelector('.results-count');
+            if (refreshedGrid && grid) grid.innerHTML = refreshedGrid.innerHTML;
+            if (refreshedCount) document.querySelector('.results-count').textContent = refreshedCount.textContent;
+            history.replaceState({}, '', url);
+            attachDeleteConfirmations();
+        } catch (error) {
+            if (error.name !== 'AbortError') console.error(error);
+        } finally {
+            grid?.classList.remove('is-filtering');
         }
+    }
 
-        const maxPrice = document.getElementById("price-slider").value || @priceLimit;
-        url += `minPrice=0&maxPrice=${maxPrice}&`;
-
-        document.querySelectorAll('input[name="condition"]:checked').forEach(cb => {
-            url += `condition=${encodeURIComponent(cb.value)}&`;
-        });
-
-        document.querySelectorAll('input[name="brand"]:checked').forEach(cb => {
-            url += `brand=${encodeURIComponent(cb.value)}&`;
-        });
-
-        const sort = document.getElementById("sort-select").value;
-        if (sort) {
-            url += `sort=${sort}`;
-        }
-
-        url = url.replace(/&$/, "");
-
-        window.location.href = url;
+    function queueFilterRefresh(delay = 0) {
+        clearTimeout(filterRefreshTimer);
+        filterRefreshTimer = setTimeout(applyFilters, delay);
     }
 
     function resetFilters() {
-        window.location.href = "/Products/Index";
+        document.querySelectorAll('.filter-control').forEach(input => input.checked = false);
+        const slider = document.getElementById('price-slider');
+        slider.value = slider.max;
+        updatePriceDisplay(slider.value);
+        queueFilterRefresh();
     }
 
-    function toggleMobileFilters(button) {
-        const filters = document.getElementById('shop-filters');
-        const isOpen = filters.classList.toggle('mobile-open');
-        button.setAttribute('aria-expanded', String(isOpen));
-        button.querySelector('span').textContent = isOpen ? @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["HideFilters"].Value)) : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["ShowFilters"].Value));
+    function attachDeleteConfirmations() {
+        document.querySelectorAll('.confirm-delete-product-form:not([data-confirm-bound])').forEach(form => {
+            form.dataset.confirmBound = 'true';
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+                const confirmed = await showConfirm(
+                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProductConfirmation"].Value)),
+                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProduct"].Value))
+                );
+                if (confirmed) form.submit();
+            });
+        });
     }
+
+    document.querySelectorAll('.filter-control').forEach(input => input.addEventListener('change', () => queueFilterRefresh()));
+    document.getElementById('price-slider').addEventListener('input', function () {
+        updatePriceDisplay(this.value);
+        queueFilterRefresh(180);
+    });
+    document.getElementById('sort-select').addEventListener('change', () => queueFilterRefresh());
+    document.getElementById('specification-filter-popup').addEventListener('click', function (event) {
+        if (event.target === this) closeSpecificationFilters();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && document.getElementById('specification-filter-popup').classList.contains('is-open')) closeSpecificationFilters();
+    });
+    window.addEventListener('popstate', () => {
+        // Reload the filtered listing state via the browser's normal navigation history.
+        window.location.reload();
+    });
 
     function goToDetails(productId, event) {
         if (event?.target?.closest('.product-actions, button, form, a, input, select, textarea')) {
@@ -230,16 +325,5 @@
             });
     }
 
-    document.querySelectorAll('.confirm-delete-product-form').forEach(form => {
-        form.addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const confirmed = await showConfirm(
-                @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProductConfirmation"].Value)),
-                @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["DeleteProduct"].Value))
-            );
-            if (confirmed) {
-                form.submit();
-            }
-        });
-    });
+    attachDeleteConfirmations();
 </script>

@@ -1,7 +1,8 @@
 @model Laptop.Models.Order
 
 @{
-    var isBankTransfer = string.Equals(Model.PaymentMethod, "Bank Transfer", StringComparison.OrdinalIgnoreCase);
+    var isPendingBankTransfer = string.Equals(Model.PaymentMethod, "Bank Transfer", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(Model.Status, "Pending Payment", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="checkout-success-page">
@@ -18,7 +19,7 @@
             </span>
         </div>
 
-        @if (isBankTransfer)
+        @if (isPendingBankTransfer)
         {
             <div class="bank-payment-panel">
                 <div class="bank-payment-qr">
@@ -103,6 +104,10 @@
         }
 
         <div class="checkout-success-actions">
+            @if (isPendingBankTransfer)
+            {
+                <a asp-controller="Cart" asp-action="ResumePayment" asp-route-id="@Model.Id" class="checkout-secondary-btn">@L["ContinuePayment"]</a>
+            }
             <a asp-controller="Cart" asp-action="MyOrders" class="checkout-btn">@L["ViewMyOrders"]</a>
             <a asp-controller="Products" asp-action="Index" class="checkout-secondary-btn">@L["ContinueShopping"]</a>
         </div>

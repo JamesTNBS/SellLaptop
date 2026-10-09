@@ -2,6 +2,8 @@
 
 namespace Laptop.Models
 {
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public class Product
     {
         public int Id { get; set; }
@@ -23,8 +25,85 @@ namespace Laptop.Models
         public string Currency { get; set; } = "USD";
 
         // Temporary fields for Create/Edit form only
-        [Display(Name = "Key Features (one per line)")]
+        [Display(Name = "Specifications")]
         public string Features { get; set; } = string.Empty;
+
+        [NotMapped]
+        [Display(Name = "Specifications")]
+        public string Specifications
+        {
+            get => Features;
+            set => Features = value ?? string.Empty;
+        }
+
+        [Display(Name = "Technical specifications")]
+        public string TechnicalSpecifications { get; set; } = string.Empty;
+
+        public const string SpecificationsTemplate = """
+            Graphics card type:
+            RAM capacity:
+            RAM type:
+            Number of RAM slots:
+            Storage:
+            Display technology:
+            Operating system:
+            CPU type:
+            Screen size:
+            Screen resolution:
+            Battery:
+            Communication port:
+            """;
+
+        public const string TechnicalSpecificationsTemplate = """
+            Configuration & Memory
+            Graphics card type:
+            Operating system upon release:
+            CPU type:
+
+            RAM
+            RAM capacity:
+            RAM type:
+            Number of RAM slots:
+            Storage:
+
+            Screen
+            Scanning frequency:
+            Substrate material:
+            Display technology:
+            Screen size:
+            Screen resolution:
+
+            Sound
+            Audio technology:
+
+            Size & Weight
+            Material:
+            Screen casing material:
+            Top shell material:
+            Bottom shell material:
+
+            Other amenities
+            Special features:
+
+            Other features
+            Keyboard backlight type:
+            Security:
+            Webcam:
+
+            Batteries & Charging Technology
+            Battery:
+
+            Communication & Connection
+            Wi-Fi:
+            Bluetooth:
+
+            Design & Materials
+            Size:
+            Weight:
+
+            Connection port
+            Communication port:
+            """;
 
         [Display(Name = "Images (comma-separated URLs)")]
         public string? Images { get; set; }

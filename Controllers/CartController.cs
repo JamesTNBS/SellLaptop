@@ -286,6 +286,36 @@ namespace Laptop.Controllers
         }
 
         [HttpGet]
+        public IActionResult ResumePayment(int id)
+        {
+            var username = HttpContext.Session.GetString("User");
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (string.IsNullOrEmpty(username) || userId == null)
+            {
+                return RedirectToAction("Index", "Products");
+            }
+
+            var order = _context.Orders
+                .AsNoTracking()
+                .Include(o => o.Items)
+                .FirstOrDefault(o => o.Id == id && o.UserId == userId.Value && o.Username == username);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(order.Status, "Pending Payment", StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(order.PaymentMethod, "Bank Transfer", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction(nameof(MyOrders));
+            }
+
+            ViewBag.CurrentProductImages = GetCurrentProductImages(order.Items.Select(i => i.ProductId));
+            return View("CheckoutSuccess", order);
+        }
+
+        [HttpGet]
         public IActionResult MyOrders()
         {
             var username = HttpContext.Session.GetString("User");

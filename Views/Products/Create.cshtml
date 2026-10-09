@@ -36,11 +36,18 @@
             </div>
 
             <div class="section-input">
-                <label>@L["KeyFeatures"] <span style="color:red;">*</span></label>
-                <textarea asp-for="Features" class="form-control"
-                          placeholder="@L["KeyFeaturesPlaceholder"]"
+                <label>@L["Specifications"] <span style="color:red;">*</span></label>
+                <textarea asp-for="Specifications" class="form-control"
+                          placeholder="@L["SpecificationsPlaceholder"]"
                           rows="6"></textarea>
-                <span asp-validation-for="Features" class="text-danger"></span>
+                <span asp-validation-for="Specifications" class="text-danger"></span>
+            </div>
+
+            <div class="section-input">
+                <label>@L["TechnicalSpecifications"] <span style="color:red;">*</span></label>
+                <textarea asp-for="TechnicalSpecifications" class="form-control"
+                          placeholder="@L["TechnicalSpecificationsPlaceholder"]"
+                          rows="18"></textarea>
             </div>
 
             <div class="section-input">
