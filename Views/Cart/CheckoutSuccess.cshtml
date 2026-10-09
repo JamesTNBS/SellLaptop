@@ -3,6 +3,7 @@
 @{
     var isPendingBankTransfer = string.Equals(Model.PaymentMethod, "Bank Transfer", StringComparison.OrdinalIgnoreCase)
         && string.Equals(Model.Status, "Pending Payment", StringComparison.OrdinalIgnoreCase);
+    var isResumePayment = ViewBag.IsResumePayment as bool? == true;
 }
 
 <div class="checkout-success-page">
@@ -104,7 +105,7 @@
         }
 
         <div class="checkout-success-actions">
-            @if (isPendingBankTransfer)
+            @if (isPendingBankTransfer && !isResumePayment)
             {
                 <a asp-controller="Cart" asp-action="ResumePayment" asp-route-id="@Model.Id" class="checkout-secondary-btn">@L["ContinuePayment"]</a>
             }

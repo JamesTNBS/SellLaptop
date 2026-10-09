@@ -2997,6 +2997,7 @@ body.light .product-image-manager .image-remove-btn {
 .my-order-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
     margin-top: 16px;
 }
 
@@ -3322,7 +3323,8 @@ body.light .checkout-secondary-btn:hover {
     }
 
     .my-order-actions {
-        justify-content: stretch;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .my-order-cancel-btn,
