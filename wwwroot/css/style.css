@@ -4620,16 +4620,36 @@ body:not(.light) .recommendation-card {
 
 /* Reclaim the sidebar's space on desktop pages, and return it when closed. */
 .main-content {
+    box-sizing: border-box;
+    width: 100%;
     transition: width .25s ease, margin-left .25s ease;
 }
-body.sidebar-open > .shop-container > main.main-content {
+body.sidebar-open .shop-container > main.main-content {
     width: calc(100% - 230px);
     margin-left: 230px;
 }
 @media (max-width: 800px) {
-    body.sidebar-open > .shop-container > main.main-content {
+    body.sidebar-open .shop-container > main.main-content {
         width: 100%;
         margin-left: 0;
+    }
+}
+
+/* Keep the sidebar, toggle, and desktop content offset on the same width. */
+.side-panel {
+    box-sizing: border-box;
+    width: 230px;
+}
+.side-panel.open ~ .menu-toggle {
+    left: 220px;
+}
+@media (max-width: 640px) {
+    .side-panel {
+        width: min(82vw, 230px);
+        left: -260px;
+    }
+    .side-panel.open ~ .menu-toggle {
+        left: calc(min(82vw, 230px) - 10px);
     }
 }
 
