@@ -24,8 +24,13 @@
         </div>
 
         <div class="edit-group">
-            <label>@L["KeyFeatures"]</label>
-            <textarea asp-for="Features"></textarea>
+            <label>@L["Specifications"]</label>
+            <textarea asp-for="Specifications" rows="12" placeholder="@L["SpecificationsPlaceholder"]"></textarea>
+        </div>
+
+        <div class="edit-group">
+            <label>@L["TechnicalSpecifications"]</label>
+            <textarea asp-for="TechnicalSpecifications" rows="22" placeholder="@L["TechnicalSpecificationsPlaceholder"]"></textarea>
         </div>
 
         <div class="edit-group">

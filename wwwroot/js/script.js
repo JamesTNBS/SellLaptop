@@ -28,27 +28,18 @@
     function setSidePanelState(isOpen) {
         const sidePanel = document.getElementById('sidePanel');
         const menuIcon = document.querySelector('.menu-toggle i');
-        const containersToShift = [
-            document.querySelector('.container'),
-            document.querySelector('.shop-container'),
-            document.querySelector('.product-page-container'),
-            document.querySelector('.review-page-content')
-        ];
 
         if (sidePanel) {
             sidePanel.classList.toggle('open', isOpen);
         }
+
+        document.body.classList.toggle('sidebar-open', isOpen);
 
         if (menuIcon) {
             menuIcon.classList.toggle('fa-bars', !isOpen);
             menuIcon.classList.toggle('fa-times', isOpen);
         }
 
-        containersToShift.forEach(container => {
-            if (container) {
-                container.classList.toggle('shifted', isOpen);
-            }
-        });
     }
 
     function autoResizeTextareas() {

@@ -183,6 +183,7 @@
   <data name="Amount" xml:space="preserve"><value>Amount</value></data>
   <data name="TransferMessage" xml:space="preserve"><value>Transfer Message</value></data>
   <data name="BankTransferPendingNote" xml:space="preserve"><value>Your order will stay as Pending Payment until admin confirms the transfer.</value></data>
+  <data name="ContinuePayment" xml:space="preserve"><value>Continue payment</value></data>
   <data name="OrderNumber" xml:space="preserve"><value>Order Number</value></data>
   <data name="Customer" xml:space="preserve"><value>Customer</value></data>
   <data name="Delivery" xml:space="preserve"><value>Delivery</value></data>
@@ -325,4 +326,136 @@
   <data name="OrderDeletedSuccess" xml:space="preserve"><value>Order #{0} deleted.</value></data>
   <data name="NotFound" xml:space="preserve"><value>Not found</value></data>
   <data name="Unauthorized" xml:space="preserve"><value>Unauthorized</value></data>
+  <data name="Specifications" xml:space="preserve"><value>Specifications</value></data>
+  <data name="TechnicalSpecifications" xml:space="preserve"><value>Technical specifications</value></data>
+
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Specification" xml:space="preserve"><value>Specification</value></data>
+  <data name="SpecPerformance" xml:space="preserve"><value>Processor &amp; Graphics</value></data>
+  <data name="SpecMemory" xml:space="preserve"><value>RAM &amp; Storage</value></data>
+  <data name="SpecDisplay" xml:space="preserve"><value>Display</value></data>
+  <data name="SpecConnectivity" xml:space="preserve"><value>Connectivity</value></data>
+  <data name="SpecPower" xml:space="preserve"><value>Battery &amp; Power</value></data>
+  <data name="SpecGeneral" xml:space="preserve"><value>Other specifications</value></data>
+  <data name="YouMightAlsoLike" xml:space="preserve"><value>You might also like</value></data>
+  <data name="RecommendationTypes" xml:space="preserve"><value>Recommendation types</value></data>
+  <data name="CheckOutUsedItems" xml:space="preserve"><value>Check out used items</value></data>
+  <data name="SimilarProducts" xml:space="preserve"><value>Similar products</value></data>
+  <data name="SaveProduct" xml:space="preserve"><value>Save product</value></data>
+  <data name="NoUsedRecommendations" xml:space="preserve"><value>No used products are available right now.</value></data>
+  <data name="NoSimilarRecommendations" xml:space="preserve"><value>No similar products are available right now.</value></data>
+  <data name="SpecificationsPlaceholder" xml:space="preserve"><value>Enter one specification per line, for example: CPU: Intel Core i7&#10;RAM: 16GB&#10;Storage: 512GB SSD&#10;Display: 15.6 inch Full HD</value></data>
+  <data name="Filter" xml:space="preserve"><value>Filter</value></data>
+  <data name="ViewMore" xml:space="preserve"><value>View more</value></data>
+  <data name="ViewLess" xml:space="preserve"><value>View less</value></data>
+  <data name="FilterStorage" xml:space="preserve"><value>Storage</value></data>
+  <data name="FilterUsage" xml:space="preserve"><value>Usage requirements</value></data>
+  <data name="FilterRam" xml:space="preserve"><value>RAM capacity</value></data>
+  <data name="FilterCpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="FilterScreenSize" xml:space="preserve"><value>Screen size</value></data>
+  <data name="FilterResolution" xml:space="preserve"><value>Resolution</value></data>
+  <data name="FilterGraphics" xml:space="preserve"><value>Graphics card</value></data>
+  <data name="FilterSpecialFeatures" xml:space="preserve"><value>Special features</value></data>
+  <data name="FilterOption_256gb" xml:space="preserve"><value>256GB</value></data>
+  <data name="FilterOption_512gb" xml:space="preserve"><value>512GB</value></data>
+  <data name="FilterOption_1tb" xml:space="preserve"><value>1TB</value></data>
+  <data name="FilterOption_hdd1tb" xml:space="preserve"><value>HDD: 1TB</value></data>
+  <data name="FilterOption_2tb" xml:space="preserve"><value>2TB</value></data>
+  <data name="FilterOption_128gb" xml:space="preserve"><value>128GB</value></data>
+  <data name="FilterOption_studyoffice" xml:space="preserve"><value>Study - Office</value></data>
+  <data name="FilterOption_thinandlight" xml:space="preserve"><value>thin and light</value></data>
+  <data name="FilterOption_highend" xml:space="preserve"><value>High-end</value></data>
+  <data name="FilterOption_graphics" xml:space="preserve"><value>Graphics</value></data>
+  <data name="FilterOption_contentcreation" xml:space="preserve"><value>Content creation</value></data>
+  <data name="FilterOption_4gb" xml:space="preserve"><value>4GB</value></data>
+  <data name="FilterOption_8gb" xml:space="preserve"><value>8GB</value></data>
+  <data name="FilterOption_16gb" xml:space="preserve"><value>16GB</value></data>
+  <data name="FilterOption_24gb" xml:space="preserve"><value>24GB</value></data>
+  <data name="FilterOption_32gb" xml:space="preserve"><value>32GB</value></data>
+  <data name="FilterOption_64gb" xml:space="preserve"><value>64GB</value></data>
+
+  <data name="FilterOption_intelcorei3" xml:space="preserve"><value>Intel Core i3</value></data>
+  <data name="FilterOption_intelcorei5" xml:space="preserve"><value>Intel Core i5</value></data>
+  <data name="FilterOption_intelcorei7" xml:space="preserve"><value>Intel Core i7</value></data>
+  <data name="FilterOption_amdryzen5" xml:space="preserve"><value>AMD Ryzen 5</value></data>
+  <data name="FilterOption_amdryzen9" xml:space="preserve"><value>AMD Ryzen 9</value></data>
+  <data name="FilterOption_amdryzen7" xml:space="preserve"><value>AMD Ryzen 7</value></data>
+  <data name="FilterOption_intelceleron" xml:space="preserve"><value>Intel Celeron</value></data>
+  <data name="FilterOption_amdryzenai" xml:space="preserve"><value>AMD Ryzen AI</value></data>
+  <data name="FilterOption_intelcoreu9" xml:space="preserve"><value>Intel Core U9</value></data>
+  <data name="FilterOption_intelcoreu7" xml:space="preserve"><value>Intel Core U7</value></data>
+  <data name="FilterOption_core5" xml:space="preserve"><value>Core 5</value></data>
+  <data name="FilterOption_core7" xml:space="preserve"><value>Core 7</value></data>
+  <data name="FilterOption_core3" xml:space="preserve"><value>Core 3</value></data>
+  <data name="FilterOption_intelcoreu5" xml:space="preserve"><value>Intel Core U5</value></data>
+  <data name="FilterOption_qualcommsnapdragon" xml:space="preserve"><value>Qualcomm Snapdragon</value></data>
+  <data name="FilterOption_snapdragonxplus" xml:space="preserve"><value>Snapdragon X Plus</value></data>
+  <data name="FilterOption_approximately14inches" xml:space="preserve"><value>Approximately 14 inches</value></data>
+  <data name="FilterOption_approximately13inches" xml:space="preserve"><value>Approximately 13 inches</value></data>
+  <data name="FilterOption_approximately15inches" xml:space="preserve"><value>Approximately 15 inches</value></data>
+  <data name="FilterOption_approximately16inches" xml:space="preserve"><value>Approximately 16 inches</value></data>
+  <data name="FilterOption_over16inches" xml:space="preserve"><value>Over 16 inches</value></data>
+  <data name="FilterOption_fullhd" xml:space="preserve"><value>Full HD</value></data>
+  <data name="FilterOption_wqxga" xml:space="preserve"><value>WQXGA</value></data>
+  <data name="FilterOption_wuxga" xml:space="preserve"><value>WUXGA</value></data>
+  <data name="FilterOption_hd" xml:space="preserve"><value>HD</value></data>
+  <data name="FilterOption_onboard" xml:space="preserve"><value>Onboard</value></data>
+  <data name="FilterOption_nvidiageforce" xml:space="preserve"><value>NVIDIA GeForce</value></data>
+  <data name="FilterOption_amdradeon" xml:space="preserve"><value>AMD Radeon</value></data>
+  <data name="FilterOption_wifi6" xml:space="preserve"><value>Wi-Fi 6</value></data>
+  <data name="FilterOption_fingerprintsecurity" xml:space="preserve"><value>Fingerprint security</value></data>
+  <data name="FilterOption_touchscreen" xml:space="preserve"><value>Touch screen</value></data>
+  <data name="FilterOption_facialrecognition" xml:space="preserve"><value>Facial recognition</value></data>
+  <data name="FilterOption_ultrathinbezels" xml:space="preserve"><value>Ultra-thin bezels</value></data>
+  <data name="FilterOption_360degreerotatingandfolding2in1" xml:space="preserve"><value>360-degree rotating and folding (2 in 1)</value></data>
+  <data name="FilterOption_wifi7" xml:space="preserve"><value>Wi-Fi 7</value></data>
+  <data name="FilterOption_oledscreen" xml:space="preserve"><value>OLED screen</value></data>
+  <data name="FilterOption_muxswitch" xml:space="preserve"><value>MUX Switch</value></data>
+  <data name="TechnicalSpecificationsPlaceholder" xml:space="preserve"><value>Use the section headings and enter one value after each field label. For example: CPU type: Intel Core i7</value></data>
+  <data name="SpecificationField_graphicscardtype" xml:space="preserve"><value>Graphics card type</value></data>
+  <data name="SpecificationField_ramcapacity" xml:space="preserve"><value>RAM capacity</value></data>
+  <data name="SpecificationField_ramtype" xml:space="preserve"><value>RAM type</value></data>
+  <data name="SpecificationField_numberoframslots" xml:space="preserve"><value>Number of RAM slots</value></data>
+  <data name="SpecificationField_storage" xml:space="preserve"><value>Storage</value></data>
+  <data name="SpecificationField_displaytechnology" xml:space="preserve"><value>Display technology</value></data>
+  <data name="SpecificationField_operatingsystem" xml:space="preserve"><value>Operating system</value></data>
+  <data name="SpecificationField_operatingsystemuponrelease" xml:space="preserve"><value>Operating system upon release</value></data>
+  <data name="SpecificationField_cputype" xml:space="preserve"><value>CPU type</value></data>
+  <data name="SpecificationField_screensize" xml:space="preserve"><value>Screen size</value></data>
+  <data name="SpecificationField_screenresolution" xml:space="preserve"><value>Screen resolution</value></data>
+  <data name="SpecificationField_battery" xml:space="preserve"><value>Battery</value></data>
+  <data name="SpecificationField_communicationport" xml:space="preserve"><value>Communication port</value></data>
+  <data name="SpecificationField_scanningfrequency" xml:space="preserve"><value>Scanning frequency</value></data>
+  <data name="SpecificationField_substratematerial" xml:space="preserve"><value>Substrate material</value></data>
+  <data name="SpecificationField_audiotechnology" xml:space="preserve"><value>Audio technology</value></data>
+  <data name="SpecificationField_material" xml:space="preserve"><value>Material</value></data>
+  <data name="SpecificationField_screencasingmaterial" xml:space="preserve"><value>Screen casing material</value></data>
+  <data name="SpecificationField_topshellmaterial" xml:space="preserve"><value>Top shell material</value></data>
+  <data name="SpecificationField_bottomshellmaterial" xml:space="preserve"><value>Bottom shell material</value></data>
+  <data name="SpecificationField_specialfeatures" xml:space="preserve"><value>Special features</value></data>
+  <data name="SpecificationField_keyboardbacklighttype" xml:space="preserve"><value>Keyboard backlight type</value></data>
+  <data name="SpecificationField_security" xml:space="preserve"><value>Security</value></data>
+  <data name="SpecificationField_webcam" xml:space="preserve"><value>Webcam</value></data>
+  <data name="SpecificationField_wifi" xml:space="preserve"><value>Wi-Fi</value></data>
+  <data name="SpecificationField_bluetooth" xml:space="preserve"><value>Bluetooth</value></data>
+  <data name="SpecificationField_size" xml:space="preserve"><value>Size</value></data>
+  <data name="SpecificationField_weight" xml:space="preserve"><value>Weight</value></data>
+  <data name="TechnicalGroup_configurationmemory" xml:space="preserve"><value>Configuration &amp; Memory</value></data>
+  <data name="TechnicalGroup_ram" xml:space="preserve"><value>RAM</value></data>
+  <data name="TechnicalGroup_screen" xml:space="preserve"><value>Screen</value></data>
+  <data name="TechnicalGroup_sound" xml:space="preserve"><value>Sound</value></data>
+  <data name="TechnicalGroup_sizeweight" xml:space="preserve"><value>Size &amp; Weight</value></data>
+  <data name="TechnicalGroup_otheramenities" xml:space="preserve"><value>Other amenities</value></data>
+  <data name="TechnicalGroup_otherfeatures" xml:space="preserve"><value>Other features</value></data>
+  <data name="TechnicalGroup_batterieschargingtechnology" xml:space="preserve"><value>Batteries &amp; Charging Technology</value></data>
+  <data name="TechnicalGroup_communicationconnection" xml:space="preserve"><value>Communication &amp; Connection</value></data>
+  <data name="TechnicalGroup_designmaterials" xml:space="preserve"><value>Design &amp; Materials</value></data>
+  <data name="TechnicalGroup_connectionport" xml:space="preserve"><value>Connection port</value></data>
 </root>
+
+
+
+
+
+
+

@@ -130,6 +130,13 @@
                     </div>
 
                     <div class="my-order-actions">
+                        @if (string.Equals(order.Status, "Pending Payment", StringComparison.OrdinalIgnoreCase) &&
+                            string.Equals(order.PaymentMethod, "Bank Transfer", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <a asp-controller="Cart" asp-action="ResumePayment" asp-route-id="@order.Id" class="my-orders-shop-link">
+                                @L["ContinuePayment"]
+                            </a>
+                        }
                         @if (canCancel)
                         {
                             <button type="button" class="my-order-cancel-btn" onclick="cancelOrder(@order.Id)">
