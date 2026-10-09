@@ -4624,12 +4624,12 @@ body:not(.light) .recommendation-card {
     width: 100%;
     transition: width .25s ease, margin-left .25s ease;
 }
-body.sidebar-open .shop-container > main.main-content {
+body.sidebar-open > .shop-container > main.main-content {
     width: calc(100% - 230px);
     margin-left: 230px;
 }
 @media (max-width: 800px) {
-    body.sidebar-open .shop-container > main.main-content {
+    body.sidebar-open > .shop-container > main.main-content {
         width: 100%;
         margin-left: 0;
     }
