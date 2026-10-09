@@ -312,6 +312,7 @@ namespace Laptop.Controllers
             }
 
             ViewBag.CurrentProductImages = GetCurrentProductImages(order.Items.Select(i => i.ProductId));
+            ViewBag.IsResumePayment = true;
             return View("CheckoutSuccess", order);
         }
 
