@@ -4641,7 +4641,7 @@ body.sidebar-open > .shop-container > main.main-content {
     width: 230px;
 }
 .side-panel.open ~ .menu-toggle {
-    left: 220px;
+    left: 180px;
 }
 @media (max-width: 640px) {
     .side-panel {
