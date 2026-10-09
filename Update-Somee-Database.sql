@@ -17,9 +17,6 @@ BEGIN
 END;
 
 COMMIT;
-GO
-
-
 SET NOCOUNT ON;
 
 UPDATE dbo.Products SET TechnicalSpecifications = N'Configuration & Memory
