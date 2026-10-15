@@ -29,12 +29,12 @@
     var sortBy = Context.Request.Query["sort"].ToString().ToLower();
     var specificationFilterGroups = new (string Key, string Label, string[] Options)[]
     {
-        ("storage", "FilterStorage", new[] { "256GB", "512GB", "1TB", "HDD: 1TB", "2TB", "128GB" }),
+        ("storage", "FilterStorage", new[] { "256GB", "512GB", "1TB", "2TB", "128GB" }),
         ("usage", "FilterUsage", new[] { "Study - Office", "thin and light", "High-end", "Graphics", "Content creation" }),
         ("ram", "FilterRam", new[] { "4GB", "8GB", "16GB", "24GB", "32GB", "64GB", "128GB" }),
         ("cpu", "FilterCpu", new[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "AMD Ryzen 5", "AMD Ryzen 9", "AMD Ryzen 7", "Intel Celeron", "AMD Ryzen AI", "Intel Core U9", "Intel Core U7", "Core 5", "Core 7", "Core 3", "Intel Core U5", "Qualcomm Snapdragon", "Snapdragon X Plus" }),
         ("screenSize", "FilterScreenSize", new[] { "Approximately 14 inches", "Approximately 13 inches", "Approximately 15 inches", "Approximately 16 inches", "Over 16 inches" }),
-        ("resolution", "FilterResolution", new[] { "Full HD", "WQXGA", "WUXGA", "HD" }),
+        ("resolution", "FilterResolution", new[] { "Full HD", "WQXGA", "WUXGA", "HD", "2K", "3K", "4K" }),
         ("graphics", "FilterGraphics", new[] { "Onboard", "NVIDIA GeForce", "AMD Radeon" }),
         ("specialFeatures", "FilterSpecialFeatures", new[] { "Wi-Fi 6", "Fingerprint security", "Touch screen", "Facial recognition", "Ultra-thin bezels", "360-degree rotating and folding (2 in 1)", "Wi-Fi 7", "OLED screen", "MUX Switch" })
     };
