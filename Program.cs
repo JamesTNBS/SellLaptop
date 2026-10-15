@@ -9,6 +9,15 @@ using Laptop.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render routes web traffic to PORT (10000 by default) and requires an IPv4
+// listener on 0.0.0.0. Keep the container's local default when PORT is absent.
+if (int.TryParse(Environment.GetEnvironmentVariable("PORT"), out var renderPort)
+    && renderPort is > 0 and <= 65535)
+{
+    builder.WebHost.ConfigureKestrel(options =>
+        options.Listen(System.Net.IPAddress.Any, renderPort));
+}
+
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
