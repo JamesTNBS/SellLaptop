@@ -630,10 +630,6 @@ namespace Laptop.Controllers
 
             if (filterKey == "storage")
             {
-                if (normalizedValue == "hdd: 1tb")
-                    return Regex.IsMatch(searchableText, @"\b(?:1\s*tb|1000\s*gb)\b", RegexOptions.IgnoreCase)
-                        && Regex.IsMatch(searchableText, @"\b(?:hdd|hard\s*drive)\b", RegexOptions.IgnoreCase);
-
                 var storageAmount = Regex.Match(value, @"\d+").Value;
                 if (!int.TryParse(storageAmount, NumberStyles.None, CultureInfo.InvariantCulture, out var targetStorage)) return false;
                 var targetIsTb = normalizedValue.Contains("tb", StringComparison.Ordinal);
@@ -704,6 +700,37 @@ namespace Laptop.Controllers
 
                 if (!int.TryParse(requestedSize.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var target)) return false;
                 return sizes.Any(match => double.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var size) && Math.Abs(size - target) <= .65);
+            }
+
+            if (filterKey == "resolution")
+            {
+                var pixelDimensions = Regex.Matches(searchableText,
+                    @"(?<!\d)(\d{3,5})\s*[x×]\s*(\d{3,5})(?!\d)", RegexOptions.IgnoreCase);
+
+                bool HasResolutionWidth(int minimum, int maximumExclusive) => pixelDimensions.Any(match =>
+                    int.TryParse(match.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var firstDimension)
+                    && int.TryParse(match.Groups[2].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var secondDimension)
+                    && Math.Min(firstDimension, secondDimension) >= 1000
+                    && Math.Max(firstDimension, secondDimension) >= minimum
+                    && Math.Max(firstDimension, secondDimension) < maximumExclusive);
+
+                switch (normalizedValue)
+                {
+                    case "2k":
+                        return HasResolutionWidth(2000, 3000)
+                            || (!pixelDimensions.Any() && Regex.IsMatch(searchableText, @"\b(?:2k|qhd|wqhd|wqxga)\b|qhd\+(?![a-z0-9])", RegexOptions.IgnoreCase));
+                    case "3k":
+                        return HasResolutionWidth(3000, 3800)
+                            || (!pixelDimensions.Any() && Regex.IsMatch(searchableText, @"\b3(?:\.5)?k\b", RegexOptions.IgnoreCase));
+                    case "4k":
+                        return HasResolutionWidth(3800, int.MaxValue)
+                            || (!pixelDimensions.Any() && Regex.IsMatch(searchableText, @"\b4k\b|\buhd\b|uhd\+(?![a-z0-9])", RegexOptions.IgnoreCase));
+                    case "hd":
+                        return Regex.IsMatch(searchableText, @"\bhd\b", RegexOptions.IgnoreCase)
+                            && !Regex.IsMatch(searchableText, @"\bfull\s*hd\b|\bfhd\b", RegexOptions.IgnoreCase);
+                    default:
+                        return searchableText.Contains(normalizedValue, StringComparison.OrdinalIgnoreCase);
+                }
             }
 
             if (filterKey == "cpu")

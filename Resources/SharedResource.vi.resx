@@ -359,7 +359,6 @@
   <data name="FilterOption_256gb" xml:space="preserve"><value>256GB</value></data>
   <data name="FilterOption_512gb" xml:space="preserve"><value>512GB</value></data>
   <data name="FilterOption_1tb" xml:space="preserve"><value>1TB</value></data>
-  <data name="FilterOption_hdd1tb" xml:space="preserve"><value>HDD: 1TB</value></data>
   <data name="FilterOption_2tb" xml:space="preserve"><value>2TB</value></data>
   <data name="FilterOption_128gb" xml:space="preserve"><value>128GB</value></data>
   <data name="FilterOption_studyoffice" xml:space="preserve"><value>Học tập - Văn phòng</value></data>
@@ -399,6 +398,9 @@
   <data name="FilterOption_wqxga" xml:space="preserve"><value>WQXGA</value></data>
   <data name="FilterOption_wuxga" xml:space="preserve"><value>WUXGA</value></data>
   <data name="FilterOption_hd" xml:space="preserve"><value>HD</value></data>
+  <data name="FilterOption_2k" xml:space="preserve"><value>2K</value></data>
+  <data name="FilterOption_3k" xml:space="preserve"><value>3K / 3.5K</value></data>
+  <data name="FilterOption_4k" xml:space="preserve"><value>4K</value></data>
   <data name="FilterOption_onboard" xml:space="preserve"><value>Tích hợp</value></data>
   <data name="FilterOption_nvidiageforce" xml:space="preserve"><value>NVIDIA GeForce</value></data>
   <data name="FilterOption_amdradeon" xml:space="preserve"><value>AMD Radeon</value></data>
