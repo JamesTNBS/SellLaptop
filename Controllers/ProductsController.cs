@@ -35,6 +35,7 @@ namespace Laptop.Controllers
         {
             var query = _context.Products
                 .Include(p => p.ProductImages)
+                .Include(p => p.ProductFeatures)
                 .AsQueryable();
 
             // 1. Search term
@@ -271,10 +272,9 @@ namespace Laptop.Controllers
                 return NotFound();
             }
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
-            if (string.IsNullOrWhiteSpace(product.TechnicalSpecifications))
-            {
-                product.TechnicalSpecifications = Product.TechnicalSpecificationsTemplate;
-            }
+            product.TechnicalSpecifications = EnsureSpecificationTemplate(
+                product.TechnicalSpecifications,
+                Product.TechnicalSpecificationsTemplate);
             return View(product);
         }
 
@@ -289,6 +289,9 @@ namespace Laptop.Controllers
             }
 
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
+            product.TechnicalSpecifications = EnsureSpecificationTemplate(
+                product.TechnicalSpecifications,
+                Product.TechnicalSpecificationsTemplate);
 
             var existingProduct = await _context.Products
                 .Include(p => p.ProductImages)
@@ -605,34 +608,127 @@ namespace Laptop.Controllers
 
         private static bool MatchesSpecificationFilter(Product product, string filterKey, string value)
         {
-            var searchableText = string.Join(" ", product.Features, product.Title, product.Model, product.Description)
+            // Product specs are stored in both the short feature list and the
+            // detailed technical-specification form. Search both so filters
+            // use the information entered for the laptop instead of silently
+            // ignoring the detailed specs.
+            var featureText = string.Join(" ", product.ProductFeatures.Select(feature => feature.Feature));
+            var searchableText = string.Join(" ", product.Features, featureText, product.TechnicalSpecifications, product.Title, product.Model, product.Description)
                 .ToLowerInvariant();
+            var normalizedValue = value.Trim().ToLowerInvariant();
 
-            if (filterKey == "storage" && value == "hdd: 1tb")
+            if (filterKey == "ram")
             {
-                return searchableText.Contains("1tb") && (searchableText.Contains("hdd") || searchableText.Contains("hard drive"));
+                var requestedCapacity = Regex.Match(value, @"\d+").Value;
+                if (!int.TryParse(requestedCapacity, NumberStyles.None, CultureInfo.InvariantCulture, out var targetRam)) return false;
+                return Regex.Matches(searchableText, @"(?<!\d)(\d{1,3})\s*gb\b", RegexOptions.IgnoreCase)
+                    .Any(match => int.TryParse(match.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var capacity)
+                        && capacity == targetRam
+                        && (searchableText.Contains("ram", StringComparison.OrdinalIgnoreCase)
+                            || searchableText.Contains("memory", StringComparison.OrdinalIgnoreCase)));
+            }
+
+            if (filterKey == "storage")
+            {
+                if (normalizedValue == "hdd: 1tb")
+                    return Regex.IsMatch(searchableText, @"\b(?:1\s*tb|1000\s*gb)\b", RegexOptions.IgnoreCase)
+                        && Regex.IsMatch(searchableText, @"\b(?:hdd|hard\s*drive)\b", RegexOptions.IgnoreCase);
+
+                var storageAmount = Regex.Match(value, @"\d+").Value;
+                if (!int.TryParse(storageAmount, NumberStyles.None, CultureInfo.InvariantCulture, out var targetStorage)) return false;
+                var targetIsTb = normalizedValue.Contains("tb", StringComparison.Ordinal);
+                var storageMatches = Regex.Matches(searchableText, @"(?<!\d)(\d{1,4})\s*(gb|tb)\b", RegexOptions.IgnoreCase);
+                return storageMatches.Any(match =>
+                {
+                    if (!int.TryParse(match.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var amount)) return false;
+                    var isTb = match.Groups[2].Value.Equals("tb", StringComparison.OrdinalIgnoreCase);
+                    return isTb == targetIsTb && amount == targetStorage;
+                });
+            }
+
+            if (filterKey == "usage")
+            {
+                // Prefer explicit classification entered with the laptop.
+                // This avoids guessing a use case from generic spec headings.
+                var explicitUsage = Regex.Matches(searchableText,
+                    @"(?:recommended\s+use|usage|use\s+case)\s*[:=]\s*([^\r\n;]+)", RegexOptions.IgnoreCase);
+                if (explicitUsage.Any(match => match.Groups[1].Value
+                    .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Any(tag => string.Equals(tag, value, StringComparison.OrdinalIgnoreCase))))
+                    return true;
+
+                var keywords = normalizedValue switch
+                {
+                    "study - office" => new[] { "office laptop", "business laptop", "productivity", "student laptop", "for study", "for school" },
+                    "thin and light" => new[] { "thin and light", "lightweight", "ultrabook", "ultra-portable", "ultraportable" },
+                    "high-end" => new[] { "high-end", "high end", "premium laptop", "flagship laptop" },
+                    // Avoid the generic “Graphics card type” spec heading;
+                    // require an actual gaming or discrete-GPU indicator.
+                    "graphics" => new[] { "gaming laptop", "geforce", "radeon rx", "radeon pro", "rtx", "discrete gpu", "dedicated gpu" },
+                    "content creation" => new[] { "content creation", "creator laptop", "video editing", "rendering" },
+                    _ => Array.Empty<string>()
+                };
+                return keywords.Any(keyword => searchableText.Contains(keyword, StringComparison.OrdinalIgnoreCase));
             }
 
             if (filterKey == "graphics" && value == "onboard")
             {
-                return searchableText.Contains("onboard") || searchableText.Contains("integrated") || searchableText.Contains("built-in graphics");
+                return searchableText.Contains("onboard")
+                    || searchableText.Contains("integrated")
+                    || searchableText.Contains("built-in graphics")
+                    || searchableText.Contains("intel graphics")
+                    || searchableText.Contains("intel iris")
+                    || searchableText.Contains("intel uhd")
+                    || searchableText.Contains("radeon graphics")
+                    // Apple M-series MacBooks use an integrated Apple GPU,
+                    // even when the listing only names the Apple chip.
+                    || Regex.IsMatch(searchableText, @"\bapple\s+m\d\b", RegexOptions.IgnoreCase)
+                    || Regex.IsMatch(searchableText, @"\b(m1|m2|m3|m4)\s*(pro|max|ultra)?\b", RegexOptions.IgnoreCase);
             }
+
+            if (filterKey == "graphics")
+                return searchableText.Contains(normalizedValue, StringComparison.OrdinalIgnoreCase)
+                    || (normalizedValue == "nvidia geforce" && searchableText.Contains("geforce", StringComparison.OrdinalIgnoreCase))
+                    || (normalizedValue == "nvidia geforce" && Regex.IsMatch(searchableText, @"\b(?:rtx|gtx)\s*\d{3,4}\b", RegexOptions.IgnoreCase))
+                    || (normalizedValue == "amd radeon" && searchableText.Contains("radeon", StringComparison.OrdinalIgnoreCase));
 
             if (filterKey == "screenSize")
             {
                 var requestedSize = Regex.Match(value, @"\d+");
                 if (!requestedSize.Success) return false;
-                var sizes = Regex.Matches(searchableText, @"(?<!\d)(\d{1,2}(?:\.\d)?)(?=\s*(?:inches|inch|in\b|[""”]))", RegexOptions.IgnoreCase);
+                var sizes = Regex.Matches(searchableText, @"(?<!\d)(\d{1,2}(?:\.\d)?)(?=\s*(?:-|\s)?(?:inches|inch|in\b|[""”]))", RegexOptions.IgnoreCase);
                 if (value.StartsWith("over", StringComparison.OrdinalIgnoreCase))
                 {
-                    return sizes.Any(match => double.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var size) && size > 16.4);
+                    return sizes.Any(match => double.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var size) && size > 16.0);
                 }
 
                 if (!int.TryParse(requestedSize.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var target)) return false;
                 return sizes.Any(match => double.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var size) && Math.Abs(size - target) <= .65);
             }
 
-            return searchableText.Contains(value, StringComparison.OrdinalIgnoreCase);
+            if (filterKey == "cpu")
+            {
+                var cpuValue = normalizedValue.Replace("intel ", string.Empty, StringComparison.OrdinalIgnoreCase);
+                return searchableText.Contains(normalizedValue, StringComparison.OrdinalIgnoreCase)
+                    || searchableText.Contains(cpuValue, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (filterKey == "specialFeatures")
+            {
+                var featureKeywords = normalizedValue switch
+                {
+                    "fingerprint security" => new[] { "fingerprint", "finger print" },
+                    "touch screen" => new[] { "touchscreen", "touch screen", "touch display", "touch-enabled" },
+                    "facial recognition" => new[] { "facial recognition", "face recognition", "windows hello" },
+                    "ultra-thin bezels" => new[] { "thin bezel", "narrow bezel", "micro-edge", "ultra-thin bezel", "infinityedge" },
+                    "360-degree rotating and folding (2 in 1)" => new[] { "360-degree", "360 degree", "convertible", "2-in-1", "2 in 1" },
+                    "mux switch" => new[] { "mux switch", "mux" },
+                    _ => new[] { normalizedValue }
+                };
+                return featureKeywords.Any(keyword => searchableText.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return searchableText.Contains(normalizedValue, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool ProductExists(int id)

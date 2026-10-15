@@ -59,6 +59,7 @@ namespace Laptop.Models
             Graphics card type:
             Operating system upon release:
             CPU type:
+            Recommended use:
 
             RAM
             RAM capacity:
