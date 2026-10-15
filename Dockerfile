@@ -5,5 +5,6 @@ RUN dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
+EXPOSE 10000
 COPY --from=build /app/out .
 ENTRYPOINT ["dotnet", "Laptop.dll"]
