@@ -4822,6 +4822,11 @@ body.light .promo-carousel-dots button.is-active { background: #7348d9; }
 .product-card-price strong { color: #d7a8ff; }
 body.light .product-card-price strong { color: #6339c6; }
 .product-card-price .product-sale-badge { padding: 3px 8px; font-size: .7rem; }
+.recommendation-price-block { display:grid; justify-items:start; gap:3px; margin-top:2px; }
+.recommendation-sale-line { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.recommendation-sale-line strong { color:#d7a8ff; font-size:1.05rem; }
+body.light .recommendation-sale-line strong { color:#6339c6; }
+.recommendation-price-block del { color:#8a8495; font-size:.85rem; }
 .sale-price-line { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
 .regular-product-price { color:inherit; }
 .sale-price-stack { display:flex; align-items:baseline; flex-wrap:wrap; gap:9px; }

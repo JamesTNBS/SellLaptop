@@ -248,6 +248,7 @@
                         @foreach (var item in usedRecommendations)
                         {
                             var image = item.Images?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+                            var usedDiscount = Formatter.GetActiveDiscountPercent(item);
                             <div class="recommendation-card">
                                 <a class="recommendation-card-link" asp-action="Details" asp-route-id="@item.Id">
                                 <div class="recommendation-image-wrap">
@@ -257,10 +258,19 @@
                                 <div class="recommendation-card-info">
                                     <h3>@item.Title</h3>
                                     <p class="recommendation-model">@item.Model</p>
-                                    <p class="recommendation-price">@Formatter.Format(item)</p>
-                                    @if (Formatter.GetActiveDiscountPercent(item) is var usedDiscount && usedDiscount > 0)
+                                    @if (usedDiscount > 0)
                                     {
-                                        <span class="product-sale-badge">@L["PromotionPercentOff", usedDiscount.ToString("0.##")]</span>
+                                        <div class="recommendation-price-block">
+                                            <div class="recommendation-sale-line">
+                                                <strong>@Formatter.Format(item)</strong>
+                                                <span class="product-sale-badge">@L["PromotionPercentOff", usedDiscount.ToString("0.##")]</span>
+                                            </div>
+                                            <del>@Formatter.Format(item.Price, item.Currency)</del>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="recommendation-price">@Formatter.Format(item)</p>
                                     }
                                 </div>
                                 </a>
@@ -281,6 +291,7 @@
                         @foreach (var item in similarRecommendations)
                         {
                             var image = item.Images?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+                            var similarDiscount = Formatter.GetActiveDiscountPercent(item);
                             <div class="recommendation-card">
                                 <a class="recommendation-card-link" asp-action="Details" asp-route-id="@item.Id">
                                 <div class="recommendation-image-wrap">
@@ -290,10 +301,19 @@
                                 <div class="recommendation-card-info">
                                     <h3>@item.Title</h3>
                                     <p class="recommendation-model">@item.Model</p>
-                                    <p class="recommendation-price">@Formatter.Format(item)</p>
-                                    @if (Formatter.GetActiveDiscountPercent(item) is var similarDiscount && similarDiscount > 0)
+                                    @if (similarDiscount > 0)
                                     {
-                                        <span class="product-sale-badge">@L["PromotionPercentOff", similarDiscount.ToString("0.##")]</span>
+                                        <div class="recommendation-price-block">
+                                            <div class="recommendation-sale-line">
+                                                <strong>@Formatter.Format(item)</strong>
+                                                <span class="product-sale-badge">@L["PromotionPercentOff", similarDiscount.ToString("0.##")]</span>
+                                            </div>
+                                            <del>@Formatter.Format(item.Price, item.Currency)</del>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="recommendation-price">@Formatter.Format(item)</p>
                                     }
                                 </div>
                                 </a>
