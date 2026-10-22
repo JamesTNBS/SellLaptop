@@ -53,11 +53,13 @@
 
                     <div class="cart-item-info">
                         <h4>@item.Title</h4>
-                        <p class="price cart-item-price">
+                        <div class="price cart-item-price">
+                            <div class="sale-price-line cart-sale-price-line">
+                                <strong class="cart-current-price">@Formatter.Format(item)</strong>
+                                <span class="product-sale-badge cart-discount-badge" style="@(itemDiscountPercent > 0 ? "" : "display:none;")">@L["PromotionPercentOff", itemDiscountPercent.ToString("0.##")]</span>
+                            </div>
                             <del class="cart-base-price" style="@(itemDiscountPercent > 0 ? "" : "display:none;")">@Formatter.Format(item.Price, item.Currency)</del>
-                            <strong class="cart-current-price">@Formatter.Format(item)</strong>
-                            <span class="product-sale-badge cart-discount-badge" style="@(itemDiscountPercent > 0 ? "" : "display:none;")">@L["PromotionPercentOff", itemDiscountPercent.ToString("0.##")]</span>
-                        </p>
+                        </div>
 
                         <div class="quantity">
                             <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Decrease')">-</button>
