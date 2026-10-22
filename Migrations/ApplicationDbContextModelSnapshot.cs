@@ -323,6 +323,39 @@ namespace Laptop.Migrations
                     b.ToTable("ProductImages");
                 });
 
+            modelBuilder.Entity("Laptop.Models.ProductPromotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTimeOffset>("EndsAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("StartsAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductPromotions");
+                });
+
             modelBuilder.Entity("Laptop.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -443,6 +476,17 @@ namespace Laptop.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Laptop.Models.ProductPromotion", b =>
+                {
+                    b.HasOne("Laptop.Models.Product", "Product")
+                        .WithMany("Promotions")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Laptop.Models.Comment", b =>
                 {
                     b.Navigation("Replies");
@@ -460,6 +504,8 @@ namespace Laptop.Migrations
                     b.Navigation("ProductFeatures");
 
                     b.Navigation("ProductImages");
+
+                    b.Navigation("Promotions");
                 });
 
             modelBuilder.Entity("Laptop.Models.User", b =>

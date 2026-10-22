@@ -477,6 +477,131 @@ namespace Laptop.Controllers
             return RedirectToAction(nameof(Orders), new { search, status, page });
         }
 
+        public IActionResult Promotions(int? editId)
+        {
+            if (HttpContext.Session.GetString("Role") != "Admin")
+                return RedirectToAction("Index", "Products");
+
+            var model = BuildPromotionManagementViewModel();
+            if (editId.HasValue)
+            {
+                var promotion = _context.ProductPromotions
+                    .AsNoTracking()
+                    .FirstOrDefault(item => item.Id == editId.Value);
+                if (promotion == null)
+                    return NotFound();
+
+                var vietnamTime = TimeSpan.FromHours(7);
+                model.Form = new PromotionFormViewModel
+                {
+                    Id = promotion.Id,
+                    ProductId = promotion.ProductId,
+                    DiscountPercent = promotion.DiscountPercent,
+                    StartsAtLocal = promotion.StartsAtUtc.ToOffset(vietnamTime).DateTime,
+                    EndsAtLocal = promotion.EndsAtUtc.ToOffset(vietnamTime).DateTime,
+                    IsActive = promotion.IsActive,
+                    IsFeatured = promotion.IsFeatured
+                };
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SavePromotion(PromotionManagementViewModel viewModel)
+        {
+            if (HttpContext.Session.GetString("Role") != "Admin")
+                return RedirectToAction("Index", "Products");
+
+            var form = viewModel.Form;
+            var hasSchedule = form.StartsAtLocal != default && form.EndsAtLocal != default;
+            if (!hasSchedule)
+            {
+                ModelState.AddModelError(string.Empty, _localizer["PromotionTimesRequired"].Value);
+            }
+            else if (form.StartsAtLocal >= form.EndsAtLocal)
+            {
+                ModelState.AddModelError("Form.EndsAtLocal", _localizer["PromotionEndAfterStart"].Value);
+            }
+
+            if (!_context.Products.Any(product => product.Id == form.ProductId))
+                ModelState.AddModelError("Form.ProductId", _localizer["ChoosePromotionProduct"].Value);
+
+            var vietnamTime = TimeSpan.FromHours(7);
+            var validSchedule = hasSchedule && form.StartsAtLocal < form.EndsAtLocal;
+            var startsAtUtc = validSchedule
+                ? new DateTimeOffset(DateTime.SpecifyKind(form.StartsAtLocal, DateTimeKind.Unspecified), vietnamTime).ToUniversalTime()
+                : DateTimeOffset.MinValue;
+            var endsAtUtc = validSchedule
+                ? new DateTimeOffset(DateTime.SpecifyKind(form.EndsAtLocal, DateTimeKind.Unspecified), vietnamTime).ToUniversalTime()
+                : DateTimeOffset.MinValue;
+
+            var overlapping = validSchedule && form.IsActive && _context.ProductPromotions.Any(existing =>
+                existing.ProductId == form.ProductId && existing.Id != (form.Id ?? 0) && existing.IsActive &&
+                existing.StartsAtUtc < endsAtUtc && existing.EndsAtUtc > startsAtUtc);
+            if (overlapping)
+                ModelState.AddModelError("Form.ProductId", _localizer["PromotionOverlap"].Value);
+
+            if (!ModelState.IsValid)
+            {
+                viewModel = BuildPromotionManagementViewModel(form);
+                return View("Promotions", viewModel);
+            }
+
+            var promotion = form.Id.HasValue
+                ? _context.ProductPromotions.FirstOrDefault(item => item.Id == form.Id.Value)
+                : new ProductPromotion();
+
+            if (promotion == null)
+                return NotFound();
+
+            promotion.ProductId = form.ProductId;
+            promotion.DiscountPercent = form.DiscountPercent;
+            promotion.StartsAtUtc = startsAtUtc;
+            promotion.EndsAtUtc = endsAtUtc;
+            promotion.IsActive = form.IsActive;
+            promotion.IsFeatured = form.IsFeatured;
+
+            if (!form.Id.HasValue)
+                _context.ProductPromotions.Add(promotion);
+
+            _context.SaveChanges();
+            TempData["PromotionMessage"] = _localizer["PromotionSaved"].Value;
+            return RedirectToAction(nameof(Promotions));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeletePromotion(int id)
+        {
+            if (HttpContext.Session.GetString("Role") != "Admin")
+                return RedirectToAction("Index", "Products");
+
+            var promotion = _context.ProductPromotions.Find(id);
+            if (promotion != null)
+            {
+                _context.ProductPromotions.Remove(promotion);
+                _context.SaveChanges();
+            }
+
+            TempData["PromotionMessage"] = _localizer["PromotionDeleted"].Value;
+            return RedirectToAction(nameof(Promotions));
+        }
+
+        private PromotionManagementViewModel BuildPromotionManagementViewModel(PromotionFormViewModel? form = null)
+        {
+            return new PromotionManagementViewModel
+            {
+                Form = form ?? new PromotionFormViewModel(),
+                Products = _context.Products.OrderBy(product => product.Title).ToList(),
+                Promotions = _context.ProductPromotions
+                    .Include(promotion => promotion.Product)
+                    .OrderByDescending(promotion => promotion.StartsAtUtc)
+                    .ToList()
+            };
+        }
+
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

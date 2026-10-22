@@ -40,10 +40,72 @@
     };
 
     var finalProducts = Model.ToList();
+    var featuredPromotions = ViewBag.FeaturedPromotions as List<Laptop.Models.ProductPromotion>
+        ?? new List<Laptop.Models.ProductPromotion>();
 }
 
 <div class="shop-container">
     <main class="main-content shop-main">
+
+        @if (featuredPromotions.Any())
+        {
+            <section class="promo-carousel" data-promo-carousel aria-label="@L["FeaturedOffers"]" aria-roledescription="carousel">
+                <div class="promo-carousel-heading">
+                    <div>
+                        <span class="promo-eyebrow"><i class="fas fa-bolt"></i> @L["FeaturedOffers"]</span>
+                        <p>@L["FeaturedOffersSubtitle"]</p>
+                    </div>
+                    <div class="promo-carousel-controls">
+                        <button type="button" data-promo-prev aria-label="@L["PreviousSlide"]"><i class="fas fa-chevron-left"></i></button>
+                        <button type="button" data-promo-next aria-label="@L["NextSlide"]"><i class="fas fa-chevron-right"></i></button>
+                        <button type="button" data-promo-toggle data-pause-label="@L["PauseSlider"]" data-resume-label="@L["ResumeSlider"]" aria-pressed="false" aria-label="@L["PauseSlider"]"><i class="fas fa-pause"></i></button>
+                    </div>
+                </div>
+
+                <div class="promo-carousel-slides" aria-live="off">
+                    @for (var promoIndex = 0; promoIndex < featuredPromotions.Count; promoIndex++)
+                    {
+                        var promotion = featuredPromotions[promoIndex];
+                        var firstPromoImage = promotion.Product.Images?
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .FirstOrDefault();
+                        var promoImageSrc = string.IsNullOrWhiteSpace(firstPromoImage)
+                            ? Url.Content("~/images/no-image.jpg")
+                            : firstPromoImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) || firstPromoImage.StartsWith("/")
+                                ? firstPromoImage
+                                : Url.Content("~/" + firstPromoImage.TrimStart('/'));
+                        <a class="promo-slide @(promoIndex == 0 ? "is-active" : "")"
+                           href="@Url.Action("Details", "Products", new { id = promotion.ProductId })"
+                           data-promo-slide
+                           aria-hidden="@(promoIndex == 0 ? "false" : "true")"
+                           tabindex="@(promoIndex == 0 ? "0" : "-1")">
+                            <div class="promo-slide-copy">
+                                <h2>@promotion.Product.Title</h2>
+                                <p>@promotion.Product.Model</p>
+                                <div class="promo-slide-prices">
+                                    <strong>@Formatter.Format(promotion.Product)</strong>
+                                    <span class="promo-discount">@L["PromotionPercentOff", promotion.DiscountPercent.ToString("0.##")]</span>
+                                    <del>@Formatter.Format(promotion.Product.Price, promotion.Product.Currency)</del>
+                                </div>
+                                <span class="promo-slide-cta">@L["ViewLaptopDeal"] <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                            <div class="promo-slide-image-wrap">
+                                <img src="@promoImageSrc" alt="@promotion.Product.Title" />
+                            </div>
+                        </a>
+                    }
+                </div>
+
+                <div class="promo-carousel-dots" role="group" aria-label="@L["FeaturedOffers"]">
+                    @for (var promoIndex = 0; promoIndex < featuredPromotions.Count; promoIndex++)
+                    {
+                        <button type="button" data-promo-dot="@promoIndex" class="@(promoIndex == 0 ? "is-active" : "")"
+                                aria-label="@L["ViewLaptopDeal"] @(promoIndex + 1) / @featuredPromotions.Count"
+                                aria-current="@(promoIndex == 0 ? "true" : "false")"></button>
+                    }
+                </div>
+            </section>
+        }
 
         <div class="shop-top-bar">
             <div class="results-count">@L["ProductsFound", finalProducts.Count()]</div>
@@ -127,7 +189,24 @@
                                 <div class="product-info">
                                     <h3>@product.Title</h3>
                                     <div class="model">@product.Model</div>
-                                    <div class="price">@Formatter.Format(product)</div>
+                                    @{
+                                        var discountPercent = Formatter.GetActiveDiscountPercent(product);
+                                    }
+                                    <div class="price product-card-price">
+                                        @if (discountPercent > 0)
+                                        {
+                                            <div class="sale-price-line">
+                                                <strong>@Formatter.Format(product)</strong>
+                                                <span class="product-sale-badge">@L["PromotionPercentOff", discountPercent.ToString("0.##")]
+                                                </span>
+                                            </div>
+                                            <del>@Formatter.Format(product.Price, product.Currency)</del>
+                                        }
+                                        else
+                                        {
+                                            <span class="regular-product-price">@Formatter.Format(product)</span>
+                                        }
+                                    </div>
                                     <div class="seller">@L["Seller"]: @product.Seller</div>
 
                                     <div class="product-actions">
@@ -303,6 +382,83 @@
         // Reload the filtered listing state via the browser's normal navigation history.
         window.location.reload();
     });
+
+    const promoCarousel = document.querySelector('[data-promo-carousel]');
+    if (promoCarousel) {
+        const promoSlides = [...promoCarousel.querySelectorAll('[data-promo-slide]')];
+        const promoDots = [...promoCarousel.querySelectorAll('[data-promo-dot]')];
+        const promoToggle = promoCarousel.querySelector('[data-promo-toggle]');
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let activePromo = 0;
+        let manuallyPaused = reducedMotion;
+        let userEnabledMotion = false;
+        let promoTimer;
+
+        function showPromo(index) {
+            activePromo = (index + promoSlides.length) % promoSlides.length;
+            promoSlides.forEach((slide, itemIndex) => {
+                const active = itemIndex === activePromo;
+                slide.classList.toggle('is-active', active);
+                slide.setAttribute('aria-hidden', String(!active));
+                slide.tabIndex = active ? 0 : -1;
+            });
+            promoDots.forEach((dot, itemIndex) => {
+                const active = itemIndex === activePromo;
+                dot.classList.toggle('is-active', active);
+                dot.setAttribute('aria-current', String(active));
+            });
+        }
+
+        function canAutoAdvance() {
+            return !manuallyPaused &&
+                (!reducedMotion || userEnabledMotion) &&
+                !document.hidden &&
+                !promoCarousel.contains(document.activeElement);
+        }
+
+        function updatePromoTimer() {
+            clearInterval(promoTimer);
+            if (canAutoAdvance() && promoSlides.length > 1) {
+                promoTimer = setInterval(() => showPromo(activePromo + 1), 4000);
+            }
+        }
+
+        promoCarousel.querySelector('[data-promo-prev]')?.addEventListener('click', () => {
+            showPromo(activePromo - 1);
+            updatePromoTimer();
+        });
+        promoCarousel.querySelector('[data-promo-next]')?.addEventListener('click', () => {
+            showPromo(activePromo + 1);
+            updatePromoTimer();
+        });
+        promoDots.forEach(dot => dot.addEventListener('click', () => {
+            showPromo(Number(dot.dataset.promoDot));
+            updatePromoTimer();
+        }));
+        promoToggle?.addEventListener('click', () => {
+            manuallyPaused = !manuallyPaused;
+            if (!manuallyPaused) userEnabledMotion = true;
+            promoToggle.setAttribute('aria-pressed', String(manuallyPaused));
+            promoToggle.setAttribute('aria-label', manuallyPaused ? promoToggle.dataset.resumeLabel : promoToggle.dataset.pauseLabel);
+            promoToggle.innerHTML = manuallyPaused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+            updatePromoTimer();
+        });
+        promoCarousel.addEventListener('focusin', updatePromoTimer);
+        promoCarousel.addEventListener('focusout', () => setTimeout(updatePromoTimer, 0));
+        promoCarousel.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                showPromo(activePromo - 1);
+                updatePromoTimer();
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                showPromo(activePromo + 1);
+                updatePromoTimer();
+            }
+        });
+        document.addEventListener('visibilitychange', updatePromoTimer);
+        updatePromoTimer();
+    }
 
     function goToDetails(productId, event) {
         if (event?.target?.closest('.product-actions, button, form, a, input, select, textarea')) {

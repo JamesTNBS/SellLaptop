@@ -240,7 +240,7 @@ namespace Laptop.Controllers
                 {
                     ProductId = x.ProductId,
                     Title = x.Title,
-                    Price = x.Price,
+                    Price = _formatter.GetEffectivePrice(x),
                     Currency = StorefrontFormatter.NormalizeCurrency(x.Currency),
                     Quantity = x.Quantity,
                     Image = x.Image
@@ -381,6 +381,9 @@ namespace Laptop.Controllers
             var cartItems = _context.CartItems
                 .Where(c => c.Username == username)
                 .ToList();
+            ApplyPromotionPricing(cartItems);
+
+            var pricedItem = cartItems.FirstOrDefault(c => c.Id == item.Id) ?? item;
 
             var itemCount = cartItems.Sum(c => c.Quantity);
             var subtotal = cartItems.Sum(c => _formatter.ToDisplayAmount(c) * c.Quantity);
@@ -391,8 +394,14 @@ namespace Laptop.Controllers
                 removed,
                 itemId = item.Id,
                 quantity = removed ? 0 : item.Quantity,
-                itemTotal = removed ? 0 : _formatter.ToDisplayAmount(item) * item.Quantity,
-                itemTotalFormatted = removed ? _formatter.FormatDisplay(0) : _formatter.FormatDisplay(_formatter.ToDisplayAmount(item) * item.Quantity),
+                itemTotal = removed ? 0 : _formatter.ToDisplayAmount(pricedItem) * pricedItem.Quantity,
+                itemTotalFormatted = removed ? _formatter.FormatDisplay(0) : _formatter.FormatDisplay(_formatter.ToDisplayAmount(pricedItem) * pricedItem.Quantity),
+                itemPriceFormatted = removed ? string.Empty : _formatter.Format(pricedItem),
+                itemBasePriceFormatted = removed ? string.Empty : _formatter.Format(pricedItem.Price, pricedItem.Currency),
+                itemDiscountPercent = removed ? 0m : pricedItem.PromotionDiscountPercent ?? 0m,
+                itemDiscountLabel = removed || pricedItem.PromotionDiscountPercent is not > 0m
+                    ? string.Empty
+                    : _localizer["PromotionPercentOff", pricedItem.PromotionDiscountPercent.Value].Value,
                 cartCount = itemCount,
                 itemCount,
                 subtotal,
@@ -408,6 +417,8 @@ namespace Laptop.Controllers
                 .OrderBy(c => c.Title)
                 .ToList();
 
+            ApplyPromotionPricing(items);
+
             var currentImages = GetCurrentProductImages(items.Select(i => i.ProductId));
             foreach (var item in items)
             {
@@ -419,6 +430,29 @@ namespace Laptop.Controllers
             }
 
             return items;
+        }
+
+        private void ApplyPromotionPricing(List<CartItem> items)
+        {
+            if (items.Count == 0)
+            {
+                return;
+            }
+
+            var productIds = items.Select(item => item.ProductId).Distinct().ToList();
+            var now = DateTimeOffset.UtcNow;
+            var discounts = _context.ProductPromotions
+                .AsNoTracking()
+                .Where(promotion => productIds.Contains(promotion.ProductId) && promotion.IsActive &&
+                    promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now)
+                .ToDictionary(promotion => promotion.ProductId, promotion => promotion.DiscountPercent);
+
+            foreach (var item in items)
+            {
+                item.PromotionDiscountPercent = discounts.TryGetValue(item.ProductId, out var percent)
+                    ? percent
+                    : null;
+            }
         }
 
         private Dictionary<int, string> GetCurrentProductImages(IEnumerable<int> productIds)
