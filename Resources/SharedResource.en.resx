@@ -453,11 +453,46 @@
   <data name="TechnicalGroup_communicationconnection" xml:space="preserve"><value>Communication &amp; Connection</value></data>
   <data name="TechnicalGroup_designmaterials" xml:space="preserve"><value>Design &amp; Materials</value></data>
   <data name="TechnicalGroup_connectionport" xml:space="preserve"><value>Connection port</value></data>
+
+  <data name="ManagePromotions" xml:space="preserve"><value>Promotions</value></data>
+  <data name="PromotionManagement" xml:space="preserve"><value>Promotion management</value></data>
+  <data name="PromotionManagementHelp" xml:space="preserve"><value>Create a scheduled discount for one laptop. Prices update across the catalog, details, cart, and checkout while the promotion is running.</value></data>
+  <data name="NewPromotion" xml:space="preserve"><value>New promotion</value></data>
+  <data name="EditPromotion" xml:space="preserve"><value>Edit promotion</value></data>
+  <data name="PromotionProduct" xml:space="preserve"><value>Laptop</value></data>
+  <data name="ChoosePromotionProduct" xml:space="preserve"><value>Choose a laptop</value></data>
+  <data name="DiscountPercent" xml:space="preserve"><value>Discount (%)</value></data>
+  <data name="PromotionStartsAt" xml:space="preserve"><value>Starts at</value></data>
+  <data name="PromotionEndsAt" xml:space="preserve"><value>Ends at</value></data>
+  <data name="PromotionTimeZoneHelp" xml:space="preserve"><value>Schedule times use Vietnam time (UTC+7).</value></data>
+  <data name="PromotionActive" xml:space="preserve"><value>Promotion is active</value></data>
+  <data name="PromotionFeatured" xml:space="preserve"><value>Show in shop slider</value></data>
+  <data name="PromotionFeaturedHelp" xml:space="preserve"><value>Featured promotions appear in the clickable laptop slider at the top of the shop page.</value></data>
+  <data name="SavePromotion" xml:space="preserve"><value>Save promotion</value></data>
+  <data name="CancelEditPromotion" xml:space="preserve"><value>Cancel edit</value></data>
+  <data name="PromotionList" xml:space="preserve"><value>All promotions</value></data>
+  <data name="PromotionCount" xml:space="preserve"><value>{0} promotions</value></data>
+  <data name="NoPromotionsYet" xml:space="preserve"><value>No promotions yet. Use the form above to add one.</value></data>
+  <data name="PromotionSchedule" xml:space="preserve"><value>Schedule (UTC+7)</value></data>
+  <data name="PromotionStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="PromotionPaused" xml:space="preserve"><value>Paused</value></data>
+  <data name="PromotionScheduled" xml:space="preserve"><value>Scheduled</value></data>
+  <data name="PromotionExpired" xml:space="preserve"><value>Ended</value></data>
+  <data name="PromotionRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="PromotionSaved" xml:space="preserve"><value>Promotion saved.</value></data>
+  <data name="PromotionDeleted" xml:space="preserve"><value>Promotion removed.</value></data>
+  <data name="PromotionEndAfterStart" xml:space="preserve"><value>The end time must be after the start time.</value></data>
+  <data name="PromotionOverlap" xml:space="preserve"><value>This laptop already has an active promotion that overlaps these dates.</value></data>
+  <data name="PromotionDeleteConfirm" xml:space="preserve"><value>Remove this promotion?</value></data>
+  <data name="FeaturedOffers" xml:space="preserve"><value>Featured laptop deals</value></data>
+  <data name="FeaturedOffersSubtitle" xml:space="preserve"><value>Limited-time prices on selected laptops</value></data>
+  <data name="ViewLaptopDeal" xml:space="preserve"><value>View laptop</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>Previous offer</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>Next offer</value></data>
+  <data name="PauseSlider" xml:space="preserve"><value>Pause automatic slides</value></data>
+  <data name="ResumeSlider" xml:space="preserve"><value>Resume automatic slides</value></data>
+  <data name="Sale" xml:space="preserve"><value>Sale</value></data>
+  <data name="PromotionPercentOff" xml:space="preserve"><value>{0}% off</value></data>
+  <data name="PromotionTimesRequired" xml:space="preserve"><value>Choose both a start time and an end time.</value></data>
 </root>
-
-
-
-
-
-
 

@@ -453,12 +453,46 @@
   <data name="TechnicalGroup_communicationconnection" xml:space="preserve"><value>Giao tiếp &amp; Kết nối</value></data>
   <data name="TechnicalGroup_designmaterials" xml:space="preserve"><value>Thiết kế &amp; Chất liệu</value></data>
   <data name="TechnicalGroup_connectionport" xml:space="preserve"><value>Cổng kết nối</value></data>
+
+  <data name="ManagePromotions" xml:space="preserve"><value>Khuyến mãi</value></data>
+  <data name="PromotionManagement" xml:space="preserve"><value>Quản lý khuyến mãi</value></data>
+  <data name="PromotionManagementHelp" xml:space="preserve"><value>Tạo chương trình giảm giá theo thời gian cho từng laptop. Giá sẽ tự cập nhật ở danh mục, chi tiết sản phẩm, giỏ hàng và thanh toán khi chương trình diễn ra.</value></data>
+  <data name="NewPromotion" xml:space="preserve"><value>Khuyến mãi mới</value></data>
+  <data name="EditPromotion" xml:space="preserve"><value>Sửa khuyến mãi</value></data>
+  <data name="PromotionProduct" xml:space="preserve"><value>Laptop</value></data>
+  <data name="ChoosePromotionProduct" xml:space="preserve"><value>Chọn laptop</value></data>
+  <data name="DiscountPercent" xml:space="preserve"><value>Mức giảm (%)</value></data>
+  <data name="PromotionStartsAt" xml:space="preserve"><value>Bắt đầu lúc</value></data>
+  <data name="PromotionEndsAt" xml:space="preserve"><value>Kết thúc lúc</value></data>
+  <data name="PromotionTimeZoneHelp" xml:space="preserve"><value>Thời gian được tính theo giờ Việt Nam (UTC+7).</value></data>
+  <data name="PromotionActive" xml:space="preserve"><value>Khuyến mãi đang bật</value></data>
+  <data name="PromotionFeatured" xml:space="preserve"><value>Hiện trên thanh khuyến mãi</value></data>
+  <data name="PromotionFeaturedHelp" xml:space="preserve"><value>Khuyến mãi được chọn sẽ xuất hiện trong thanh laptop có thể bấm ở đầu trang cửa hàng.</value></data>
+  <data name="SavePromotion" xml:space="preserve"><value>Lưu khuyến mãi</value></data>
+  <data name="CancelEditPromotion" xml:space="preserve"><value>Hủy chỉnh sửa</value></data>
+  <data name="PromotionList" xml:space="preserve"><value>Tất cả khuyến mãi</value></data>
+  <data name="PromotionCount" xml:space="preserve"><value>{0} khuyến mãi</value></data>
+  <data name="NoPromotionsYet" xml:space="preserve"><value>Chưa có khuyến mãi. Hãy dùng biểu mẫu phía trên để thêm chương trình.</value></data>
+  <data name="PromotionSchedule" xml:space="preserve"><value>Lịch (UTC+7)</value></data>
+  <data name="PromotionStatus" xml:space="preserve"><value>Trạng thái</value></data>
+  <data name="PromotionPaused" xml:space="preserve"><value>Đã tắt</value></data>
+  <data name="PromotionScheduled" xml:space="preserve"><value>Sắp diễn ra</value></data>
+  <data name="PromotionExpired" xml:space="preserve"><value>Đã kết thúc</value></data>
+  <data name="PromotionRunning" xml:space="preserve"><value>Đang diễn ra</value></data>
+  <data name="PromotionSaved" xml:space="preserve"><value>Đã lưu khuyến mãi.</value></data>
+  <data name="PromotionDeleted" xml:space="preserve"><value>Đã xóa khuyến mãi.</value></data>
+  <data name="PromotionEndAfterStart" xml:space="preserve"><value>Thời gian kết thúc phải sau thời gian bắt đầu.</value></data>
+  <data name="PromotionOverlap" xml:space="preserve"><value>Laptop này đã có khuyến mãi đang bật trong khoảng thời gian bị trùng.</value></data>
+  <data name="PromotionDeleteConfirm" xml:space="preserve"><value>Bạn có muốn xóa khuyến mãi này không?</value></data>
+  <data name="FeaturedOffers" xml:space="preserve"><value>Ưu đãi laptop nổi bật</value></data>
+  <data name="FeaturedOffersSubtitle" xml:space="preserve"><value>Giá ưu đãi có thời hạn cho một số laptop</value></data>
+  <data name="ViewLaptopDeal" xml:space="preserve"><value>Xem laptop</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>Ưu đãi trước</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>Ưu đãi tiếp theo</value></data>
+  <data name="PauseSlider" xml:space="preserve"><value>Tạm dừng tự chuyển</value></data>
+  <data name="ResumeSlider" xml:space="preserve"><value>Tiếp tục tự chuyển</value></data>
+  <data name="Sale" xml:space="preserve"><value>Giảm giá</value></data>
+  <data name="PromotionPercentOff" xml:space="preserve"><value>Giảm {0}%</value></data>
+  <data name="PromotionTimesRequired" xml:space="preserve"><value>Vui lòng chọn thời gian bắt đầu và kết thúc.</value></data>
 </root>
-
-
-
-
-
-
-
 

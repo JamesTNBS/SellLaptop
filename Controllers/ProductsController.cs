@@ -36,6 +36,7 @@ namespace Laptop.Controllers
             var query = _context.Products
                 .Include(p => p.ProductImages)
                 .Include(p => p.ProductFeatures)
+                .Include(p => p.Promotions)
                 .AsQueryable();
 
             // 1. Search term
@@ -99,6 +100,16 @@ namespace Laptop.Controllers
             };
 
             ViewBag.Role = HttpContext.Session.GetString("Role");
+            var now = DateTimeOffset.UtcNow;
+            ViewBag.FeaturedPromotions = await _context.ProductPromotions
+                .AsNoTracking()
+                .Include(promotion => promotion.Product)
+                .Where(promotion => promotion.IsActive && promotion.IsFeatured &&
+                    promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now)
+                .OrderByDescending(promotion => promotion.DiscountPercent)
+                .ThenBy(promotion => promotion.EndsAtUtc)
+                .Take(5)
+                .ToListAsync();
 
             return View(products);
         }
@@ -114,6 +125,7 @@ namespace Laptop.Controllers
             var product = await _context.Products
                 .Include(p => p.Comments)
                     .ThenInclude(c => c.User)
+                .Include(p => p.Promotions)
                 .AsNoTracking()                   // Prevents EF from using cached data
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -125,6 +137,7 @@ namespace Laptop.Controllers
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
 
             var otherProducts = await _context.Products
+                .Include(p => p.Promotions)
                 .AsNoTracking()
                 .Where(p => p.Id != product.Id)
                 .ToListAsync();
@@ -272,9 +285,10 @@ namespace Laptop.Controllers
                 return NotFound();
             }
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
-            product.TechnicalSpecifications = EnsureSpecificationTemplate(
-                product.TechnicalSpecifications,
-                Product.TechnicalSpecificationsTemplate);
+            if (string.IsNullOrWhiteSpace(product.TechnicalSpecifications))
+            {
+                product.TechnicalSpecifications = Product.TechnicalSpecificationsTemplate;
+            }
             return View(product);
         }
 
@@ -289,12 +303,10 @@ namespace Laptop.Controllers
             }
 
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
-            product.TechnicalSpecifications = EnsureSpecificationTemplate(
-                product.TechnicalSpecifications,
-                Product.TechnicalSpecificationsTemplate);
 
             var existingProduct = await _context.Products
                 .Include(p => p.ProductImages)
+                .Include(p => p.ProductFeatures)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (existingProduct == null)

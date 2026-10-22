@@ -19,6 +19,7 @@ namespace Laptop.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<ProductPromotion> ProductPromotions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -79,6 +80,15 @@ namespace Laptop.Data
                 .WithMany(o => o.Items)
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Product>()
+                .HasMany(product => product.Promotions)
+                .WithOne(promotion => promotion.Product)
+                .HasForeignKey(promotion => promotion.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductPromotion>()
+                .HasIndex(promotion => promotion.ProductId);
         }
     }
 }

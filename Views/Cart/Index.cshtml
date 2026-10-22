@@ -35,6 +35,7 @@
             @foreach (var item in items)
             {
                 var itemTotal = Formatter.ToDisplayAmount(item) * item.Quantity;
+                var itemDiscountPercent = item.PromotionDiscountPercent ?? 0m;
 
                 <div class="cart-item clickable-item"
                      data-cart-item-id="@item.Id"
@@ -52,7 +53,11 @@
 
                     <div class="cart-item-info">
                         <h4>@item.Title</h4>
-                        <p class="price">@Formatter.Format(item)</p>
+                        <p class="price cart-item-price">
+                            <del class="cart-base-price" style="@(itemDiscountPercent > 0 ? "" : "display:none;")">@Formatter.Format(item.Price, item.Currency)</del>
+                            <strong class="cart-current-price">@Formatter.Format(item)</strong>
+                            <span class="product-sale-badge cart-discount-badge" style="@(itemDiscountPercent > 0 ? "" : "display:none;")">@L["PromotionPercentOff", itemDiscountPercent.ToString("0.##")]</span>
+                        </p>
 
                         <div class="quantity">
                             <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Decrease')">-</button>
@@ -157,6 +162,18 @@
                     if (itemElement) {
                         itemElement.querySelector('.item-quantity').textContent = data.quantity;
                         itemElement.querySelector('.item-total').textContent = data.itemTotalFormatted;
+                        const currentPrice = itemElement.querySelector('.cart-current-price');
+                        const basePrice = itemElement.querySelector('.cart-base-price');
+                        const discountBadge = itemElement.querySelector('.cart-discount-badge');
+                        if (currentPrice) currentPrice.textContent = data.itemPriceFormatted;
+                        if (basePrice) {
+                            basePrice.textContent = data.itemBasePriceFormatted;
+                            basePrice.style.display = data.itemDiscountPercent > 0 ? '' : 'none';
+                        }
+                        if (discountBadge) {
+                            discountBadge.textContent = data.itemDiscountLabel;
+                            discountBadge.style.display = data.itemDiscountPercent > 0 ? '' : 'none';
+                        }
                     }
                 }
 

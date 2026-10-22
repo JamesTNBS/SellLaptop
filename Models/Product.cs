@@ -59,7 +59,6 @@ namespace Laptop.Models
             Graphics card type:
             Operating system upon release:
             CPU type:
-            Recommended use:
 
             RAM
             RAM capacity:
@@ -123,5 +122,6 @@ namespace Laptop.Models
         public List<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
         public List<ProductFeature> ProductFeatures { get; set; } = new List<ProductFeature>();
         public List<Comment> Comments { get; set; } = new List<Comment>();
+        public List<ProductPromotion> Promotions { get; set; } = new();
     }
 }

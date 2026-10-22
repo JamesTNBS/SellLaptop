@@ -1,0 +1,169 @@
+@model Laptop.Models.PromotionManagementViewModel
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var now = DateTimeOffset.UtcNow;
+    var vietnamTime = TimeSpan.FromHours(7);
+    var editing = Model.Form.Id.HasValue;
+}
+
+<style>
+    .promotion-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .promotion-field { display:grid; gap:7px; }
+    .promotion-field label { font-weight:700; color:#43305f; }
+    .promotion-field input, .promotion-field select { width:100%; min-height:42px; box-sizing:border-box; padding:9px 11px; border:1px solid #d7d0e5; border-radius:9px; background:#fff; color:#222; font:inherit; }
+    .promotion-field-full { grid-column:1/-1; }
+    .promotion-checks { display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+    .promotion-checks label { display:inline-flex; align-items:center; gap:8px; font-weight:600; }
+    .promotion-checks input { accent-color:#7348d9; width:17px; height:17px; }
+    .promotion-submit { border:0; border-radius:9px; padding:11px 17px; background:#7348d9; color:#fff; font-weight:700; cursor:pointer; }
+    .promotion-submit:hover { background:#5a37b1; }
+    .promotion-cancel { margin-left:8px; color:#7348d9; font-weight:700; text-decoration:none; }
+    .promotion-status { display:inline-flex; border-radius:999px; padding:4px 10px; background:#f1ecff; color:#5f3ab0; font-size:12px; font-weight:700; white-space:nowrap; }
+    .promotion-status.active { background:#e6f4ea; color:#22723b; }
+    .promotion-status.expired { background:#eee; color:#555; }
+    .promotion-actions { display:flex; gap:8px; align-items:center; }
+    .promotion-actions a { color:#7348d9; font-weight:700; text-decoration:none; }
+    .promotion-actions button { white-space:nowrap; }
+    .promotion-help { margin:0; color:#666; line-height:1.5; }
+    .promotion-error { color:#a51d2d; font-size:13px; font-weight:600; }
+    .promotion-field label { color:#33254d; }
+    .promotion-field input, .promotion-field select { background:#fff; border-color:#c9bfda; color:#241a36; }
+    .promotion-field input:focus, .promotion-field select:focus { outline:3px solid rgba(115,72,217,.2); border-color:#7348d9; }
+    .promotion-help { color:#514a5e; }
+    @@media(max-width:760px) { .promotion-form-grid { grid-template-columns:1fr; } .promotion-field-full { grid-column:auto; } }
+</style>
+
+<h1><i class="fas fa-tags" style="color:#7348d9;"></i> @L["PromotionManagement"]</h1>
+<p class="promotion-help">@L["PromotionManagementHelp"]</p>
+
+@if (TempData["PromotionMessage"] is string message)
+{
+    <div class="admin-section" style="padding:12px 16px; color:#22723b;">@message</div>
+}
+
+<section class="admin-section">
+    <h2 style="margin:0 0 16px; color:#7348d9;">@(editing ? L["EditPromotion"] : L["NewPromotion"])</h2>
+
+    <form asp-action="SavePromotion" method="post">
+        @Html.AntiForgeryToken()
+        <input asp-for="Form.Id" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="promotion-error"></div>
+
+        <div class="promotion-form-grid">
+            <div class="promotion-field">
+                <label asp-for="Form.ProductId">@L["PromotionProduct"]</label>
+                <select asp-for="Form.ProductId">
+                    <option value="">@L["ChoosePromotionProduct"]</option>
+                    @foreach (var product in Model.Products)
+                    {
+                        <option value="@product.Id">@product.Title (@Formatter.Format(product))</option>
+                    }
+                </select>
+                <span asp-validation-for="Form.ProductId" class="promotion-error"></span>
+            </div>
+
+            <div class="promotion-field">
+                <label asp-for="Form.DiscountPercent">@L["DiscountPercent"]</label>
+                <input asp-for="Form.DiscountPercent" type="number" min="1" max="90" step="0.01" />
+                <span asp-validation-for="Form.DiscountPercent" class="promotion-error"></span>
+            </div>
+
+            <div class="promotion-field">
+                <label asp-for="Form.StartsAtLocal">@L["PromotionStartsAt"]</label>
+                <input asp-for="Form.StartsAtLocal" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                <span asp-validation-for="Form.StartsAtLocal" class="promotion-error"></span>
+            </div>
+
+            <div class="promotion-field">
+                <label asp-for="Form.EndsAtLocal">@L["PromotionEndsAt"]</label>
+                <input asp-for="Form.EndsAtLocal" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                <span asp-validation-for="Form.EndsAtLocal" class="promotion-error"></span>
+            </div>
+
+            <div class="promotion-field promotion-field-full">
+                <p class="promotion-help"><i class="fas fa-clock"></i> @L["PromotionTimeZoneHelp"]</p>
+                <div class="promotion-checks">
+                    <label><input asp-for="Form.IsActive" /> @L["PromotionActive"]</label>
+                    <label><input asp-for="Form.IsFeatured" /> @L["PromotionFeatured"]</label>
+                </div>
+                <p class="promotion-help">@L["PromotionFeaturedHelp"]</p>
+            </div>
+
+            <div class="promotion-field promotion-field-full">
+                <button type="submit" class="promotion-submit"><i class="fas fa-save"></i> @L["SavePromotion"]</button>
+                @if (editing)
+                {
+                    <a asp-action="Promotions" class="promotion-cancel">@L["CancelEditPromotion"]</a>
+                }
+            </div>
+        </div>
+    </form>
+</section>
+
+<section class="admin-section">
+    <div class="admin-toolbar">
+        <h2 style="margin:0; color:#7348d9;">@L["PromotionList"]</h2>
+        <span class="admin-pill">@L["PromotionCount", Model.Promotions.Count]</span>
+    </div>
+
+    @if (Model.Promotions.Count == 0)
+    {
+        <p class="promotion-help">@L["NoPromotionsYet"]</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>@L["PromotionProduct"]</th>
+                    <th>@L["DiscountPercent"]</th>
+                    <th>@L["PromotionSchedule"]</th>
+                    <th>@L["PromotionStatus"]</th>
+                    <th>@L["PromotionFeatured"]</th>
+                    <th>@L["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var promotion in Model.Promotions)
+                {
+                    var state = !promotion.IsActive
+                        ? L["PromotionPaused"].Value
+                        : promotion.StartsAtUtc > now
+                            ? L["PromotionScheduled"].Value
+                            : promotion.EndsAtUtc <= now
+                                ? L["PromotionExpired"].Value
+                                : L["PromotionRunning"].Value;
+                    var stateClass = promotion.IsActive && promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now
+                        ? "active"
+                        : promotion.EndsAtUtc <= now ? "expired" : string.Empty;
+                    <tr>
+                        <td>
+                            <strong>@promotion.Product.Title</strong><br />
+                            <span class="admin-muted">@Formatter.Format(promotion.Product)</span>
+                        </td>
+                        <td><strong>-@promotion.DiscountPercent.ToString("0.##")%</strong></td>
+                        <td>
+                            @promotion.StartsAtUtc.ToOffset(vietnamTime).ToString("dd/MM/yyyy HH:mm")<br />
+                            <span class="admin-muted">→ @promotion.EndsAtUtc.ToOffset(vietnamTime).ToString("dd/MM/yyyy HH:mm")</span>
+                        </td>
+                        <td><span class="promotion-status @stateClass">@state</span></td>
+                        <td>@(promotion.IsFeatured ? L["Yes"].Value : L["No"].Value)</td>
+                        <td>
+                            <div class="promotion-actions">
+                                <a asp-action="Promotions" asp-route-editId="@promotion.Id"><i class="fas fa-edit"></i> @L["Edit"]</a>
+                                <form asp-action="DeletePromotion" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@promotion.Id" />
+                                    <button type="submit" class="admin-danger" onclick="return confirm('@L["PromotionDeleteConfirm"]');">
+                                        <i class="fas fa-trash"></i> @L["Delete"]
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>

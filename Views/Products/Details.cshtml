@@ -44,6 +44,7 @@
 
     var currentRole = ViewBag.Role?.ToString() ?? "";
     var currentUserIdValue = ViewBag.UserId is int userId ? userId : 0;
+    var detailDiscountPercent = Formatter.GetActiveDiscountPercent(Model);
 
     var specificationLabelPrefix = L["Specification"].Value;
     var specificationLines = (Model.Features ?? string.Empty)
@@ -134,7 +135,18 @@
             <h1>@Model.Title</h1>
 
             <div class="price">
-                @Formatter.Format(Model)
+                @if (detailDiscountPercent > 0)
+                {
+                    <div class="sale-price-stack">
+                        <span class="product-sale-badge">@L["PromotionPercentOff", detailDiscountPercent.ToString("0.##")]</span>
+                        <del>@Formatter.Format(Model.Price, Model.Currency)</del>
+                        <strong>@Formatter.Format(Model)</strong>
+                    </div>
+                }
+                else
+                {
+                    @Formatter.Format(Model)
+                }
             </div>
 
             @if (specificationLines.Count > 0 || technicalSpecificationLines.Count > 0)
@@ -168,7 +180,18 @@
         </div>
 
         <div class="buy-box">
-            <h2>@Formatter.Format(Model)</h2>
+            @if (detailDiscountPercent > 0)
+            {
+                <div class="sale-price-stack">
+                    <span class="product-sale-badge">@L["PromotionPercentOff", detailDiscountPercent.ToString("0.##")]</span>
+                    <del>@Formatter.Format(Model.Price, Model.Currency)</del>
+                    <h2>@Formatter.Format(Model)</h2>
+                </div>
+            }
+            else
+            {
+                <h2>@Formatter.Format(Model)</h2>
+            }
 
             <p class="stock">✔ @L["InStock"]</p>
 
@@ -235,6 +258,10 @@
                                     <h3>@item.Title</h3>
                                     <p class="recommendation-model">@item.Model</p>
                                     <p class="recommendation-price">@Formatter.Format(item)</p>
+                                    @if (Formatter.GetActiveDiscountPercent(item) is var usedDiscount && usedDiscount > 0)
+                                    {
+                                        <span class="product-sale-badge">@L["PromotionPercentOff", usedDiscount.ToString("0.##")]</span>
+                                    }
                                 </div>
                                 </a>
                             </div>
@@ -264,6 +291,10 @@
                                     <h3>@item.Title</h3>
                                     <p class="recommendation-model">@item.Model</p>
                                     <p class="recommendation-price">@Formatter.Format(item)</p>
+                                    @if (Formatter.GetActiveDiscountPercent(item) is var similarDiscount && similarDiscount > 0)
+                                    {
+                                        <span class="product-sale-badge">@L["PromotionPercentOff", similarDiscount.ToString("0.##")]</span>
+                                    }
                                 </div>
                                 </a>
                             </div>

@@ -20,5 +20,8 @@ namespace Laptop.Models
 
         [ForeignKey("ProductId")]
         public Product Product { get; set; } = null!;
+
+        [NotMapped]
+        public decimal? PromotionDiscountPercent { get; set; }
     }
 }
