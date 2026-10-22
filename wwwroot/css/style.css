@@ -4970,3 +4970,50 @@ body.light .checkout-price .sale-price-line strong { color:#6339c6; }
     .promo-slide.is-active { animation: none; }
     .promo-carousel-controls button { transition: none; }
 }
+
+/* Keep sorting and the full filter control together on portrait phones. */
+.shop-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.shop-filter-trigger { margin-left: 0; }
+@media (max-width: 640px) {
+    .shop-toolbar-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+    }
+    .shop-toolbar-actions .sort-section {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-width: 0;
+        width: 100%;
+    }
+    .shop-toolbar-actions .sort-section label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    .shop-toolbar-actions .sort-section select {
+        min-width: 0;
+        width: 100%;
+        min-height: 44px;
+        padding: 8px 12px;
+    }
+    .shop-toolbar-actions .shop-filter-trigger {
+        min-height: 44px;
+        margin: 0;
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+}
