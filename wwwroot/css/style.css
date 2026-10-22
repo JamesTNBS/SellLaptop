@@ -4757,8 +4757,16 @@ body.light .sale-price-stack > strong,
 body.light .sale-price-stack > h2 { color:#6339c6; }
 .buy-box .sale-price-stack { justify-content:center; margin:0 0 14px; }
 .buy-box .sale-price-stack > h2 { margin:0; padding:0; border:0; font-size:1.7rem; }
-.cart-item-price { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
+.cart-item-price { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.cart-sale-price-line { justify-content:center; gap:8px; }
+.cart-item-price .cart-current-price { color:#d7a8ff; }
+body.light .cart-item-price .cart-current-price { color:#6339c6; }
 .cart-item-price del { color:#8a8495; font-size:.9rem; }
+.checkout-price { display:grid; justify-items:start; gap:3px; opacity:.78; }
+.checkout-price .sale-price-line { gap:8px; }
+.checkout-price .sale-price-line strong { color:#d7a8ff; }
+body.light .checkout-price .sale-price-line strong { color:#6339c6; }
+.checkout-price del { color:#8a8495; font-size:.9rem; }
 @keyframes promo-slide-in { from { opacity: .35; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 720px) {
     .promo-carousel { padding: 12px; }

@@ -267,18 +267,20 @@
                     <img src="@ResolveProductImage(item.Image)" alt="@item.Title" />
                     <div>
                         <div style="font-weight:700;">@item.Title</div>
-                        <div style="opacity:.78;">
+                        <div class="checkout-price">
                             @if (itemDiscountPercent > 0)
                             {
+                                <div class="sale-price-line">
+                                    <strong>@Formatter.Format(item)</strong>
+                                    <span class="product-sale-badge">@L["PromotionPercentOff", itemDiscountPercent.ToString("0.##")]</span>
+                                </div>
                                 <del>@Formatter.Format(item.Price, item.Currency)</del>
-                                <strong>@Formatter.Format(item)</strong>
-                                <span class="product-sale-badge">@L["PromotionPercentOff", itemDiscountPercent.ToString("0.##")]</span>
                             }
                             else
                             {
                                 @Formatter.Format(item)
                             }
-                            x @item.Quantity
+                            <span class="checkout-item-quantity">x @item.Quantity</span>
                         </div>
                     </div>
                     <strong>@Formatter.FormatDisplay(Formatter.ToDisplayAmount(item) * item.Quantity)</strong>
