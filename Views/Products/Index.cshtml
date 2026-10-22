@@ -110,18 +110,20 @@
         <div class="shop-top-bar">
             <div class="results-count">@L["ProductsFound", finalProducts.Count()]</div>
 
-            <div class="sort-section">
-                <label>@L["SortBy"]</label>
-                <select id="sort-select">
-                    <option value="">@L["Featured"]</option>
-                    <option value="price-low" selected="@(sortBy == "price-low")">@L["PriceLowToHigh"]</option>
-                    <option value="price-high" selected="@(sortBy == "price-high")">@L["PriceHighToLow"]</option>
-                    <option value="newest" selected="@(sortBy == "newest")">@L["NewestArrivals"]</option>
-                </select>
+            <div class="shop-toolbar-actions">
+                <div class="sort-section">
+                    <label>@L["SortBy"]</label>
+                    <select id="sort-select" aria-label="@L["SortBy"]">
+                        <option value="">@L["Featured"]</option>
+                        <option value="price-low" selected="@(sortBy == "price-low")">@L["PriceLowToHigh"]</option>
+                        <option value="price-high" selected="@(sortBy == "price-high")">@L["PriceHighToLow"]</option>
+                        <option value="newest" selected="@(sortBy == "newest")">@L["NewestArrivals"]</option>
+                    </select>
+                </div>
+                <button type="button" id="filter-toggle-button" class="shop-filter-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="specification-filter-popup" onclick="openSpecificationFilters()">
+                    <i class="fas fa-sliders-h"></i> @L["Filter"]
+                </button>
             </div>
-            <button type="button" id="filter-toggle-button" class="shop-filter-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="specification-filter-popup" onclick="openSpecificationFilters()">
-                <i class="fas fa-sliders-h"></i> @L["Filter"]
-            </button>
         </div>
 
         <div class="shop-layout" id="shop-layout">
