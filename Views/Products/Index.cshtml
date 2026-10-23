@@ -279,9 +279,12 @@
     };
 
     function updatePriceDisplay(value) {
-        const formattedValue = new Intl.NumberFormat(priceFilterUi.locale, {
+        const localizedNumber = new Intl.NumberFormat(priceFilterUi.locale, {
             maximumFractionDigits: 0
         }).format(Number(value));
+        const formattedValue = priceFilterUi.locale === "en-US"
+            ? localizedNumber.replace(/,/g, ".")
+            : localizedNumber;
         document.getElementById("price-display").textContent = `${priceFilterUi.minimum} - ${formattedValue}${priceFilterUi.currencySuffix}`;
     }
 
