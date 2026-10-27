@@ -274,18 +274,18 @@
 <script>
     const priceFilterUi = {
         locale: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.DisplayCurrency == "VND" ? "vi-VN" : "en-US")),
-        currencySuffix: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.DisplayCurrency == "VND" ? " ₫" : " $")),
-        minimum: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.FormatDisplay(0)))
+        currency: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Formatter.DisplayCurrency))
     };
+    const priceDisplayFormatter = new Intl.NumberFormat(priceFilterUi.locale, {
+        style: "currency",
+        currency: priceFilterUi.currency,
+        maximumFractionDigits: 0
+    });
 
     function updatePriceDisplay(value) {
-        const localizedNumber = new Intl.NumberFormat(priceFilterUi.locale, {
-            maximumFractionDigits: 0
-        }).format(Number(value));
-        const formattedValue = priceFilterUi.locale === "en-US"
-            ? localizedNumber.replace(/,/g, ".")
-            : localizedNumber;
-        document.getElementById("price-display").textContent = `${priceFilterUi.minimum} - ${formattedValue}${priceFilterUi.currencySuffix}`;
+        const formattedMinimum = priceDisplayFormatter.format(0);
+        const formattedMaximum = priceDisplayFormatter.format(Number(value));
+        document.getElementById("price-display").textContent = `${formattedMinimum} - ${formattedMaximum}`;
     }
 
     let filterRefreshTimer;

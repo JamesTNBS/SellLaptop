@@ -41,8 +41,7 @@ public sealed class StorefrontFormatter
             return $"{Math.Round(displayAmount, 0).ToString("N0", vietnamese)} ₫";
         }
 
-        // The shop uses dots for both grouping and decimal separators on its English storefront.
-        return displayAmount.ToString("C", CultureInfo.GetCultureInfo("en-US")).Replace(',', '.');
+        return displayAmount.ToString("C", CultureInfo.GetCultureInfo("en-US"));
     }
 
     public decimal GetActiveDiscountPercent(Product item)
