@@ -253,7 +253,11 @@
                 </div>
             </div>
 
-            <button type="submit" class="checkout-submit">@L["PlaceOrder"]</button>
+            @if (Model.Items.Any(item => item.Quantity > item.AvailableStock))
+            {
+                <p class="out-of-stock">@L["CartQuantityExceedsStock", Model.Items.First(item => item.Quantity > item.AvailableStock).Title]</p>
+            }
+            <button type="submit" class="checkout-submit" disabled="@(Model.Items.Any(item => item.Quantity > item.AvailableStock))">@L["PlaceOrder"]</button>
         </form>
     </section>
 
@@ -283,7 +287,19 @@
                             <span class="checkout-item-quantity">x @item.Quantity</span>
                         </div>
                     </div>
-                    <strong>@Formatter.FormatDisplay(Formatter.ToDisplayAmount(item) * item.Quantity)</strong>
+                        <div>
+                            <small class="checkout-stock-status @(item.AvailableStock > 0 ? "in-stock" : "out-of-stock")">
+                                @if (item.AvailableStock > 0)
+                                {
+                                    @L["AvailableStock", item.AvailableStock]
+                                }
+                                else
+                                {
+                                    @L["OutOfStock"]
+                                }
+                            </small>
+                            <strong>@Formatter.FormatDisplay(Formatter.ToDisplayAmount(item) * item.Quantity)</strong>
+                        </div>
                 </div>
             }
         </div>

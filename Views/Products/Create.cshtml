@@ -28,6 +28,12 @@
             </div>
 
             <div class="form-group">
+                <label asp-for="StockQuantity">@L["InitialStockQuantity"] <span style="color:red;">*</span></label>
+                <input asp-for="StockQuantity" type="number" class="form-control" min="1" step="1" required />
+                <span asp-validation-for="StockQuantity" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
                 <label>@L["Currency"] <span style="color:red;">*</span></label>
                 <select asp-for="Currency" class="form-control">
                     <option value="USD">USD ($)</option>

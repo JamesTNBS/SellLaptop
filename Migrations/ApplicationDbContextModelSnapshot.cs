@@ -266,6 +266,11 @@ namespace Laptop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("StockQuantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("TechnicalSpecifications")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

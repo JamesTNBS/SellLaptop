@@ -26,6 +26,7 @@
     var maxPrice = decimal.TryParse(Context.Request.Query["maxPrice"], out var maxP) ? maxP : priceLimit;
     var selectedConditions = Context.Request.Query["condition"].ToList();
     var selectedBrands = Context.Request.Query["brand"].ToList();
+    var inStockOnly = bool.TryParse(Context.Request.Query["inStock"].ToString(), out var parsedInStock) && parsedInStock;
     var sortBy = Context.Request.Query["sort"].ToString().ToLower();
     var specificationFilterGroups = new (string Key, string Label, string[] Options)[]
     {
@@ -210,12 +211,30 @@
                                         }
                                     </div>
                                     <div class="seller">@L["Seller"]: @product.Seller</div>
+                                    <div class="product-stock-status @(product.StockQuantity > 0 ? "in-stock" : "out-of-stock")">
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            @L["InStock"]
+                                        }
+                                        else
+                                        {
+                                            @L["OutOfStock"]
+                                        }
+                                    </div>
 
                                     <div class="product-actions">
                                         <button type="button"
                                                 onclick="addToCart(@product.Id, event);"
-                                                class="add-to-cart-btn">
-                                            <i class="fas fa-cart-plus"></i> @L["AddToCart"]
+                                                class="add-to-cart-btn"
+                                                disabled="@(product.StockQuantity <= 0)">
+                                            @if (product.StockQuantity > 0)
+                                            {
+                                                <i class="fas fa-cart-plus"></i> @L["AddToCart"]
+                                            }
+                                            else
+                                            {
+                                                @L["OutOfStock"]
+                                            }
                                         </button>
 
                                         @if (ViewBag.Role == "Admin")
@@ -246,6 +265,13 @@
                 </header>
                 <div class="spec-filter-content">
                     <div class="shop-filter-groups">
+                    <section class="shop-filter-category">
+                        <h3>@L["FilterAvailability"]</h3>
+                        <label class="shop-filter-option">
+                            <input class="filter-control" type="checkbox" name="inStock" value="true" @(inStockOnly ? "checked" : "") />
+                            @L["FilterInStockOnly"]
+                        </label>
+                    </section>
                 @foreach (var group in specificationFilterGroups)
                 {
                     <section class="shop-filter-category">

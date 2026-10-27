@@ -22,6 +22,7 @@
     .promotion-status { display:inline-flex; border-radius:999px; padding:4px 10px; background:#f1ecff; color:#5f3ab0; font-size:12px; font-weight:700; white-space:nowrap; }
     .promotion-status.active { background:#e6f4ea; color:#22723b; }
     .promotion-status.expired { background:#eee; color:#555; }
+    .promotion-status.out-of-stock { background:#fff1e6; color:#a95300; }
     .promotion-actions { display:flex; gap:8px; align-items:center; }
     .promotion-actions a { color:#7348d9; font-weight:700; text-decoration:none; }
     .promotion-actions button { white-space:nowrap; }
@@ -127,16 +128,21 @@
             <tbody>
                 @foreach (var promotion in Model.Promotions)
                 {
+                    var isRunning = promotion.IsActive && promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now;
+                    var productOutOfStock = promotion.Product.StockQuantity <= 0;
                     var state = !promotion.IsActive
                         ? L["PromotionPaused"].Value
                         : promotion.StartsAtUtc > now
                             ? L["PromotionScheduled"].Value
                             : promotion.EndsAtUtc <= now
                                 ? L["PromotionExpired"].Value
-                                : L["PromotionRunning"].Value;
-                    var stateClass = promotion.IsActive && promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now
-                        ? "active"
-                        : promotion.EndsAtUtc <= now ? "expired" : string.Empty;
+                                : productOutOfStock
+                                    ? L["PromotionHiddenOutOfStock"].Value
+                                    : L["PromotionRunning"].Value;
+                    var stateClass = isRunning && productOutOfStock
+                        ? "out-of-stock"
+                        : isRunning ? "active"
+                            : promotion.EndsAtUtc <= now ? "expired" : string.Empty;
                     <tr>
                         <td>
                             <strong>@promotion.Product.Title</strong><br />

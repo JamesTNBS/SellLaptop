@@ -22,6 +22,9 @@ namespace Laptop.Models
         public Product Product { get; set; } = null!;
 
         [NotMapped]
+        public int AvailableStock { get; set; }
+
+        [NotMapped]
         public decimal? PromotionDiscountPercent { get; set; }
     }
 }

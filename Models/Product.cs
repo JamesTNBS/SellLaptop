@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Laptop.Models
 {
@@ -19,6 +19,10 @@ namespace Laptop.Models
         [Required]
         [Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
+
+        [Range(0, int.MaxValue)]
+        [Display(Name = "Stock quantity")]
+        public int StockQuantity { get; set; } = 0;
 
         [Required]
         [StringLength(3)]

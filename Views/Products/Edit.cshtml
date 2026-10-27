@@ -24,6 +24,13 @@
         </div>
 
         <div class="edit-group">
+            <label>@L["StockQuantity"]</label>
+            <input asp-for="StockQuantity" type="number" min="0" step="1" required />
+            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+            <small>@L["StockQuantityHelp"]</small>
+        </div>
+
+        <div class="edit-group">
             <label>@L["Specifications"]</label>
             <textarea asp-for="Specifications" rows="12" placeholder="@L["SpecificationsPlaceholder"]"></textarea>
         </div>

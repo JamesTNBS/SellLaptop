@@ -193,13 +193,20 @@
                 <h2>@Formatter.Format(Model)</h2>
             }
 
-            <p class="stock">✔ @L["InStock"]</p>
+            @if (Model.StockQuantity > 0)
+            {
+                <p class="stock">✔ @L["AvailableStock", Model.StockQuantity]</p>
+            }
+            else
+            {
+                <p class="stock out-of-stock">@L["OutOfStock"]</p>
+            }
 
-            <button type="button" class="btn-cart" onclick="addToCart(@Model.Id)">
+            <button type="button" class="btn-cart" onclick="addToCart(@Model.Id)" disabled="@(Model.StockQuantity <= 0)">
                 <i class="fas fa-cart-plus"></i> @L["AddToCart"]
             </button>
 
-            <button type="button" class="btn-buy" onclick="buyNow(@Model.Id)">
+            <button type="button" class="btn-buy" onclick="buyNow(@Model.Id)" disabled="@(Model.StockQuantity <= 0)">
                 @L["BuyNow"]
             </button>
 

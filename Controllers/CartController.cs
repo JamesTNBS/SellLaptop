@@ -76,6 +76,12 @@ namespace Laptop.Controllers
             var existingItem = _context.CartItems
                 .FirstOrDefault(c => c.ProductId == productId && c.Username == username);
 
+            var requestedQuantity = (existingItem?.Quantity ?? 0) + 1;
+            if (requestedQuantity > product.StockQuantity)
+            {
+                return Json(new { success = false, message = string.Format(_localizer["InsufficientStock"].Value, product.StockQuantity), availableStock = product.StockQuantity });
+            }
+
             if (existingItem != null)
             {
                 existingItem.Quantity++;
@@ -126,6 +132,12 @@ namespace Laptop.Controllers
             if (item == null)
             {
                 return Json(new { success = false, message = _localizer["CartItemNotFound"].Value });
+            }
+
+            var availableStock = _context.Products.Where(p => p.Id == item.ProductId).Select(p => (int?)p.StockQuantity).FirstOrDefault() ?? 0;
+            if (item.Quantity + 1 > availableStock)
+            {
+                return Json(new { success = false, message = string.Format(_localizer["InsufficientStock"].Value, availableStock), availableStock });
             }
 
             item.Quantity++;
@@ -215,6 +227,21 @@ namespace Laptop.Controllers
                 return View("Checkout", model);
             }
 
+            using var transaction = _context.Database.BeginTransaction();
+            foreach (var itemGroup in items.GroupBy(item => item.ProductId))
+            {
+                var quantity = itemGroup.Sum(item => item.Quantity);
+                var updated = _context.Products
+                    .Where(product => product.Id == itemGroup.Key && product.StockQuantity >= quantity)
+                    .ExecuteUpdate(setters => setters.SetProperty(product => product.StockQuantity, product => product.StockQuantity - quantity));
+                if (updated != 1)
+                {
+                    transaction.Rollback();
+                    TempData["CheckoutError"] = string.Format(_localizer["StockChangedDuringCheckout"].Value, itemGroup.First().Title);
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
             var order = new Order
             {
                 UserId = userId.Value,
@@ -252,6 +279,7 @@ namespace Laptop.Controllers
             var trackedItems = _context.CartItems.Where(x => x.Username == username).ToList();
             _context.CartItems.RemoveRange(trackedItems);
             _context.SaveChanges();
+            transaction.Commit();
 
             TempData["OrderId"] = order.Id;
 
@@ -352,7 +380,9 @@ namespace Laptop.Controllers
                 return Json(new { success = false, requireLogin = true });
             }
 
+            using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
             var order = _context.Orders
+                .Include(o => o.Items)
                 .FirstOrDefault(o => o.Id == id && o.UserId == userId.Value && o.Username == username);
 
             if (order == null)
@@ -365,8 +395,14 @@ namespace Laptop.Controllers
                 return Json(new { success = false, message = string.Format(_localizer["OrderAlreadyStatus"].Value, _formatter.TranslateOrderStatus(order.Status)) });
             }
 
+            foreach (var item in order.Items)
+            {
+                _context.Products.Where(product => product.Id == item.ProductId)
+                    .ExecuteUpdate(setters => setters.SetProperty(product => product.StockQuantity, product => product.StockQuantity + item.Quantity));
+            }
             order.Status = "Cancelled";
             _context.SaveChanges();
+            transaction.Commit();
 
             return Json(new
             {
@@ -387,6 +423,8 @@ namespace Laptop.Controllers
 
             var itemCount = cartItems.Sum(c => c.Quantity);
             var subtotal = cartItems.Sum(c => _formatter.ToDisplayAmount(c) * c.Quantity);
+            var availableStock = _context.Products.Where(product => product.Id == item.ProductId)
+                .Select(product => (int?)product.StockQuantity).FirstOrDefault() ?? 0;
 
             return new
             {
@@ -394,6 +432,7 @@ namespace Laptop.Controllers
                 removed,
                 itemId = item.Id,
                 quantity = removed ? 0 : item.Quantity,
+                availableStock,
                 itemTotal = removed ? 0 : _formatter.ToDisplayAmount(pricedItem) * pricedItem.Quantity,
                 itemTotalFormatted = removed ? _formatter.FormatDisplay(0) : _formatter.FormatDisplay(_formatter.ToDisplayAmount(pricedItem) * pricedItem.Quantity),
                 itemPriceFormatted = removed ? string.Empty : _formatter.Format(pricedItem),
@@ -420,8 +459,12 @@ namespace Laptop.Controllers
             ApplyPromotionPricing(items);
 
             var currentImages = GetCurrentProductImages(items.Select(i => i.ProductId));
+            var stockByProduct = _context.Products.AsNoTracking()
+                .Where(product => items.Select(item => item.ProductId).Contains(product.Id))
+                .ToDictionary(product => product.Id, product => product.StockQuantity);
             foreach (var item in items)
             {
+                item.AvailableStock = stockByProduct.GetValueOrDefault(item.ProductId);
                 if (currentImages.TryGetValue(item.ProductId, out var currentImage) &&
                     !string.IsNullOrWhiteSpace(currentImage))
                 {

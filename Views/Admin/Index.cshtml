@@ -20,6 +20,7 @@
     var recentOrders = ViewBag.RecentOrders as List<Order> ?? new List<Order>();
     var recentComments = ViewBag.RecentComments as List<Comment> ?? new List<Comment>();
     var newestProducts = ViewBag.NewestProducts as List<Product> ?? new List<Product>();
+    var outOfStockProducts = ViewBag.OutOfStockProducts as List<Product> ?? new List<Product>();
     var orderStatusCounts = ViewBag.OrderStatusCounts as Dictionary<string, int> ?? new Dictionary<string, int>();
     var revenueByDay = ViewBag.RevenueByDay as List<KeyValuePair<string, decimal>> ?? new List<KeyValuePair<string, decimal>>();
     var topProducts = ViewBag.TopProducts as Dictionary<string, int> ?? new Dictionary<string, int>();
@@ -248,6 +249,10 @@
         <div class="dashboard-label">@L["TotalProducts"]</div>
         <div class="dashboard-value">@ViewBag.TotalProducts</div>
     </div>
+    <div class="dashboard-card" style="border-left:4px solid #d9363e;">
+        <div class="dashboard-label">@L["OutOfStockProducts"]</div>
+        <div class="dashboard-value">@ViewBag.OutOfStockProductCount</div>
+    </div>
     <div class="dashboard-card">
         <div class="dashboard-label">@L["TotalOrders"]</div>
         <div class="dashboard-value">@ViewBag.TotalOrders</div>
@@ -396,6 +401,33 @@
                             <div class="dashboard-meta">@product.Model • @Formatter.TranslateCondition(product.Condition)</div>
                         </div>
                         <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="dashboard-link">@Formatter.Format(product)</a>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="admin-section">
+        <div class="admin-toolbar">
+            <h2 style="margin:0;">@L["OutOfStockProducts"]</h2>
+            <a asp-controller="Products" asp-action="Index" class="dashboard-link">@L["ManageProducts"]</a>
+        </div>
+
+        @if (!outOfStockProducts.Any())
+        {
+            <p class="admin-muted">@L["AllProductsInStock"]</p>
+        }
+        else
+        {
+            <div class="dashboard-list">
+                @foreach (var product in outOfStockProducts)
+                {
+                    <div class="dashboard-item">
+                        <div>
+                            <div class="dashboard-title">@product.Title</div>
+                            <div class="dashboard-meta">@product.Model • @L["OutOfStock"]</div>
+                        </div>
+                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" class="dashboard-link">@L["Edit"]</a>
                     </div>
                 }
             </div>
