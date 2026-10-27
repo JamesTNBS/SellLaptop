@@ -34,7 +34,10 @@ WHERE dc.[parent_object_id] = OBJECT_ID(N'dbo.Products')
 
 IF @DefaultConstraint IS NOT NULL
 BEGIN
-    EXEC(N'ALTER TABLE [dbo].[Products] DROP CONSTRAINT ' + QUOTENAME(@DefaultConstraint) + N';');
+    DECLARE @DropDefaultConstraintSql nvarchar(4000);
+    SET @DropDefaultConstraintSql =
+        N'ALTER TABLE [dbo].[Products] DROP CONSTRAINT ' + QUOTENAME(@DefaultConstraint) + N';';
+    EXEC sys.sp_executesql @DropDefaultConstraintSql;
 END;
 
 ALTER TABLE [dbo].[Products]
