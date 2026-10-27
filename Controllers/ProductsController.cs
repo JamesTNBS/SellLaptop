@@ -146,7 +146,7 @@ namespace Laptop.Controllers
             var otherProducts = await _context.Products
                 .Include(p => p.Promotions)
                 .AsNoTracking()
-                .Where(p => p.Id != product.Id)
+                .Where(p => p.Id != product.Id && p.StockQuantity > 0)
                 .ToListAsync();
 
             ViewBag.UsedRecommendations = otherProducts
