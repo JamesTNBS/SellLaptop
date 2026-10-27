@@ -53,6 +53,16 @@
 
                     <div class="cart-item-info">
                         <h4>@item.Title</h4>
+                        <p class="cart-stock-status @(item.AvailableStock > 0 ? "in-stock" : "out-of-stock")">
+                            @if (item.AvailableStock > 0)
+                            {
+                                @L["AvailableStock", item.AvailableStock]
+                            }
+                            else
+                            {
+                                @L["OutOfStock"]
+                            }
+                        </p>
                         <div class="price cart-item-price">
                             <div class="sale-price-line cart-sale-price-line">
                                 <strong class="cart-current-price">@Formatter.Format(item)</strong>
@@ -64,7 +74,7 @@
                         <div class="quantity">
                             <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Decrease')">-</button>
                             <span class="item-quantity">@item.Quantity</span>
-                            <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Increase')">+</button>
+                            <button type="button" class="qty-btn" onclick="event.stopPropagation(); updateCartItem(@item.Id, 'Increase')" disabled="@(item.Quantity >= item.AvailableStock)">+</button>
                         </div>
 
                         <p class="subtotal">@L["ItemTotal"]: <span class="item-total">@Formatter.FormatDisplay(itemTotal)</span></p>
@@ -95,9 +105,20 @@
                 <strong id="cart-total">@Formatter.FormatDisplay(subtotal)</strong>
             </div>
 
-            <a asp-action="Checkout" class="checkout-btn" style="display:block; text-align:center; text-decoration:none;">
-                @L["ProceedToCheckout"]
-            </a>
+            @if (items.Any(item => item.Quantity > item.AvailableStock))
+            {
+                <p class="out-of-stock cart-checkout-warning">@L["CartQuantityExceedsStock", items.First(item => item.Quantity > item.AvailableStock).Title]</p>
+            }
+            @if (items.Any(item => item.Quantity > item.AvailableStock))
+            {
+                <button type="button" class="checkout-btn" disabled>@L["ProceedToCheckout"]</button>
+            }
+            else
+            {
+                <a asp-action="Checkout" class="checkout-btn" style="display:block; text-align:center; text-decoration:none;">
+                    @L["ProceedToCheckout"]
+                </a>
+            }
         </div>
     </div>
 
@@ -163,6 +184,8 @@
                     const itemElement = document.querySelector(`[data-cart-item-id='${id}']`);
                     if (itemElement) {
                         itemElement.querySelector('.item-quantity').textContent = data.quantity;
+                        const increaseButton = itemElement.querySelector('.qty-btn:last-child');
+                        if (increaseButton) increaseButton.disabled = data.quantity >= data.availableStock;
                         itemElement.querySelector('.item-total').textContent = data.itemTotalFormatted;
                         const currentPrice = itemElement.querySelector('.cart-current-price');
                         const basePrice = itemElement.querySelector('.cart-base-price');

@@ -15,6 +15,21 @@
   <data name="Condition" xml:space="preserve"><value>Tình trạng</value></data>
   <data name="AddToCart" xml:space="preserve"><value>Thêm vào giỏ</value></data>
   <data name="InStock" xml:space="preserve"><value>Còn hàng</value></data>
+  <data name="FilterAvailability" xml:space="preserve"><value>Tình trạng hàng</value></data>
+  <data name="FilterInStockOnly" xml:space="preserve"><value>Chỉ hiện sản phẩm còn hàng</value></data>
+  <data name="OutOfStock" xml:space="preserve"><value>Hết hàng</value></data>
+  <data name="OutOfStockProducts" xml:space="preserve"><value>Laptop hết hàng</value></data>
+  <data name="AllProductsInStock" xml:space="preserve"><value>Tất cả sản phẩm đều còn hàng.</value></data>
+  <data name="ManageProducts" xml:space="preserve"><value>Quản lý sản phẩm</value></data>
+  <data name="PromotionHiddenOutOfStock" xml:space="preserve"><value>Đang ẩn: hết hàng</value></data>
+  <data name="StockQuantity" xml:space="preserve"><value>Số lượng tồn kho</value></data>
+  <data name="InitialStockQuantity" xml:space="preserve"><value>Số lượng tồn ban đầu</value></data>
+  <data name="StockQuantityAtLeastOne" xml:space="preserve"><value>Khi tạo laptop, vui lòng nhập số lượng từ 1 trở lên.</value></data>
+  <data name="StockQuantityHelp" xml:space="preserve"><value>Sản phẩm mới bắt đầu ở mức 0. Nhập đúng số lượng hiện có; giữ 0 nếu chưa có hàng.</value></data>
+  <data name="InsufficientStock" xml:space="preserve"><value>Hiện chỉ còn {0} sản phẩm trong kho.</value></data>
+  <data name="StockChangedDuringCheckout" xml:space="preserve"><value>Số lượng tồn kho của {0} đã thay đổi trước khi hoàn tất thanh toán. Vui lòng kiểm tra giỏ hàng và thử lại.</value></data>
+  <data name="AvailableStock" xml:space="preserve"><value>Còn lại: {0}</value></data>
+  <data name="CartQuantityExceedsStock" xml:space="preserve"><value>Số lượng {0} trong giỏ vượt quá tồn kho hiện tại. Vui lòng cập nhật trước khi thanh toán.</value></data>
   <data name="Seller" xml:space="preserve"><value>Người bán</value></data>
   <data name="OrderStatus" xml:space="preserve"><value>Trạng thái đơn hàng</value></data>
   <data name="ValidationRequired" xml:space="preserve"><value>Trường này là bắt buộc.</value></data>
@@ -495,4 +510,3 @@
   <data name="PromotionPercentOff" xml:space="preserve"><value>Giảm {0}%</value></data>
   <data name="PromotionTimesRequired" xml:space="preserve"><value>Vui lòng chọn thời gian bắt đầu và kết thúc.</value></data>
 </root>
-

@@ -15,6 +15,21 @@
   <data name="Condition" xml:space="preserve"><value>Condition</value></data>
   <data name="AddToCart" xml:space="preserve"><value>Add to Cart</value></data>
   <data name="InStock" xml:space="preserve"><value>In Stock</value></data>
+  <data name="FilterAvailability" xml:space="preserve"><value>Availability</value></data>
+  <data name="FilterInStockOnly" xml:space="preserve"><value>In stock only</value></data>
+  <data name="OutOfStock" xml:space="preserve"><value>Out of stock</value></data>
+  <data name="OutOfStockProducts" xml:space="preserve"><value>Out-of-stock laptops</value></data>
+  <data name="AllProductsInStock" xml:space="preserve"><value>All products are in stock.</value></data>
+  <data name="ManageProducts" xml:space="preserve"><value>Manage products</value></data>
+  <data name="PromotionHiddenOutOfStock" xml:space="preserve"><value>Hidden: out of stock</value></data>
+  <data name="StockQuantity" xml:space="preserve"><value>Stock quantity</value></data>
+  <data name="InitialStockQuantity" xml:space="preserve"><value>Starting stock quantity</value></data>
+  <data name="StockQuantityAtLeastOne" xml:space="preserve"><value>Enter at least 1 unit when creating a laptop.</value></data>
+  <data name="StockQuantityHelp" xml:space="preserve"><value>New products start at 0. Enter the actual number available; keep 0 if none are available.</value></data>
+  <data name="InsufficientStock" xml:space="preserve"><value>Only {0} unit(s) are currently in stock.</value></data>
+  <data name="StockChangedDuringCheckout" xml:space="preserve"><value>Stock for {0} changed before checkout completed. Please review your cart and try again.</value></data>
+  <data name="AvailableStock" xml:space="preserve"><value>Available: {0}</value></data>
+  <data name="CartQuantityExceedsStock" xml:space="preserve"><value>Your cart quantity for {0} exceeds current stock. Update it before checking out.</value></data>
   <data name="Seller" xml:space="preserve"><value>Seller</value></data>
   <data name="OrderStatus" xml:space="preserve"><value>Order status</value></data>
   <data name="ValidationRequired" xml:space="preserve"><value>This field is required.</value></data>
@@ -495,4 +510,3 @@
   <data name="PromotionPercentOff" xml:space="preserve"><value>{0}% off</value></data>
   <data name="PromotionTimesRequired" xml:space="preserve"><value>Choose both a start time and an end time.</value></data>
 </root>
-

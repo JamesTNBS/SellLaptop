@@ -34,6 +34,12 @@ namespace Laptop.Controllers
 
             ViewBag.TotalUsers = _context.Users.Count();
             ViewBag.TotalProducts = _context.Products.Count();
+            ViewBag.OutOfStockProductCount = _context.Products.Count(p => p.StockQuantity <= 0);
+            ViewBag.OutOfStockProducts = _context.Products
+                .Where(p => p.StockQuantity <= 0)
+                .OrderBy(p => p.Title)
+                .Take(8)
+                .ToList();
             ViewBag.TotalOrders = _context.Orders.Count();
             ViewBag.TotalRevenue = _context.Orders
                 .Where(o => revenueStatuses.Contains(o.Status))
@@ -439,15 +445,44 @@ namespace Laptop.Controllers
                 return RedirectToAction(nameof(Orders));
             }
 
-            var order = _context.Orders.Find(id);
+            using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            var order = _context.Orders.Include(o => o.Items).FirstOrDefault(o => o.Id == id);
             if (order == null)
             {
                 TempData["OrderStatusError"] = _localizer["OrderNotFound"].Value;
                 return RedirectToAction(nameof(Orders));
             }
 
+            var wasCancelled = string.Equals(order.Status, "Cancelled", StringComparison.OrdinalIgnoreCase);
+            var willBeCancelled = string.Equals(status, "Cancelled", StringComparison.OrdinalIgnoreCase);
+            if (!wasCancelled && willBeCancelled && !string.Equals(order.Status, "Delivered", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var item in order.Items)
+                {
+                    _context.Products.Where(product => product.Id == item.ProductId)
+                        .ExecuteUpdate(setters => setters.SetProperty(product => product.StockQuantity, product => product.StockQuantity + item.Quantity));
+                }
+            }
+            else if (wasCancelled && !willBeCancelled)
+            {
+                foreach (var itemGroup in order.Items.GroupBy(item => item.ProductId))
+                {
+                    var quantity = itemGroup.Sum(item => item.Quantity);
+                    var updated = _context.Products
+                        .Where(product => product.Id == itemGroup.Key && product.StockQuantity >= quantity)
+                        .ExecuteUpdate(setters => setters.SetProperty(product => product.StockQuantity, product => product.StockQuantity - quantity));
+                    if (updated != 1)
+                    {
+                        transaction.Rollback();
+                        TempData["OrderStatusError"] = string.Format(_localizer["StockChangedDuringCheckout"].Value, itemGroup.First().Title);
+                        return RedirectToAction(nameof(Orders));
+                    }
+                }
+            }
+
             order.Status = status;
             _context.SaveChanges();
+            transaction.Commit();
 
             TempData["OrderStatusSuccess"] = string.Format(_localizer["OrderUpdatedStatus"].Value, order.Id, status);
             return RedirectToAction(nameof(Orders));
@@ -460,6 +495,7 @@ namespace Laptop.Controllers
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("Index", "Products");
 
+            using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
             var order = _context.Orders
                 .Include(o => o.Items)
                 .FirstOrDefault(o => o.Id == id);
@@ -470,8 +506,18 @@ namespace Laptop.Controllers
                 return RedirectToAction(nameof(Orders), new { search, status, page });
             }
 
+            if (!string.Equals(order.Status, "Cancelled", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(order.Status, "Delivered", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var item in order.Items)
+                {
+                    _context.Products.Where(product => product.Id == item.ProductId)
+                        .ExecuteUpdate(setters => setters.SetProperty(product => product.StockQuantity, product => product.StockQuantity + item.Quantity));
+                }
+            }
             _context.Orders.Remove(order);
             _context.SaveChanges();
+            transaction.Commit();
 
             TempData["OrderStatusSuccess"] = string.Format(_localizer["OrderDeletedSuccess"].Value, id);
             return RedirectToAction(nameof(Orders), new { search, status, page });

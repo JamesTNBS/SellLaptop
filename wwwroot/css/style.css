@@ -5017,3 +5017,36 @@ body.light .checkout-price .sale-price-line strong { color:#6339c6; }
         white-space: nowrap;
     }
 }
+
+.product-stock-status,
+.cart-stock-status,
+.checkout-stock-status {
+    display: block;
+    margin: 6px 0;
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+.product-stock-status.in-stock,
+.cart-stock-status.in-stock,
+.checkout-stock-status.in-stock {
+    color: #36a269;
+}
+
+.product-stock-status.out-of-stock,
+.cart-stock-status.out-of-stock,
+.checkout-stock-status.out-of-stock,
+.cart-checkout-warning {
+    color: #e55353;
+}
+
+.product-actions button:disabled,
+.buy-box button:disabled,
+.quantity .qty-btn:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.cart-checkout-warning {
+    margin: 12px 0;
+}

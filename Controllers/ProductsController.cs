@@ -60,6 +60,12 @@ namespace Laptop.Controllers
                 query = query.Where(p => selectedConditions.Contains(p.Condition));
             }
 
+            var inStockOnly = bool.TryParse(Request.Query["inStock"].ToString(), out var parsedInStock) && parsedInStock;
+            if (inStockOnly)
+            {
+                query = query.Where(p => p.StockQuantity > 0);
+            }
+
             var specificationFilters = new[] { "storage", "usage", "ram", "cpu", "screenSize", "resolution", "graphics", "specialFeatures" }
                 .ToDictionary(key => key, key => Request.Query[key]
                     .Select(value => value?.ToLowerInvariant() ?? string.Empty)
@@ -105,7 +111,8 @@ namespace Laptop.Controllers
                 .AsNoTracking()
                 .Include(promotion => promotion.Product)
                 .Where(promotion => promotion.IsActive && promotion.IsFeatured &&
-                    promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now)
+                    promotion.StartsAtUtc <= now && promotion.EndsAtUtc > now &&
+                    promotion.Product.StockQuantity > 0)
                 .OrderByDescending(promotion => promotion.DiscountPercent)
                 .ThenBy(promotion => promotion.EndsAtUtc)
                 .Take(5)
@@ -193,6 +200,7 @@ namespace Laptop.Controllers
         {
             return View(new Product
             {
+                StockQuantity = 1,
                 Specifications = Product.SpecificationsTemplate,
                 TechnicalSpecifications = Product.TechnicalSpecificationsTemplate
             });
@@ -212,6 +220,11 @@ namespace Laptop.Controllers
             product.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
             product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
+
+            if (product.StockQuantity < 1)
+            {
+                ModelState.AddModelError(nameof(product.StockQuantity), _localizer["StockQuantityAtLeastOne"].Value);
+            }
 
             if (string.IsNullOrWhiteSpace(product.Images))
             {
@@ -295,7 +308,7 @@ namespace Laptop.Controllers
         // POST: Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Model,Price,Currency,Specifications,TechnicalSpecifications,Description,Images,FullDescription,Condition")] Product product, List<IFormFile>? imageFiles)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Model,Price,Currency,StockQuantity,Specifications,TechnicalSpecifications,Description,Images,FullDescription,Condition")] Product product, List<IFormFile>? imageFiles)
         {
             if (id != product.Id)
             {
@@ -330,6 +343,7 @@ namespace Laptop.Controllers
                     existingProduct.Title = product.Title;
                     existingProduct.Model = product.Model;
                     existingProduct.Price = product.Price;
+                    existingProduct.StockQuantity = product.StockQuantity;
                     existingProduct.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
                     existingProduct.Features = product.Features;
                     existingProduct.TechnicalSpecifications = product.TechnicalSpecifications;
@@ -477,6 +491,20 @@ namespace Laptop.Controllers
             var values = templateFields.ToDictionary(field => field, _ => new List<string>(), StringComparer.OrdinalIgnoreCase);
             var additionalLines = new List<string>();
 
+            void AddAdditionalLine(string value)
+            {
+                value = Regex.Replace(
+                    value.Trim(),
+                    @"^(?:(?:Additional specification|thông số bổ sung)\s*:\s*)+",
+                    string.Empty,
+                    RegexOptions.IgnoreCase).Trim();
+
+                if (value.Length > 0 && !additionalLines.Contains(value, StringComparer.OrdinalIgnoreCase))
+                {
+                    additionalLines.Add(value);
+                }
+            }
+
             void AddValue(string field, string value)
             {
                 value = value.Trim();
@@ -581,12 +609,17 @@ namespace Laptop.Controllers
                     matched = true;
                 }
 
-                if (!matched) additionalLines.Add(line);
+                if (!matched) AddAdditionalLine(line);
             }
 
             foreach (var rawLine in (existingText ?? string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var line = rawLine.Trim().TrimStart('•', '-', '*').Trim();
+                line = Regex.Replace(
+                    line,
+                    @"^(?:(?:Additional specification|thông số bổ sung)\s*:\s*)+",
+                    string.Empty,
+                    RegexOptions.IgnoreCase).Trim();
                 if (line.Length == 0) continue;
 
                 var separator = line.IndexOf(':');
@@ -614,7 +647,11 @@ namespace Laptop.Controllers
                 return fieldValues.Count == 0 ? line : $"{line} {string.Join("; ", fieldValues)}";
             }).ToList();
 
-            mergedLines.AddRange(additionalLines.Select(line => $"Additional specification: {line}"));
+            if (additionalLines.Count > 0)
+            {
+                mergedLines.Add($"Additional specification: {string.Join("; ", additionalLines)}");
+            }
+
             return string.Join(Environment.NewLine, mergedLines);
         }
 
