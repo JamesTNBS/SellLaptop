@@ -13,15 +13,16 @@ IF EXISTS (
 
 IF COL_LENGTH(N'dbo.Products', N'StockQuantity') IS NULL
 BEGIN
-    ALTER TABLE [dbo].[Products]
-        ADD [StockQuantity] int NOT NULL
-            CONSTRAINT [DF_Products_StockQuantity] DEFAULT (10);
+    DECLARE @AddStockColumnSql nvarchar(4000) =
+        N'ALTER TABLE [dbo].[Products] ADD [StockQuantity] int NOT NULL CONSTRAINT [DF_Products_StockQuantity] DEFAULT (10);';
+    EXEC sys.sp_executesql @AddStockColumnSql;
 END;
 
 IF @StockWasInitialized = 0
 BEGIN
-    UPDATE [dbo].[Products]
-    SET [StockQuantity] = 10;
+    DECLARE @InitializeStockSql nvarchar(4000) =
+        N'UPDATE [dbo].[Products] SET [StockQuantity] = 10;';
+    EXEC sys.sp_executesql @InitializeStockSql;
 END;
 
 DECLARE @DefaultConstraint sysname;
@@ -34,11 +35,15 @@ WHERE dc.[parent_object_id] = OBJECT_ID(N'dbo.Products')
 
 IF @DefaultConstraint IS NOT NULL
 BEGIN
-    EXEC(N'ALTER TABLE [dbo].[Products] DROP CONSTRAINT ' + QUOTENAME(@DefaultConstraint) + N';');
+    DECLARE @DropDefaultConstraintSql nvarchar(4000);
+    SET @DropDefaultConstraintSql =
+        N'ALTER TABLE [dbo].[Products] DROP CONSTRAINT ' + QUOTENAME(@DefaultConstraint) + N';';
+    EXEC sys.sp_executesql @DropDefaultConstraintSql;
 END;
 
-ALTER TABLE [dbo].[Products]
-    ADD CONSTRAINT [DF_Products_StockQuantity] DEFAULT (0) FOR [StockQuantity];
+DECLARE @SetStockDefaultSql nvarchar(4000) =
+    N'ALTER TABLE [dbo].[Products] ADD CONSTRAINT [DF_Products_StockQuantity] DEFAULT (0) FOR [StockQuantity];';
+EXEC sys.sp_executesql @SetStockDefaultSql;
 
 IF NOT EXISTS (
     SELECT 1 FROM [dbo].[__EFMigrationsHistory]
