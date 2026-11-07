@@ -281,6 +281,7 @@
   <data name="PasteImageUrlPlaceholder" xml:space="preserve"><value>Dán liên kết ảnh và nhấn Thêm URL</value></data>
   <data name="AddUrl" xml:space="preserve"><value>Thêm URL</value></data>
   <data name="UploadImagesFromComputer" xml:space="preserve"><value>Tải ảnh lên từ máy tính của bạn</value></data>
+  <data name="CloudinaryProductImagesHint" xml:space="preserve"><value>Ảnh được lưu trên Cloudinary. Hỗ trợ JPG, PNG hoặc WebP; tối đa 10 MB mỗi ảnh.</value></data>
   <data name="FullDescription" xml:space="preserve"><value>Mô tả chi tiết</value></data>
   <data name="AddToShop" xml:space="preserve"><value>Thêm vào cửa hàng</value></data>
   <data name="BackToList" xml:space="preserve"><value>Quay lại danh sách</value></data>

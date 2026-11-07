@@ -280,6 +280,7 @@
   <data name="PasteImageUrlPlaceholder" xml:space="preserve"><value>Paste an image URL and click Add URL</value></data>
   <data name="AddUrl" xml:space="preserve"><value>Add URL</value></data>
   <data name="UploadImagesFromComputer" xml:space="preserve"><value>Upload images from your computer</value></data>
+  <data name="CloudinaryProductImagesHint" xml:space="preserve"><value>Images are stored in Cloudinary. JPG, PNG, or WebP; maximum 10 MB per image.</value></data>
   <data name="FullDescription" xml:space="preserve"><value>Full Description</value></data>
   <data name="AddToShop" xml:space="preserve"><value>Add to Shop</value></data>
   <data name="BackToList" xml:space="preserve"><value>Back to List</value></data>

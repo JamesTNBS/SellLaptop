@@ -29,6 +29,7 @@ builder.Services.AddControllersWithViews()
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource)));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<StorefrontFormatter>();
+builder.Services.AddHttpClient<IProductImageStorage, CloudinaryProductImageStorage>();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
