@@ -21,12 +21,14 @@ namespace Laptop.Controllers
     {
         private readonly IWebHostEnvironment _environment;
         private readonly StorefrontFormatter _formatter;
+        private readonly IProductImageStorage _imageStorage;
         private readonly Microsoft.Extensions.Localization.IStringLocalizer<Laptop.Resources.SharedResource> _localizer;
 
-        public ProductsController(ApplicationDbContext context, IWebHostEnvironment environment, StorefrontFormatter formatter, Microsoft.Extensions.Localization.IStringLocalizer<Laptop.Resources.SharedResource> localizer) : base(context)
+        public ProductsController(ApplicationDbContext context, IWebHostEnvironment environment, StorefrontFormatter formatter, IProductImageStorage imageStorage, Microsoft.Extensions.Localization.IStringLocalizer<Laptop.Resources.SharedResource> localizer) : base(context)
         {
             _environment = environment;
             _formatter = formatter;
+            _imageStorage = imageStorage;
             _localizer = localizer;
         }
 
@@ -219,14 +221,14 @@ namespace Laptop.Controllers
             product.Seller = "Admin";
             product.Currency = StorefrontFormatter.NormalizeCurrency(product.Currency);
             product.Specifications = EnsureSpecificationTemplate(product.Specifications, Product.SpecificationsTemplate);
-            product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
 
             if (product.StockQuantity < 1)
             {
                 ModelState.AddModelError(nameof(product.StockQuantity), _localizer["StockQuantityAtLeastOne"].Value);
             }
 
-            if (string.IsNullOrWhiteSpace(product.Images))
+            var hasImageFiles = imageFiles?.Any(file => file.Length > 0) == true;
+            if (string.IsNullOrWhiteSpace(product.Images) && !hasImageFiles)
             {
                 ModelState.AddModelError("Images", _localizer["AddAtLeastOneImage"].Value);
             }
@@ -235,6 +237,7 @@ namespace Laptop.Controllers
             {
                 try
                 {
+                    product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
                     _context.Products.Add(product);
                     await _context.SaveChangesAsync();
 
@@ -327,9 +330,8 @@ namespace Laptop.Controllers
                 return NotFound();
             }
 
-            product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
-
-            if (string.IsNullOrWhiteSpace(product.Images))
+            var hasImageFiles = imageFiles?.Any(file => file.Length > 0) == true;
+            if (string.IsNullOrWhiteSpace(product.Images) && !hasImageFiles)
             {
                 ModelState.AddModelError("Images", "Add at least one image URL or upload an image from your computer.");
             }
@@ -338,6 +340,8 @@ namespace Laptop.Controllers
             {
                 try
                 {
+                    var previousImages = existingProduct.Images;
+                    product.Images = await MergeImageSourcesAsync(product.Images, imageFiles);
                     DeleteRemovedLocalImages(existingProduct.Images, product.Images);
 
                     existingProduct.Title = product.Title;
@@ -400,11 +404,16 @@ namespace Laptop.Controllers
 
                     _context.CartItems.UpdateRange(cartItems);
                     await _context.SaveChangesAsync();
+                    await _imageStorage.DeleteRemovedAsync(previousImages, existingProduct.Images);
 
                     TempData["ToastMessage"] = _localizer["ProductUpdatedSuccessfully"].Value;
                     TempData["ToastType"] = "success";
 
                     return RedirectToAction("Details", new { id = existingProduct.Id });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("imageFiles", ex.Message);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -453,6 +462,7 @@ namespace Laptop.Controllers
 
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
+                await _imageStorage.DeleteAllAsync(product.Images);
 
                 return Json(new { success = true, message = _localizer["ProductDeletedSuccessfully"].Value });
             }
@@ -473,6 +483,7 @@ namespace Laptop.Controllers
                 DeleteLocalImages(product.Images);
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
+                await _imageStorage.DeleteAllAsync(product.Images);
             }
             return RedirectToAction(nameof(Index));
         }
@@ -824,19 +835,24 @@ namespace Laptop.Controllers
                 return string.Join(", ", images);
             }
 
-            var uploadDirectory = Path.Combine(_environment.WebRootPath, "uploads", "products");
-            Directory.CreateDirectory(uploadDirectory);
-
-            foreach (var file in imageFiles.Where(f => f.Length > 0))
+            var uploadedImages = new List<string>();
+            try
             {
-                var extension = Path.GetExtension(file.FileName);
-                var fileName = $"{Guid.NewGuid()}{extension}";
-                var filePath = Path.Combine(uploadDirectory, fileName);
+                foreach (var file in imageFiles.Where(file => file.Length > 0))
+                {
+                    var imageUrl = await _imageStorage.UploadAsync(file);
+                    uploadedImages.Add(imageUrl);
+                    images.Add(imageUrl);
+                }
+            }
+            catch
+            {
+                if (uploadedImages.Count > 0)
+                {
+                    await _imageStorage.DeleteAllAsync(string.Join(", ", uploadedImages));
+                }
 
-                await using var stream = new FileStream(filePath, FileMode.Create);
-                await file.CopyToAsync(stream);
-
-                images.Add($"uploads/products/{fileName}");
+                throw;
             }
 
             return string.Join(", ", images.Distinct());

@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>JamTarViShop-Laptop-Local</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +21,16 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="wwwroot\uploads\products\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- This repository has an unrelated nested copy of the app. Keep the root project
+         focused on its own source files instead of compiling that duplicate tree. -->
+    <Compile Remove="Laptop\**" />
+    <Content Remove="Laptop\**" />
+    <EmbeddedResource Remove="Laptop\**" />
+    <None Remove="Laptop\**" />
+    <RazorGenerate Remove="Laptop\**" />
   </ItemGroup>
 
 </Project>
